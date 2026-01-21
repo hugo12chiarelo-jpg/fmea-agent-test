@@ -1,0 +1,506 @@
+ 
+
+	BUSINESS RULES FOR THE EMS UPGRADE
+
+
+ subsidiaries. This document or any part thereof is CONFIDENTIAL and may not be made known, copied, multiplied, or used in any other way without the permission of SBM Offshore N.V. or any of its subsidiaries	Ex: N/A
+ 
+REVISION STATUS / SUMMARY OF CHANGES
+
+
+REVISION	REVISED CHAPTERS	REVISION DESCRIPTION	REASON FOR REVISION
+			
+			
+			
+			
+			
+
+
+ 
+
+TABLE OF CONTENTS
+
+GLOSSARY	4
+1.	EMS	4
+2.	ITEM CLASS	4
+3.	EQUIPMENT FUNCTION	5
+4.	BOUNDARY	5
+5.	FUNCTIONAL FAILURE	5
+6.	MAINTAINABLE ITEM	5
+7.	FAILURE EFFECT	5
+8.	SYMPTOM	6
+9.	CAUSE	7
+A)	SPARE PARTS IN THE FAILLING COMPONENT	9
+10.	TREATMENT ACTION	9
+	HOW TO BUILD A TREATMENT ACTION OR TECHNICAL REPORTING	10
+B)	10
+11.	OUTPUT FMEA STRUCTURE	11
+Application Rules of Symptoms for AI Agent	13
+1.1.1	Expected Outcome	14
+12.	OUTPUT FMEA STRUCTURE	15
+ 
+GLOSSARY 
+RQ – Refers to Reporting Question Assurance Activity or Technical Reporting
+AA – Assurance Activity 
+PS - Performance Standard
+
+
+1.	EMS
+
+EMS stands for Equipment Maintenance Strategy. It is a structured and standardized approach used to define how each type of equipment should be maintained throughout its lifecycle, based on its function, failure risks, criticality, and operational context. The objective of EMS is to ensure that each equipment type has a tailored, risk-based maintenance plan that:
+
+	Prevents failures
+	Ensures safety and compliance
+	Optimized costs
+	Supports reliability and asset integrity
+	
+An EMS typically defines:
+
+o	Item Class: Functional category of equipment (e.g., PUCE – Centrifugal Pump). 
+
+o	Scope: What the equipment is designed to do.
+
+o	Boundary: interface between an item and its surroundings.
+
+o	FMEA Basis: What can go wrong, and how it should be mitigated.
+
+o	Maintenance Strategy Overview: Justification and logic behind the selected PM approach.
+
+o	Work Task Templates (WTTs): Standardized tasks with frequency based on the Object Criticality, Reporting Questions, Work Instructions, and resources. 
+
+Work Task template is one of the inputs for FMEA construction.
+
+o	Reporting Questions: Pass/fail or performance checks that support assurance and compliance of “what to do” in a routine. 
+It can be two types: Assurance Activity that comes from Performance Standard or Reporting Question – both will be defined in the next Chapters
+
+
+2.	ITEM CLASS
+The item class groups equipment by the functional similarity and is equivalent to the Equipment Class defined in ISO 14224.
+
+Exemple: DREM for Eletrical Motor
+
+3.	EQUIPMENT FUNCTION
+An equipment function is the intended role or purpose that a piece of equipment performs within a system or process. It describes what the equipment is designed to perform.
+
+Example for DREM – Electrical Motor: Convert electrical energy into mechanical energy.
+
+
+4.	BOUNDARY
+
+The purpose of the boundary definition is to ensure a common understanding of the “subunit/component” and “maintainable item/part” included within the boundary of a particular equipment unit. 
+
+The FMEA should consider what is inside the boundaries of EMS to build the Maintainable Items.
+EMS is one of the inputs for FMEA construction.
+
+5.	FUNCTIONAL FAILURE
+A functional failure is the inability of an item to fulfill a function to a standard of performance which is acceptable to the user.
+So, a functional failure doesn’t necessarily mean the equipment is physically broken — it means it can no longer perform its intended function as required in its current operating context.
+It’s about loss of function, not necessarily loss of motion.
+
+6.	MAINTAINABLE ITEM
+
+Item that constitutes a part or an assembly of parts that is normally the lowest level in the equipment hierarchy during maintenance. 
+The group of parts of the equipment unit that are commonly maintained (repaired/ restored) as a whole.
+E.g: Cooler, coupling, gearbox, lubrication oil pump, instrument loop, Seal, tube, shell, impeller, gasket, filter plate
+
+The Standard for “Maintainable Item” will follow the structure below as Output:
+After every Maintainable Item must be followed by the word “Failure”.
+
+Maintainable Item + “Failure”
+Example: “NDE Bearing Failure”
+
+The Maintainable Item is part of the event that caused the Functional Failure, it’s the item present in the Failure – Example: “Bearing Failure”
+7.	FAILURE EFFECT
+Failure effects describe what happens when each failure mode occurs.
+They should include all the information needed to support the evaluation of the consequences of that failure.
+
+
+8.	SYMPTOM
+
+According to ISO14224, the symptom is the visual effect by which a failure is observed on the failed item. 
+Example: 
+If it’s a bearing Failure caused by a Unbalance, one of the symptoms observed is the Vibration --> The symptom in this case is the Vibration
+If many failures with “other” are recorded, this can later create a basis for a new failure mode to come in these tables.
+
+The Failure Mode will be applied against the Maintainable Item.
+The list of values is available from table B.6 to B.15 in ISO 14224.
+Here is the compilation of all the Symptoms associated with the suggested Item Class as defined in ISO 14224.
+
+ 
+
+This list of all the symptoms available in ISO 14224, but not connected to any Equipment Unit, only all the available:
+
+Table – Failure Mode (Symptoms)
+
+Failure mode code	Failure mode description
+AIR	Abnormal instrument reading
+BRD	Breakdown
+CLW	Control-line-to-well communication
+CSF	Control / signal failure
+DOP	Delayed operation
+ELF	External leakage - fuel
+ELP	External leakage - process medium
+ELU	External leakage - utility medium
+ERO	Erratic output
+FCO	Failure to connect
+FCU	Failure to cut
+FLP	Failure in lightning protection system
+FOF	Faulty output frequency
+FOV	Faulty output voltage
+FRO	Failure to rotate
+FTC	Failure to close on demand
+FTD	Failure to disconnect
+FTF	Failure to function on demand
+FTI	Failure to function as intended
+FTL	Failure to lock/unlock
+FTO	Failure to open on demand
+FTR	Failure to regulate
+FTS	Failure to start on demand
+FWR	Failure while running
+HIO	High output
+HTF	Heating failure
+IHT	Insufficient heat transfer
+ILP	Internal leakage - process medium
+ILU	Internal leakage - utility medium
+INL a	Internal leakage
+LBP	Low oil supply pressure
+LCP	Leakage in closed position
+LOA	Load drop
+LOB	Loss of buoyancy
+LOO	Low output
+MOF	Mooring failure
+NOI	Noise
+NOO	No output
+OHE	Overheating
+OTH	Other
+PCL	Premature closure
+PDE	Parameter deviation
+PLU	Plugged/ choked
+POD	Loss of functions on both pods
+POW	Insufficient power
+PTF	Power/signal transmission failure
+SBU	Sludge build-up
+SER	Minor in-service problems
+SET	Failure to set/retrieve
+SHH	Spurious high alarm level
+SLL	Spurious low alarm level
+SLP	Slippage
+SPO	Spurious operation
+STD	Structural deficiency
+STP	Failure to stop on demand
+STU	Stuck
+UBU	Global buckling
+UNK	Unknown
+UST	Spurious stop
+VIB	Vibration
+VLO	Very low output
+WCL	Well-to-control-line communication
+
+9.	CAUSE
+
+The Causes are defined following the ISO 14224 Failure Mechanisms Table B.2 and it’s connected to the Maintainable Item.
+The failure mechanism is the physical, chemical or other process or combination of processes that leads to the failure. It is an attribute of the failure event that can be deduced technically, e.g. the apparent, observed cause of the failure.
+It’s the observable cause why the Maintainable Item (such as a replaceable part within a system) fails with that Symptom.
+Once it’s known why a Failure Mechanism occurs in that specific Maintainable Item, it’s possible to find an effective way to prevent, monitor or predict it.
+
+The “Other” and “Unknown” causes should be avoided, so it should not be part of the Cause list in IFS.
+If there is not sufficient information to apply codes at this sublevel, then codes on the main level as listed above may be used.
+
+Table B.2 – Failure Mechanism
+
+Code number	Failure mechanism	Code number (sub)	Notation	Description
+1	Mechanical failure	1	General	A failure related to some mechanical defect but where no further details are known
+1	Mechanical failure	1.1	Leakage	External and internal leakage, either liquids or gases...
+1	Mechanical failure	1.2	Vibration	Abnormal vibration...
+1	Mechanical failure	1.3	Clearance / alignment failure	Failure caused by faulty clearance or alignment
+1	Mechanical failure	1.4	Deformation	Distortion, bending, buckling, denting, yielding, shrinking...
+1	Mechanical failure	1.5	Looseness	Disconnection, loose items
+1	Mechanical failure	1.6	Sticking	Sticking, seizure, jamming...
+2	Material failure	2	General	A failure related to a material defect but no further details known
+2	Material failure	2.1	Cavitation	Relevant for equipment such as pumps and valves
+2	Material failure	2.2	Corrosion	All types of corrosion, both wet and dry (chemical)
+2	Material failure	2.3	Erosion	Erosive wear
+2	Material failure	2.4	Wear	Abrasive and adhesive wear...
+2	Material failure	2.5	Breakage	Fracture, breach, crack
+2	Material failure	2.6	Fatigue	If the cause of breakage can be traced to fatigue...
+2	Material failure	2.7	Overheating	Material damage due to overheating/burning
+2	Material failure	2.8	Burst	Item burst, blown, exploded, imploded, etc.
+3	Instrument failure	3	General	Failure related to instrumentation but no details known
+3	Instrument failure	3.1	Control failure	No, or faulty, regulation
+3	Instrument failure	3.2	No signal/indication/alarm	No signal/indication/alarm when expected
+3	Instrument failure	3.3	Faulty signal/indication/alarm	Signal/indication/alarm is wrong...
+3	Instrument failure	3.4	Out of adjustment	Calibration error, parameter drift
+3	Instrument failure	3.5	Software error	Faulty, or no, control/monitoring/operation due to software error
+3	Instrument failure	3.6	Common cause/Common mode failure	Several instrument items failed simultaneously...
+4	Electrical failure	4	General	Failures related to the supply and transmission of electrical power...
+4	Electrical failure	4.1	Short circuiting	Short circuit
+4	Electrical failure	4.2	Open circuit	Disconnection, interruption, broken wire/cable
+4	Electrical failure	4.3	No power/voltage	Missing or insufficient electrical power supply
+4	Electrical failure	4.4	Faulty power/voltage	Faulty electrical power supply...
+4	Electrical failure	4.5	Earth/isolation fault	Earth fault, low electrical resistance
+5	External influence	5	General	Failure caused by some external events or substances...
+5	External influence	5.1	Blockage/plugged	Flow restricted/blocked...
+5	External influence	5.2	Contamination	Contaminated fluid/gas/surface...
+5	External influence	5.3	Miscellaneous external influences	Foreign objects, impacts, environmental influence...
+6	Miscellaneous	6	General	Failure mechanism that does not fall into one of the categories listed above
+6	Miscellaneous	6.1	No cause found	Failure investigated but cause not revealed or too uncertain
+6	Miscellaneous	6.2	Combined causes	Several causes: If there is one predominant cause this should be coded
+6	Miscellaneous	6.3	Other	No code applicable: Use free text
+6	Miscellaneous	6.4	Unknown	No information available
+
+
+Note: The Causes defined in the ISO 14224 is to identify the initiating event (Root Cause) in the sequence leading up to Failure of an Equipment Item. That’s why the cause is not considered in the Failure Tree, the Cause here is reported by offshore and to achieve such specification is needed RCA process to support. 
+
+A)	SPARE PARTS IN THE FAILLING COMPONENT
+The identification of spare parts and replaceable equipment components, eligible for internal storage (excluding third-party supplied items), is essential to ensure timely failure prevention and restoration of operational functionality. Spare parts were selected based on a detailed analysis of failure causes and the specific components affected, rather than solely on the failure modes. This approach ensures a more accurate and efficient spare parts strategy. All selected spare parts are catalogued in the SBM Spare Parts List.
+The Spare Part will be catalogued inside the “Failure Cause Failing Component” field (Open Textbox), following the Standard:
+
+[1] 1ST Spare Part
+[2] 2nd Spare Part
+.
+.
+.
+[n] N Spare Part
+Ex: “[1] RADIAL BEARING
+[2] THERMOCOUPLE OR RTD (RADIAL/THRUST BEARING)
+[3] BEARING, SLEEVE
+[4] BEARING, CONNECTING ROD”
+
+10.	TREATMENT ACTION
+Treatment Action is a set of recommended actions which are designed to ensure that each asset continues to fulfill its functions.
+During the operation, action can be taken to detect the Symptom, or imminent failure, to prevent or reduce its effects.
+The Maintenance Strategy can also be used as a means of control and should be developed in a structured manner from the Failure Tree. The treatments may result in one or more of the following:
+
+o	Prevent functional failures before they occur (if possible).
+o	Predict potential failures early enough to act.
+o	Find hidden failures in protective systems.
+o	Redesign the asset or process if proactive tasks are not effective.
+Allow run-to-failure where appropriate.
+
+
+It’s important to have a brief of any recommendation taken, this can be identified in the WTT Application and/or FASN Maintenance Strategy Overview.
+Some questions should be considered during the Treatment Action selection.
+o	Is there a technically valid way to predict or prevent failure? 
+Examples: Restoring the item to its original condition at a specified interval (overhaul) or Inspecting or monitoring the item to detect a potential failure before functional failure occurs or Replacing an item or part at a fixed interval before failure.
+o	Is it evident or hidden? If It’s Hidden Failure, A periodic test or inspection to detect hidden failures
+o	Is the task worth doing? In terms of Cost/Benefit → If not justified: Redesign or Run-to Failure
+
+ASSURANCE ACTIVITY
+
+1.	Performance Criteria are the objective, auditable, and measurable parameters that a barrier (Safety Critical Element - SECE) must achieve to ensure its intended function.
+
+2.	Assurance Activities are the systematic set of tasks performed to confirm that the Performance Criteria of an SECE are being achieved.
+Assurance Activities shall be planned, executed, and documented in accordance with the Performance Standards, ensuring the required Performance Criteria defined for the barrier is attended during the Operation Phase.
+
+3.	Pass/Fail Criteria are the predefined and measurable conditions (Questions format) that establish whether an SECE meets or fails to meet its Performance Criteria. They serve as explicit acceptable range, ensuring that assurance activities yield a clear and auditable outcome (Pass or Fail).
+Each Performance Criteria shall have corresponding Pass/Fail Criteria, ensuring that compliance can be objectively demonstrated.
+
+WHAT IS NOT AN ASSURANCE ACTIVITY
+Activity that should not be considered as Pass Fail:
+
+Administrative or Paperwork Activities
+•	Example: Registering maintenance completion in IFS / CMMS.
+•	Reason: This is a procedural compliance step, not a direct demonstration of the SCE’s ability to meet its Performance Criteria.
+Document Reviews or Approvals
+•	Example: Approving work permits, signing inspection checklists, validating vendor certificates.
+•	Reason: They provide governance and traceability but are not pass/fail tests of barrier integrity.
+Training and Competence Records
+•	Example: Confirming that a technician attended a safety training course.
+•	Reason: Important for workforce assurance, but it does not validate the SCE’s operational performance.
+General Compliance Checks
+•	Example: Confirming that procedures were followed step-by-step.
+•	Reason: Procedure adherence is vital, but it should not be confused with technical pass/fail of the barrier.
+Housekeeping or General Condition Reporting
+•	Example: “Area clean and free from obstacles,” “labels in place,” or “paint condition OK.”
+•	Reason: These contribute to good practice and maintainability but are not performance validation criteria for the SCE itself.
+Design Criteria
+•	Example of Performance Criteria covered by design: “Piping design & routing for lines containing Choke valve to be designed in line with P&IDs & Supplier GA drawing provided for Choke valve.” 
+•	Reason: These are Criteria covered in the Design Phase and should not be checked during the Operation Phase with an Assurance Activity and consequently Pass/Fail.
+
+
+•	Technical Reporting (TR)
+Technical Reporting is structured based on the work instructions outlined in each WTT.
+The primary objective of AA and TR is to clearly communicate to the executor “What needs to be performed” and “Which part which it should be executed”. This ensures clarity in task execution, minimizing uncertainties. 
+If the executor has any questions regarding how to execute the task, they can refer to the attached document linked to the WTT.
+
+The FMEA must be able to tell whether the Reporting Questions are adequate, whether there is a lack of coverage of any cause.
+Or even whether a reporting question is being asked unnecessarily, i.e., it does not cover any failure Mechanism, or there is already another reporting question in the same item class that already covers the same cause.
+
+B)	HOW TO BUILD A TREATMENT ACTION OR TECHNICAL REPORTING
+The Reporting Question must be a positive question, which could have a tolerance/limit value or binary answer. 
+
+**If the work instruction is not giving the correct information or there is room for improvement, a review of the Work Instruction will be considered during the FMEA Exercise.
+ 
+** If the tasks inside the Work Instruction is classified as “If applicable”, so do not include in the Technical Reporting.
+
+Assurance Activity will follow the Performance Standard inputs.
+
+In the context of an Assurance Activity (originating from the PS and associated with a safety critical element- SECE), the categorization is designated as Pass/Fail criteria. 
+Conversely, when not associated with an Assurance Activity, the categorization is classified as Technical Reporting.
+
+The construction of the Question will adhere to the following structure:
+Structure details to be added as required:
+** If necessary, the Maintainable Item/Part can be cited in the construction of the Question to indicate to the executor where to perform the task.
+
+Maintainable Item/Part** + description of the criteria + [Y/N].
+“Bolts are secured and free of corrosion? [Y/N]”
+“Terminal boxes sealed and free of damaged? [Y/N]”
+“The cables insulation, cable glands, cable grounding, drive coupling,           sprocket, pulleys and belts free of damaged? [Y/N]”
+
+Maintainable Item – It’s possible to have more than one Maintainable if they’re in the same system and required the same action.
+**Please, consider the Maintainable Item in the Failure Mode tree as reference. 
+
+Example:
+If there are two Maintainable Item in the Failure Tree, prioritize keeping them separated in the Technical Reporting.
+** If necessary and profitable, the Maintainable Item/Part must be cited in the construction of the Question to indicate to the executor where to perform the task.
+
+Description of the Criteria – Item can be a particular condition, structural damage, corrosion, limits.
+
+If the Tasks represents a measurement or data collection, indicates in the technical reporting with the data collected/measured is within the accuracy limit, tolerance…
+The action of measuring/collecting information does not need to be described in the question.
+
+	“Windings and cable insulation resistance within acceptable limits? [Y/N]”
+
+For performance criteria involving tolerances or limits that are not related to the unit design or regional standards/Rules, the parameter may be described within the RQ description without the need to use “Min/Max”.
+Example:
+“Calibration performed successfully (< ± 5% of reading) or sensor replaced with new functional one? [Y/N]”
+
+Tasks which need to be recorded the parameter and send to onshore to analysis the Question can be write with only the action of record the parameter, no need to examine if the value recorded is within the limits
+Example:
+
+
+11.	OUTPUT FMEA STRUCTURE
+
+The FMEA structure should have the following columns following the rules
+
+I.	Item Class
+This field should have the Item Class Code and the Item class description of the Analyzed item.
+Example: COCE – Centrifugal Compressor
+
+II.	Function
+Based on ISO14224, Item Class description and the scope field of the EMS file, create the function in a direct and affirmative phrase. 
+Use as reference the column “Scope” inside the EMS file and the ISO 14224. Example:
+DREM – Electric Motor -> Function: Convert electrical energy into mechanical energy
+
+III.	Maintainable Item
+
+Rules: 
+
+a)	The Maintainable Item is the Master and has Symptoms and Failure Mechanism associated.
+b)	The Maintainable Item should have the definitions explained in the chapter: “MAINTAINABLE ITEM”
+
+c)	Important: Analyze the Maintainable Item Catalog file, this is the list available of Maintainable Item, and then read the Boundaries of EMS file and use it to limit the List of Maintainable Item based in the Boundary of EMS. 
+But the AI must bring suggestions for improvement and use the Maintainable Item Catalog for this Item Class as inspiration following the same standard.
+Summarizing: Read the Boundaries inside the EMS file and identify inside the Maintainable Item Catalog the Maintainable Item that best fit in the Boundaries Description.
+If any suggestions of missing Maintainable Item is needed, please add in the output being identified by (*). 
+Example: “DE Bearing (*)”. To suggest new Maintainable Item, read the column “Scope” in the EMS and take account of this is a Oil and Gas Industry with Equipment inside the FPSO.
+d)	Maintainable Item must follow the structure: Maintainable Item + word “Failure”. 
+Example: “Radial Bearing Failure”
+
+Notes:
+For Bearings, instead of using Radial and Axial Bearing, use NDE and DE Bearing.
+
+
+IV.	Failure Effect 
+Identify what is the effect of the Failure in the Maintainable Item, which presents that Symptom and caused by that Failure Mechanism.
+The effect is the immediate result of Failure.
+Example: 
+What is the effect of the Bearing Failure, showing Vibration caused by a misalignment?
+Trip in the compressor
+
+
+
+V.	Symptom Code
+Symptom Code is the same failure modes presented in the Symptom Catalog file, based on ISO 14224, table B.15.
+If the Item Class is not listed in the Symptom Catalog, please suggest Symptoms using as reference this is a FMEA for an Oil and Gas industry, where the equipment is part of an FPSO.
+
+Rules: 
+a)	Should one symptom per line be considered.
+b)	Keep all symptoms possible per maintainable item following the Symptom Catalog file.
+c)	More than one symptom can be listed per Maintainable Item.
+d)	All the Maintainable Item should have at least one Symptom.
+
+e)	Symptom–Item Consistency Rule
+When generating the FMEA, the AI must analyze each Maintainable Item’s technical nature (mechanical, electrical, instrumentation, sealing, structural, control/software, etc.) using the EMS boundaries and Maintainable Item Catalog.
+Then, for each Maintainable Item, only select Symptoms that are physically or functionally observable for that type according to ISO 14224.
+Exclude or replace Symptoms that are not technically coherent (e.g., "Failure to start" on bearings → use "Failure to rotate"; "Leakage" on control panels → invalid).
+This validation must be done before final FMEA export to guarantee that every Symptom is realistic for the Maintainable Item’s actual function and engineering behavior.
+
+Application Rules of Symptoms for AI Agent
+a)	Technical Classification of Maintainable Item
+Before assigning any Symptom, the AI shall determine the Maintainable Item’s technical type based on the EMS boundary, Maintainable Item Catalog, and functional description.
+Each Maintainable Item shall be classified into one of the following example types:
+
+o	Mechanical (Rotating / Static)
+o	Sealing System
+o	Electrical / Power Supply
+o	Control / Software / Logic
+o	Instrumentation / Measurement
+o	Safety Equipment (Lifeboats, lifebuoys…)
+
+b)	Symptom Eligibility
+Only Symptoms that are physically or functionally observable for the given type of Maintainable Item shall be selected from the Symptom Catalog (ISO 14224).
+The AI agent must ensure that each chosen Symptom can reasonably be detected during operation, inspection, or maintenance of that item.
+
+c)	Invalid Symptom Exclusion
+Symptoms that are not technically applicable to the Maintainable Item’s physical nature must be automatically excluded.
+Examples:
+o	“Failure to start on demand (FTS)” → applies only to systems or components with starting or power-supply function (e.g., motors, PLCs).
+	For rotating mechanical parts such as bearings, replace with “Failure to rotate (FRO)”.
+o	“External Leakage (ELP)” → applies only to pressure-retaining or sealing components (e.g., seals, casings).
+o	“Overheating (OHE)” → applicable to mechanical or electrical items with heat generation; not valid for logic or instrumentation items.
+o	“Control failure (CSF)” → valid for electronic or programmable components; not valid for mechanical parts.
+
+d)	Symptom Replacement Logic
+When an invalid Symptom is identified, it must be replaced by the closest technically valid alternative according to the failure behavior of that item.
+
+e)	Validation Rule
+For each selected Symptom, the AI shall internally validate the following statement:
+“Can this Symptom be observed or detected in this Maintainable Item during its operation or maintenance?”
+If the answer is No, the Symptom shall not be included in the output.
+f)	Documentation of Replacements
+When a Symptom is replaced for technical coherence, a brief justification should be noted in the FMEA development log (e.g., “FTS replaced by FRO for Bearing — mechanical seizure; no electrical function involved”).
+This traceability ensures engineering rationale and auditability.
+
+Expected Outcome for Symptoms
+•	All Symptoms are technically valid and observable for their Maintainable Items.
+•	No mismatches such as electrical symptoms on mechanical components, or leakage symptoms on control equipment.
+•	The FMEA output represents the actual physical behavior of each Maintainable Item within the EMS boundary.
+
+
+
+VI.	Failure Mechanism
+Rules: 
+
+a)	Failure Mechanism describe the specific processes, events, or conditions that lead to the symptom happen in that specific Maintainable Item.
+
+b)	The Failure Mechanism is based in the Table B.2 – Failure Mechanism, there is no room for interpretation in this case, the output of the Failure Mechanism must be the Code number (sub) + Notation. Example of a Failure Mechanism in the output file: 
+1.5 Looseness
+
+c)	The ‘General’ Code number (sub) should be avoided, but it can be used in cases where no other option fits better. For these cases use the combination: Failure mechanism + Code number (sub) + Notation. Example: 
+Mechanical failure 1 General
+Electrical failure 1 General
+
+d)	More than one failure mechanism can be listed per Maintainable Item.
+
+
+VII.	Treatment Actions
+
+This Treatment Actions can not use the Work Instruction as reference, use the ISO, OREDA, the knowledge provide until here and  the research mode to define the Treatment Actions.
+
+Rules: 
+a)	The Treatment Actions are the Reporting Questions when linked to a Maintainable Item + Failure Mechanism.
+
+b)	The Failure Mechanism can have more than one Treatment Actions (Reporting Question) connected, they need to be in a separated line.
+
+The Treatment Actions is the created using the Chapter: “How to build a Technical Reporting from Work Instruction” where the Treatment Actions should always have the following composition:
+ 		Maintainable Item/Part + description of the criteria.
+Example: “Bolts are secured and free of corrosion? [Y/N]”
+
+
+
+12.	OUTPUT FMEA
+
+The Output file must be a XLXS file with the following columns: Item Class Id, Function, Maintainable Item, Maintainable Item Function, Symptom, Failure Mechanism, Failure Effect, Treatment Actions, Reporting Question ID.
+The rules to build these columns are all defined inside the chapter “11. OUTPUT FMEA STRUCTURE” from item I. until VII.
+
