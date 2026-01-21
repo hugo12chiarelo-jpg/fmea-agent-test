@@ -15,31 +15,35 @@ No column may be removed, renamed, reordered, or merged.
    - Exact value provided by the user.
 
 2. Function  
-   - Function of the Maintainable Item relative to the Item Class.
+   - Function of the relative Item Class description.
    - Must be technically descriptive (not generic).
 
-3. Maintainable Item  
+3. Maintainable Item
    - Name must come from Maintainable Item Catalog.
    - Must end with "Failure".
    - Inferred items which are not part of the Maintainable Item Catalog must be marked with "(*)".
+  
+5. Maintainable Item Function
+   - Function of the Maintainable Item relative to the Item Class.
+   - Must be technically descriptive (not generic) for that specific Maintainable Item
 
-4. Symptom  
+6. Symptom  
    - ISO 14224 code + description (e.g., "VIB - Vibration").
    - Must follow Symptom Catalog from ISO 14224.
    - Any non-catalog symptom must be marked with "(*)".
    - For each Maintainable Item must exist at least 4 until 8 Symptoms
 
-5. Failure Mechanism  
+7. Failure Mechanism  
    - ISO 14224 Table B.2 mechanism.
    - Must be physically linked to the Maintainable Item and the Symptom.
    - Avoid generic or duplicated meaning with the Symptom.
    - For each symptom must exist 1 until 5 Failure mechanism
 
-6. Failure Effect  
+8. Failure Effect  
    - Describe the local effect of the failure at the Maintainable Item level.
    - Do NOT describe system-level consequences here.
 
-7. Treatment Actions  
+9. Treatment Actions  
    - List 2–3 actions per Failure Mechanism.
    - Each action must be:
      - binary [Y/N]
@@ -48,11 +52,11 @@ No column may be removed, renamed, reordered, or merged.
      - technically feasible to fix/avoid the Failure Mechanism for that specific Symptom.
    - No administrative or documentation-only actions like registration in CMMS or cleaning.
 
-8. Reporting Question ID  
+10. Reporting Question ID  
    - Use Task Template IDs from EMS.xlsx when applicable.
    - If not available, mark as "TBD".
 
-9. Treatment Action Type  
+11. Treatment Action Type  
    - One of:
      Predictive | Preventive | Failure-Finding | Redesign | Run-to-Failure
    - One type per Treatment Action.
