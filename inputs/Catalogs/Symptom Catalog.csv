@@ -1,0 +1,63 @@
+﻿Code;Description (ISO 14224);Failure Mode for Failure Tree;Definition / Concept;Application Context;Typical Examples
+AIR;Abnormal instrument reading;AIR - Abnormal instrument reading;The instrument shows an incorrect, fluctuating, or inconsistent measurement not matching the actual value. Often due to calibration drift or sensor fault.;Instrumentation / Control systems – transmitters, sensors, gauges, PLC inputs.;"Pressure transmitter showing wrong reading; faulty thermocouple; false alarm."
+BRD;Breakdown;BRD - Breakdown;Sudden, total, and catastrophic failure of a component or subassembly.;Rotating / Mechanical / Electrical equipment.;Shaft breakage, bearing seizure, rotor destruction.
+CLW;Control-line-to-well communication;CLW - Control-line-to-well communication;Hydraulic or electrical control line communicates unintentionally with the well fluids.;Subsea and well control systems.;Hydraulic crossflow between well and control line.
+CSF;Control / signal failure;CSF - Control / signal failure;Failure to send, receive, or interpret a control or signal properly.;Automation / instrumentation / control systems.;"Valve actuator not responding to command; PLC output lost."
+DOP;Delayed operation;DOP - Delayed operation;Equipment performs its intended function, but with unacceptable delay.;Valves, motors, actuators, starters.;"Slow valve actuation; delayed motor start."
+ELF;External leakage – fuel;ELF - External leakage - fuel;External leakage of supplied fuel or gas.;Engines, generators, burners.;Diesel leakage at fuel pump or injector line.
+ELP;External leakage – process medium;ELP - External leakage - process medium;Process fluid leaking to the environment.;Pumps, compressors, valves, heat exchangers, piping.;"Pump mechanical seal leaking oil; gasket failure on flange."
+ELU;External leakage – utility medium;ELU - External leakage - utility medium;External leakage of utility fluid (water, air, lubrication oil).;Utility and auxiliary systems.;"Cooling-water hose rupture; lube-oil leak."
+ERO;Erratic output;ERO - Erratic output;Output signal or performance is unstable, oscillating, or noisy.;Instrumentation, control valves, variable-speed drives.;"Regulator hunting; unstable transmitter signal."
+FCO;Failure to connect;FCO - Failure to connect;Equipment fails to couple or connect as intended.;Electrical or mechanical connectors / couplings.;"Plug doesn’t engage; mechanical joint misaligned."
+FCU;Failure to cut;FCU - Failure to cut;Cutting device or system fails to sever material.;Subsea shear rams, emergency cutters.;Shear ram fails to cut pipe.
+FLP;Failure in lightning protection system;FLP - Failure in lightning protection system;Lightning protection system not functioning properly.;Electrical distribution / grounding systems.;"Ground resistance too high; open surge suppressor."
+FOF;Faulty output frequency;FOF - Faulty output frequency;Output frequency outside the acceptable range.;Generators, inverters, turbines.;Generator frequency unstable or off nominal.
+FOV;Faulty output voltage;FOV - Faulty output voltage;Output voltage out of design limits.;Generators, UPS, transformers.;Low generator voltage due to AVR fault.
+FRO;Failure to rotate;FRO - Failure to rotate;Rotor or shaft does not rotate when power is applied.;Rotating machinery – pumps, motors, compressors, turbines.;"Rotor seized; bearing locked."
+FTC;Failure to close on demand;FTC - Failure to close on demand;Component fails to close when commanded.;Valves, dampers, circuit breakers.;"ESD valve stuck open; breaker fails to trip."
+FTD;Failure to disconnect;FTD - Failure to disconnect;Cannot isolate or disconnect when required.;Circuit breakers, disconnectors, isolation valves.;"Breaker jammed open; valve won’t close."
+FTF;Failure to function on demand;FTF - Failure to function on demand;Complete functional failure when required.;Any demand-based equipment.;Emergency pump fails to start.
+FTI;Failure to function as intended;FTI - Failure to function as intended;Function achieved but outside specification or degraded.;General functional equipment.;"Control valve regulates incorrectly; low pump flow."
+FTL;Failure to lock / unlock;FTL - Failure to lock/unlock;Locking mechanism fails to engage or release.;Mechanical locks, actuators, latching systems.;"Locking pin jammed; interlock not engaging."
+FTO;Failure to open on demand;FTO - Failure to open on demand;Equipment fails to open when commanded.;Valves, circuit breakers, dampers.;"Valve stem jammed; breaker contact stuck."
+FTR;Failure to regulate;FTR - Failure to regulate;Inability to maintain controlled variable at setpoint.;Controllers, regulators, control valves.;Pressure regulator oscillating or drifting.
+FTS;Failure to start on demand;FTS - Failure to start on demand;Equipment fails to start when commanded.;Motors, compressors, pumps, generators.;"Motor does not start; starter circuit fault."
+FWR;Failure while running;FWR - Failure while running;Failure occurs during continuous operation.;All rotating / continuous equipment.;Pump stops due to bearing failure or overheating.
+HIO;High output;HIO - High output;Output exceeds design or control limit.;Control loops, generators, process equipment.;"Over-speeding turbine; excessive flow or pressure."
+HTF;Heating failure;HTF - Heating failure;Equipment fails to deliver heating.;Heaters, exchangers, electric elements.;Heating element open circuit.
+IHT;Insufficient heat transfer;IHT - Insufficient heat transfer;Thermal performance inadequate.;Heat exchangers, radiators, condensers.;"Fouled exchanger tubes; low flow."
+ILP;Internal leakage – process medium;ILP - Internal leakage - process medium;Process fluid leaks internally between internal zones.;Valves, actuators, hydraulic components.;Internal seat leak in control valve.
+ILU;Internal leakage – utility medium;ILU - Internal leakage - utility medium;Internal leak between utility circuits.;Cooling or lubrication systems.;Cooling water leaking between channels.
+INL;Internal leakage (unspecified);INL a - Internal leakage;Internal leak with unknown fluid type.;Generic application.;Leakage within component, fluid unidentified.
+LBP;Low oil supply pressure;LBP - Low oil supply pressure;Lubrication oil pressure below minimum.;Lubrication systems / bearings.;"Clogged filter; failed oil pump."
+LCP;Leakage in closed position;LCP - Leakage in closed position;Leakage when the device is supposed to be closed.;Valves, check valves, regulators.;Valve seat wear causing bypass.
+LOA;Load drop;LOA - Load drop;Sudden loss of mechanical or electrical load.;Generators, drives, gearboxes.;"Coupling breakage; generator load loss."
+LOB;Loss of buoyancy;LOB - Loss of buoyancy;Loss of flotation or ballast integrity.;Subsea / floating systems.;Flooding of buoyancy tank.
+LOO;Low output;LOO - Low output;Output lower than design value.;Pumps, compressors, generators.;Reduced flow or pressure.
+MOF;Mooring failure;MOF - Mooring failure;Failure in mooring system integrity.;FPSO, floating platforms, buoys.;Broken chain or shackle.
+NOI;Noise;NOI - Noise;Abnormal or excessive noise.;Mechanical, rotating, or electrical equipment.;Bearing noise, cavitation.
+NOO;No output;NOO - No output;No output despite running or energized condition.;Mechanical, electrical, instrumentation.;"Pump running but no flow; zero signal output."
+OHE;Overheating;OHE - Overheating;Temperature exceeds safe limit.;Mechanical, electrical, or electronic equipment.;"Motor winding overheated; bearing temperature high."
+OTH;Other;OTH - Other;Failure not covered by any specific code.;Generic use.;Unclassified anomaly.
+PCL;Premature closure;PCL - Premature closure;Component closes earlier than intended.;Valves, dampers, circuit breakers.;Valve closes unexpectedly during operation.
+PDE;Parameter deviation;PDE - Parameter deviation;Process variable deviates from allowable range.;Process and control instrumentation.;Pressure or temperature deviation.
+PLU;Plugged / choked;PLU - Plugged/ choked;Flow path blocked or obstructed.;Filters, orifices, piping, exchangers.;"Blocked filter; fouled nozzle."
+POD;Loss of functions on both pods;POD - Loss of functions on both pods;Simultaneous loss of redundant functions.;Thrusters, dual propulsion pods.;Both propulsion pods fail.
+POW;Insufficient power;POW - Insufficient power;Insufficient energy to perform function.;Electrical, hydraulic, pneumatic systems.;"Voltage drop; low hydraulic pressure."
+PTF;Power / signal transmission failure;PTF - Power/signal transmission failure;Loss of energy or signal between source and load.;Electrical or communication systems.;"Broken cable; telemetry failure."
+SBU;Sludge build-up;SBU - Sludge build-up;Build-up of sludge or deposits restricting function.;Oil, fuel, cooling systems.;Sludge accumulation in reservoir or filter.
+SER;Minor in-service problems;SER - Minor in-service problems;Minor degradations without total failure.;All equipment types.;Small leak, slight vibration.
+SET;Failure to set / retrieve;SET - Failure to set/retrieve;Inability to deploy or retrieve component.;Subsea or downhole tools.;Tool fails to latch or release.
+SHH;Spurious high alarm;SHH - Spurious high alarm level;False high alarm signal.;Instrumentation / control.;Level sensor falsely triggers high alarm.
+SLL;Spurious low alarm;SLL - Spurious low alarm level;False low alarm signal.;Instrumentation / control.;Pressure transmitter drift causing false low alarm.
+SLP;Slippage;SLP - Slippage;Relative motion between surfaces meant to remain fixed.;Couplings, belts, transmissions.;"Belt slip; coupling slippage."
+SPO;Spurious operation;SPO - Spurious operation;Unintended activation or movement.;Control systems / valves / instruments.;"Valve opens without command; relay self-triggering."
+STD;Structural deficiency;STD - Structural deficiency;Loss of structural integrity or strength.;Frames, casings, supports, piping.;"Cracked housing; failed weld."
+STP;Failure to stop on demand;STP - Failure to stop on demand;Component fails to stop when commanded.;Motors, pumps, drives.;Motor continues running after stop command.
+STU;Stuck;STU - Stuck;Equipment immobile when motion is expected.;Valves, actuators, moving parts.;"Stem seized; shaft jammed."
+UBU;Global buckling;UBU - Global buckling;Large-scale structural deformation under load.;Pipelines, risers, columns.;Pipe buckling due to thermal compression.
+UNK;Unknown;UNK - Unknown;Failure occurred, but symptom not determined.;Generic / all classes.;Information insufficient for classification.
+UST;Spurious stop;UST - Spurious stop;Uncommanded shutdown or stop.;Motors, automated systems.;Motor tripped without cause.
+VIB;Vibration;VIB - Vibration;Excessive or abnormal vibration.;Rotating and structural equipment.;Unbalance, misalignment, looseness.
+VLO;Very low output;VLO - Very low output;Output near zero but not total failure.;Pumps, compressors, instruments.;"Minimal flow; weak signal."
+WCL;Well-to-control-line communication;WCL - Well-to-control-line communication;Unwanted communication between well and control line.;Subsea control systems.;Fluid backflow from well into hydraulic line.
