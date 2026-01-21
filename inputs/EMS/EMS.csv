@@ -1,0 +1,767 @@
+﻿Item Class;Item Class Name;Boundaries;Maintenance Strategy Overview;Scope;Parent Item Class;Other Associated Item Classes;Notes;Task Template ID;Definition;Application;Justification;Low Risk Frequency;Unit Low;Medium Risk Frequency;Unit Medium;High Risk Frequency;Unit High
+COCE;Centrifugal Compressor;"The boundaries of the EST include: 
+
+-    any cooling system and local instrumentation
+  
+-    Compressor and coupling between driver and compressor
+  
+-    Dry gas seal system,
+  
+-    Primary, secondary seal and tertiary
+  
+-    Seal gas panel with relevant instrumentation, piping and valves
+  
+-    Seal gas heater thyristor panel
+  
+-    External seal gas source heater
+  
+-    External seal gas source filters/coalescer
+  
+-    External seal gas source booster compressor (if any)
+  
+-    Tertiary seal purge gas filter/coalesce (N2, or instrument air, or else)
+  
+-    Lubrication package when children of centrifugal compressor
+  
+-    Lube oil console and accessories 
+  
+-    Main/Auxiliary/Emergency pumps and respective driver
+  
+-    Oil cooler
+  
+-    Oil heater (if any)
+  
+-    Oil accumulator (if any)
+  
+-    PCVs, TCVs
+  
+-    Control and Monitoring System
+  
+-    Anti-surge and load sharing control panel
+  
+-    Vibration and temperature monitoring system (condition monitoring)
+  
+-    Unit Control Panel, PLC when children of the centrifugal compressor
+  
+-    Local instrumentation
+
+
+Exclude Anti surge valve
+
+Exclude Driver
+
+Exclude Gearbox
+
+Exclude Fire & Gas
+
+Exclude Scrubber, Filter, Heater which are not part of seal system";"Maintenance strategy for COCE – centrifugal compressor is based on:
+
+-    Checks, with parameters recording, however on proven records the job may be de-activated.
+  
+-    Yearly inspection with borescope inspection (if possible) and cleaning/replacement of filters (DGS , Lube Oil).
+
+The following inspections (frequencies and scope) shall be based on condition and the scope discussed with rotating expert. The result and agreed scope should be attached to the work-order. There should be formal kick-off meeting  and the minutes have to be attached to the work-order.
+
+
+The scope / instruction of the job bellow is provided as guidance, moreover the planning method (calendar based/ running hours / counters) should be adjusted to match the driver (e.g. gas turbine / electrical motor).
+  
+-    30 monthly inspection with bearing checks, and assessment of dry gas seals
+   
+-    Instrumentation Checks
+
+
+In addition the centrifugal compressor and relevant auxiliaries (power, operation mode) require the following:
+  
+-    Vibration monitoring
+  
+-    Lube oil monitoring
+
+
+Inspection of electrical motors (for auxiliaries) based on the criticality rating should follow the job:
+  
+-    LV motor inspection";"This document discusses centrifugal compressors, excluding dynamic axial flow compressors. Centrifugal compressors convert kinetic energy into potential energy, with gas entering through a guide vane assembly aligned with the rotor. The high-velocity gas passes through a diffuser, converting dynamic pressure into static pressure. The compressor casing can be vertical or horizontal, and the rotor may consist of one wheel or an assembly of several wheels, making it a multi-stage compressor.
+
+To minimize size and weight, multiple compression stages may be mounted on the same shaft and casing, with impellers arranged back-to-back. The shaft rotation is transmitted via a coupling, guided by two bearings, and a thrust bearing compensates for axial forces created by compression. Gas sealing is critical for safe operation, achieved through oil or gas sealing, with tandem dry gas seals common in flammable gas applications. Controlled leaks through primary seals to a safe location ensure overall gas containment.
+
+Secondary seals prevent gas loss in case of primary seal failure. Filtered seal gas is heated to prevent condensation or hydrate formation. Tertiary seals, such as labyrinth or carbon rings, prevent gas migration and are purged with inert gas or instrument air. Bearings are lubricated to remove heat and avoid friction, with oil temperature, pressure, and filtration monitored for optimal performance.
+
+Centrifugal compressors feature a Unit Control Panel (UCP) for monitoring temperatures, pressures, vibrations, and control functions. Condition monitoring relies on vibration and temperature detection, linked to software like Bentley Nevada System 1. The Control and Monitoring System manages start-up, acceleration, operation, and shutdown controls. Anti-surge systems protect against backflow, while load sharing controls total gas flow between parallel compressors. Controllers adjust anti-surge valves and operating speeds based on process parameters like pressure an";CO;"PKGC – Gas Compression Package, COCE maintenance performed at PKGC level when COCE children of PKGC
+
+
+PKLO – Lubrication Package
+
+
+DRGB – Gearbox & Coupling
+
+
+SYVM – System Vibration Monitoring 
+
+
+VACV – Control valve (to cover Anti surge valve)
+
+
+VESB – Scrubber Vessel (excluded when NOT children of COCE)
+
+
+VEVF – Filter Vessel (excluded when NOT children of COCE)
+
+
+VEPR – Pressure Vessel (excluded when NOT children of COCE)";;PM00009A;CBM Generic Vibration Measurement;"Applicable for equipment part of Vibration Monitoring Plan
+May be applicable and relevant on auxiliaries of the compressor if part of vibration monitoring plan
+";"Vibrations increase will inform on condition of rotating elements.
+Each rotating element has its own frequency and defect will cause increase of its amplitude.
+Vibration monitoring enables to detect early defects.
+";;;3;Month;1;Month
+COCE;Centrifugal Compressor;"The boundaries of the EST include: any cooling system and local instrumentation
+  
+-    Compressor and coupling between driver and compressor
+  
+-    Dry gas seal system,
+  
+-    Primary, secondary seal and tertiary
+  
+-    Seal gas panel with relevant instrumentation, piping and valves
+  
+-    Seal gas heater thyristor panel
+  
+-    External seal gas source heater
+  
+-    External seal gas source filters/coalescer
+  
+-    External seal gas source booster compressor (if any)
+  
+-    Tertiary seal purge gas filter/coalesce (N2, or instrument air, or else)
+  
+-    Lubrication package when children of centrifugal compressor
+  
+-    Lube oil console and accessories 
+  
+-    Main/Auxiliary/Emergency pumps and respective driver
+  
+-    Oil cooler
+  
+-    Oil heater (if any)
+  
+-    Oil accumulator (if any)
+  
+-    PCVs, TCVs
+  
+-    Control and Monitoring System
+  
+-    Anti-surge and load sharing control panel
+  
+-    Vibration and temperature monitoring system (condition monitoring)
+  
+-    Unit Control Panel, PLC when children of the centrifugal compressor
+  
+-    Local instrumentation
+
+
+Exclude Anti surge valve
+
+Exclude Driver
+
+Exclude Gearbox
+
+Exclude Fire & Gas
+
+Exclude Scrubber, Filter, Heater which are not part of seal system";"Maintenance strategy for COCE – centrifugal compressor is based on:
+
+-    Checks, with parameters recording, however on proven records the job may be de-activated.
+  
+-    Yearly inspection with borescope inspection (if possible) and cleaning/replacement of filters (DGS , Lube Oil).
+
+The following inspections (frequencies and scope) shall be based on condition and the scope discussed with rotating expert. The result and agreed scope should be attached to the work-order. There should be formal kick-off meeting  and the minutes have to be attached to the work-order.
+
+
+The scope / instruction of the job bellow is provided as guidance, moreover the planning method (calendar based/ running hours / counters) should be adjusted to match the driver (e.g. gas turbine / electrical motor).
+  
+-    30 monthly inspection with bearing checks, and assessment of dry gas seals
+   
+-    Instrumentation Checks
+
+
+In addition the centrifugal compressor and relevant auxiliaries (power, operation mode) require the following:
+  
+-    Vibration monitoring
+  
+-    Lube oil monitoring
+
+
+Inspection of electrical motors (for auxiliaries) based on the criticality rating should follow the job:
+  
+-    LV motor inspection";"This document discusses centrifugal compressors, excluding dynamic axial flow compressors. Centrifugal compressors convert kinetic energy into potential energy, with gas entering through a guide vane assembly aligned with the rotor. The high-velocity gas passes through a diffuser, converting dynamic pressure into static pressure. The compressor casing can be vertical or horizontal, and the rotor may consist of one wheel or an assembly of several wheels, making it a multi-stage compressor.
+
+To minimize size and weight, multiple compression stages may be mounted on the same shaft and casing, with impellers arranged back-to-back. The shaft rotation is transmitted via a coupling, guided by two bearings, and a thrust bearing compensates for axial forces created by compression. Gas sealing is critical for safe operation, achieved through oil or gas sealing, with tandem dry gas seals common in flammable gas applications. Controlled leaks through primary seals to a safe location ensure overall gas containment.
+
+Secondary seals prevent gas loss in case of primary seal failure. Filtered seal gas is heated to prevent condensation or hydrate formation. Tertiary seals, such as labyrinth or carbon rings, prevent gas migration and are purged with inert gas or instrument air. Bearings are lubricated to remove heat and avoid friction, with oil temperature, pressure, and filtration monitored for optimal performance.
+
+Centrifugal compressors feature a Unit Control Panel (UCP) for monitoring temperatures, pressures, vibrations, and control functions. Condition monitoring relies on vibration and temperature detection, linked to software like Bentley Nevada System 1. The Control and Monitoring System manages start-up, acceleration, operation, and shutdown controls. Anti-surge systems protect against backflow, while load sharing controls total gas flow between parallel compressors. Controllers adjust anti-surge valves and operating speeds based on process parameters like pressure an";CO;"PKGC – Gas Compression Package, COCE maintenance performed at PKGC level when COCE children of PKGC
+
+
+PKLO – Lubrication Package
+
+
+DRGB – Gearbox & Coupling
+
+
+SYVM – System Vibration Monitoring 
+
+
+VACV – Control valve (to cover Anti surge valve)
+
+
+VESB – Scrubber Vessel (excluded when NOT children of COCE)
+
+
+VEVF – Filter Vessel (excluded when NOT children of COCE)
+
+
+VEPR – Pressure Vessel (excluded when NOT children of COCE)";;PM00071A;Lubrication Service & Lube Oil Sampling;"Lube Oil Analysis
+- If justified base on size of oil inventory />25L/ and equipment criticality/
+- Make active when included in oil sampling plan/
+- If the equipment is included in package PK## check job applicability /to avoid redundancy//
+
+Lubrication
+- Executed and managed inside 3rd party vendor Lubrication Management Software.";"Whenever available on region a specialized company to be full time dedicated to lubricant management: lubrication, lubricant sampling, lubricant logistics, lubricant analysis and analysis report issuance. All findings to be discussedwith onshore team and corrective actions agreed shall be executed by this same company. 
+
+Oil analysis and trending can indicate the onset of functional failure from the presence of wear particles and contaminants in the oil/ It also allows the condition of the oil to be assessed/
+For those deterioration mechanisms that can be monitored by oil analysis, quarterly analysis gives sufficient indication of machine condition to enable planned intervention/
+Oil analysis is normally only justified for machines with large oil inventories /quantity >25L/report issuance. All findings to be discussedwith onshore team and corrective actions agreed shall be executed by this same company.";1;Month;1;Month;1;Month
+COCE;Centrifugal Compressor;"The boundaries of the EST include: any cooling system and local instrumentation
+  
+-    Compressor and coupling between driver and compressor
+  
+-    Dry gas seal system,
+  
+-    Primary, secondary seal and tertiary
+  
+-    Seal gas panel with relevant instrumentation, piping and valves
+  
+-    Seal gas heater thyristor panel
+  
+-    External seal gas source heater
+  
+-    External seal gas source filters/coalescer
+  
+-    External seal gas source booster compressor (if any)
+  
+-    Tertiary seal purge gas filter/coalesce (N2, or instrument air, or else)
+  
+-    Lubrication package when children of centrifugal compressor
+  
+-    Lube oil console and accessories 
+  
+-    Main/Auxiliary/Emergency pumps and respective driver
+  
+-    Oil cooler
+  
+-    Oil heater (if any)
+  
+-    Oil accumulator (if any)
+  
+-    PCVs, TCVs
+  
+-    Control and Monitoring System
+  
+-    Anti-surge and load sharing control panel
+  
+-    Vibration and temperature monitoring system (condition monitoring)
+  
+-    Unit Control Panel, PLC when children of the centrifugal compressor
+  
+-    Local instrumentation
+
+
+Exclude Anti surge valve
+
+Exclude Driver
+
+Exclude Gearbox
+
+Exclude Fire & Gas
+
+Exclude Scrubber, Filter, Heater which are not part of seal system";"Maintenance strategy for COCE – centrifugal compressor is based on:
+
+-    Checks, with parameters recording, however on proven records the job may be de-activated.
+  
+-    Yearly inspection with borescope inspection (if possible) and cleaning/replacement of filters (DGS , Lube Oil).
+
+The following inspections (frequencies and scope) shall be based on condition and the scope discussed with rotating expert. The result and agreed scope should be attached to the work-order. There should be formal kick-off meeting  and the minutes have to be attached to the work-order.
+
+
+The scope / instruction of the job bellow is provided as guidance, moreover the planning method (calendar based/ running hours / counters) should be adjusted to match the driver (e.g. gas turbine / electrical motor).
+  
+-    30 monthly inspection with bearing checks, and assessment of dry gas seals
+   
+-    Instrumentation Checks
+
+
+In addition the centrifugal compressor and relevant auxiliaries (power, operation mode) require the following:
+  
+-    Vibration monitoring
+  
+-    Lube oil monitoring
+
+
+Inspection of electrical motors (for auxiliaries) based on the criticality rating should follow the job:
+  
+-    LV motor inspection";"This document discusses centrifugal compressors, excluding dynamic axial flow compressors. Centrifugal compressors convert kinetic energy into potential energy, with gas entering through a guide vane assembly aligned with the rotor. The high-velocity gas passes through a diffuser, converting dynamic pressure into static pressure. The compressor casing can be vertical or horizontal, and the rotor may consist of one wheel or an assembly of several wheels, making it a multi-stage compressor.
+
+To minimize size and weight, multiple compression stages may be mounted on the same shaft and casing, with impellers arranged back-to-back. The shaft rotation is transmitted via a coupling, guided by two bearings, and a thrust bearing compensates for axial forces created by compression. Gas sealing is critical for safe operation, achieved through oil or gas sealing, with tandem dry gas seals common in flammable gas applications. Controlled leaks through primary seals to a safe location ensure overall gas containment.
+
+Secondary seals prevent gas loss in case of primary seal failure. Filtered seal gas is heated to prevent condensation or hydrate formation. Tertiary seals, such as labyrinth or carbon rings, prevent gas migration and are purged with inert gas or instrument air. Bearings are lubricated to remove heat and avoid friction, with oil temperature, pressure, and filtration monitored for optimal performance.
+
+Centrifugal compressors feature a Unit Control Panel (UCP) for monitoring temperatures, pressures, vibrations, and control functions. Condition monitoring relies on vibration and temperature detection, linked to software like Bentley Nevada System 1. The Control and Monitoring System manages start-up, acceleration, operation, and shutdown controls. Anti-surge systems protect against backflow, while load sharing controls total gas flow between parallel compressors. Controllers adjust anti-surge valves and operating speeds based on process parameters like pressure an";CO;"PKGC – Gas Compression Package, COCE maintenance performed at PKGC level when COCE children of PKGC
+
+
+PKLO – Lubrication Package
+
+
+DRGB – Gearbox & Coupling
+
+
+SYVM – System Vibration Monitoring 
+
+
+VACV – Control valve (to cover Anti surge valve)
+
+
+VESB – Scrubber Vessel (excluded when NOT children of COCE)
+
+
+VEVF – Filter Vessel (excluded when NOT children of COCE)
+
+
+VEPR – Pressure Vessel (excluded when NOT children of COCE)";;PM00072A;Visual Inspec & LubeOil Sampling Routine;"If justified base on size of oil inventory (>25L) and equipment criticality.
+Make active when included in oil sampling plan.
+If the equipment is included in package PK## check job applicability (to avoid redundancy).
+";"Oil analysis and trending can indicate the onset of functional failure from the presence of wear particles and contaminants in the oil. It also allows the condition of the oil to be assessed.
+For those deterioration mechanisms that can be monitored by oil analysis, quarterly analysis gives sufficient indication of machine condition to enable planned intervention.
+Oil analysis is normally only justified for machines with large oil inventories (quantity >25L)
+";;;3;Month;3;Month
+COCE;Centrifugal Compressor;"The boundaries of the EST include: any cooling system and local instrumentation
+  
+-    Compressor and coupling between driver and compressor
+  
+-    Dry gas seal system,
+  
+-    Primary, secondary seal and tertiary
+  
+-    Seal gas panel with relevant instrumentation, piping and valves
+  
+-    Seal gas heater thyristor panel
+  
+-    External seal gas source heater
+  
+-    External seal gas source filters/coalescer
+  
+-    External seal gas source booster compressor (if any)
+  
+-    Tertiary seal purge gas filter/coalesce (N2, or instrument air, or else)
+  
+-    Lubrication package when children of centrifugal compressor
+  
+-    Lube oil console and accessories 
+  
+-    Main/Auxiliary/Emergency pumps and respective driver
+  
+-    Oil cooler
+  
+-    Oil heater (if any)
+  
+-    Oil accumulator (if any)
+  
+-    PCVs, TCVs
+  
+-    Control and Monitoring System
+  
+-    Anti-surge and load sharing control panel
+  
+-    Vibration and temperature monitoring system (condition monitoring)
+  
+-    Unit Control Panel, PLC when children of the centrifugal compressor
+  
+-    Local instrumentation
+
+
+Exclude Anti surge valve
+
+Exclude Driver
+
+Exclude Gearbox
+
+Exclude Fire & Gas
+
+Exclude Scrubber, Filter, Heater which are not part of seal system";"Maintenance strategy for COCE – centrifugal compressor is based on:
+
+-    Checks, with parameters recording, however on proven records the job may be de-activated.
+  
+-    Yearly inspection with borescope inspection (if possible) and cleaning/replacement of filters (DGS , Lube Oil).
+
+The following inspections (frequencies and scope) shall be based on condition and the scope discussed with rotating expert. The result and agreed scope should be attached to the work-order. There should be formal kick-off meeting  and the minutes have to be attached to the work-order.
+
+
+The scope / instruction of the job bellow is provided as guidance, moreover the planning method (calendar based/ running hours / counters) should be adjusted to match the driver (e.g. gas turbine / electrical motor).
+  
+-    30 monthly inspection with bearing checks, and assessment of dry gas seals
+   
+-    Instrumentation Checks
+
+
+In addition the centrifugal compressor and relevant auxiliaries (power, operation mode) require the following:
+  
+-    Vibration monitoring
+  
+-    Lube oil monitoring
+
+
+Inspection of electrical motors (for auxiliaries) based on the criticality rating should follow the job:
+  
+-    LV motor inspection";"This document discusses centrifugal compressors, excluding dynamic axial flow compressors. Centrifugal compressors convert kinetic energy into potential energy, with gas entering through a guide vane assembly aligned with the rotor. The high-velocity gas passes through a diffuser, converting dynamic pressure into static pressure. The compressor casing can be vertical or horizontal, and the rotor may consist of one wheel or an assembly of several wheels, making it a multi-stage compressor.
+
+To minimize size and weight, multiple compression stages may be mounted on the same shaft and casing, with impellers arranged back-to-back. The shaft rotation is transmitted via a coupling, guided by two bearings, and a thrust bearing compensates for axial forces created by compression. Gas sealing is critical for safe operation, achieved through oil or gas sealing, with tandem dry gas seals common in flammable gas applications. Controlled leaks through primary seals to a safe location ensure overall gas containment.
+
+Secondary seals prevent gas loss in case of primary seal failure. Filtered seal gas is heated to prevent condensation or hydrate formation. Tertiary seals, such as labyrinth or carbon rings, prevent gas migration and are purged with inert gas or instrument air. Bearings are lubricated to remove heat and avoid friction, with oil temperature, pressure, and filtration monitored for optimal performance.
+
+Centrifugal compressors feature a Unit Control Panel (UCP) for monitoring temperatures, pressures, vibrations, and control functions. Condition monitoring relies on vibration and temperature detection, linked to software like Bentley Nevada System 1. The Control and Monitoring System manages start-up, acceleration, operation, and shutdown controls. Anti-surge systems protect against backflow, while load sharing controls total gas flow between parallel compressors. Controllers adjust anti-surge valves and operating speeds based on process parameters like pressure an";CO;"PKGC – Gas Compression Package, COCE maintenance performed at PKGC level when COCE children of PKGC
+
+
+PKLO – Lubrication Package
+
+
+DRGB – Gearbox & Coupling
+
+
+SYVM – System Vibration Monitoring 
+
+
+VACV – Control valve (to cover Anti surge valve)
+
+
+VESB – Scrubber Vessel (excluded when NOT children of COCE)
+
+
+VEVF – Filter Vessel (excluded when NOT children of COCE)
+
+
+VEPR – Pressure Vessel (excluded when NOT children of COCE)";;PM00248A;Centrifugal Compressor Checks;"Applicable to Centrifugal compressors unless OEM specific maintenance is to be applied.
+Job application to assess, on proven records of similar monitoring the job may be de activated.";Centrifugal compressors provide a production critical function. Degradation of the compressor performance could result in a significant impact from reduction or loss of production capability. It is therefore recommended, as good engineering practice to perform an inspection to ensure there is no damage or signs of excessive erosion or corrosion. Also, non intrusive visual inspection is the cheaper type of preventive maintenance.;;;1;Month;1;Month
+COCE;Centrifugal Compressor;"The boundaries of the EST include: any cooling system and local instrumentation
+  
+-    Compressor and coupling between driver and compressor
+  
+-    Dry gas seal system,
+  
+-    Primary, secondary seal and tertiary
+  
+-    Seal gas panel with relevant instrumentation, piping and valves
+  
+-    Seal gas heater thyristor panel
+  
+-    External seal gas source heater
+  
+-    External seal gas source filters/coalescer
+  
+-    External seal gas source booster compressor (if any)
+  
+-    Tertiary seal purge gas filter/coalesce (N2, or instrument air, or else)
+  
+-    Lubrication package when children of centrifugal compressor
+  
+-    Lube oil console and accessories 
+  
+-    Main/Auxiliary/Emergency pumps and respective driver
+  
+-    Oil cooler
+  
+-    Oil heater (if any)
+  
+-    Oil accumulator (if any)
+  
+-    PCVs, TCVs
+  
+-    Control and Monitoring System
+  
+-    Anti-surge and load sharing control panel
+  
+-    Vibration and temperature monitoring system (condition monitoring)
+  
+-    Unit Control Panel, PLC when children of the centrifugal compressor
+  
+-    Local instrumentation
+
+
+Exclude Anti surge valve
+
+Exclude Driver
+
+Exclude Gearbox
+
+Exclude Fire & Gas
+
+Exclude Scrubber, Filter, Heater which are not part of seal system";"Maintenance strategy for COCE – centrifugal compressor is based on:
+
+-    Checks, with parameters recording, however on proven records the job may be de-activated.
+  
+-    Yearly inspection with borescope inspection (if possible) and cleaning/replacement of filters (DGS , Lube Oil).
+
+The following inspections (frequencies and scope) shall be based on condition and the scope discussed with rotating expert. The result and agreed scope should be attached to the work-order. There should be formal kick-off meeting  and the minutes have to be attached to the work-order.
+
+
+The scope / instruction of the job bellow is provided as guidance, moreover the planning method (calendar based/ running hours / counters) should be adjusted to match the driver (e.g. gas turbine / electrical motor).
+  
+-    30 monthly inspection with bearing checks, and assessment of dry gas seals
+   
+-    Instrumentation Checks
+
+
+In addition the centrifugal compressor and relevant auxiliaries (power, operation mode) require the following:
+  
+-    Vibration monitoring
+  
+-    Lube oil monitoring
+
+
+Inspection of electrical motors (for auxiliaries) based on the criticality rating should follow the job:
+  
+-    LV motor inspection";"This document discusses centrifugal compressors, excluding dynamic axial flow compressors. Centrifugal compressors convert kinetic energy into potential energy, with gas entering through a guide vane assembly aligned with the rotor. The high-velocity gas passes through a diffuser, converting dynamic pressure into static pressure. The compressor casing can be vertical or horizontal, and the rotor may consist of one wheel or an assembly of several wheels, making it a multi-stage compressor.
+
+To minimize size and weight, multiple compression stages may be mounted on the same shaft and casing, with impellers arranged back-to-back. The shaft rotation is transmitted via a coupling, guided by two bearings, and a thrust bearing compensates for axial forces created by compression. Gas sealing is critical for safe operation, achieved through oil or gas sealing, with tandem dry gas seals common in flammable gas applications. Controlled leaks through primary seals to a safe location ensure overall gas containment.
+
+Secondary seals prevent gas loss in case of primary seal failure. Filtered seal gas is heated to prevent condensation or hydrate formation. Tertiary seals, such as labyrinth or carbon rings, prevent gas migration and are purged with inert gas or instrument air. Bearings are lubricated to remove heat and avoid friction, with oil temperature, pressure, and filtration monitored for optimal performance.
+
+Centrifugal compressors feature a Unit Control Panel (UCP) for monitoring temperatures, pressures, vibrations, and control functions. Condition monitoring relies on vibration and temperature detection, linked to software like Bentley Nevada System 1. The Control and Monitoring System manages start-up, acceleration, operation, and shutdown controls. Anti-surge systems protect against backflow, while load sharing controls total gas flow between parallel compressors. Controllers adjust anti-surge valves and operating speeds based on process parameters like pressure an";CO;"PKGC – Gas Compression Package, COCE maintenance performed at PKGC level when COCE children of PKGC
+
+
+PKLO – Lubrication Package
+
+
+DRGB – Gearbox & Coupling
+
+
+SYVM – System Vibration Monitoring 
+
+
+VACV – Control valve (to cover Anti surge valve)
+
+
+VESB – Scrubber Vessel (excluded when NOT children of COCE)
+
+
+VEVF – Filter Vessel (excluded when NOT children of COCE)
+
+
+VEPR – Pressure Vessel (excluded when NOT children of COCE)";;PM00277B;Instrumentation Checks;Instrumentation part of compressor involved in cause & effect list and also instrumentation that are not possible to execute the drift (value comparison). Also, compressors that have anti-surge valve.;Instrumentation verification and anti-surge valve test to detect hidden failure.;;;12;Month;12;Month
+COCE;Centrifugal Compressor;"The boundaries of the EST include: any cooling system and local instrumentation
+  
+-    Compressor and coupling between driver and compressor
+  
+-    Dry gas seal system,
+  
+-    Primary, secondary seal and tertiary
+  
+-    Seal gas panel with relevant instrumentation, piping and valves
+  
+-    Seal gas heater thyristor panel
+  
+-    External seal gas source heater
+  
+-    External seal gas source filters/coalescer
+  
+-    External seal gas source booster compressor (if any)
+  
+-    Tertiary seal purge gas filter/coalesce (N2, or instrument air, or else)
+  
+-    Lubrication package when children of centrifugal compressor
+  
+-    Lube oil console and accessories 
+  
+-    Main/Auxiliary/Emergency pumps and respective driver
+  
+-    Oil cooler
+  
+-    Oil heater (if any)
+  
+-    Oil accumulator (if any)
+  
+-    PCVs, TCVs
+  
+-    Control and Monitoring System
+  
+-    Anti-surge and load sharing control panel
+  
+-    Vibration and temperature monitoring system (condition monitoring)
+  
+-    Unit Control Panel, PLC when children of the centrifugal compressor
+  
+-    Local instrumentation
+
+
+Exclude Anti surge valve
+
+Exclude Driver
+
+Exclude Gearbox
+
+Exclude Fire & Gas
+
+Exclude Scrubber, Filter, Heater which are not part of seal system";"Maintenance strategy for COCE – centrifugal compressor is based on:
+
+-    Checks, with parameters recording, however on proven records the job may be de-activated.
+  
+-    Yearly inspection with borescope inspection (if possible) and cleaning/replacement of filters (DGS , Lube Oil).
+
+The following inspections (frequencies and scope) shall be based on condition and the scope discussed with rotating expert. The result and agreed scope should be attached to the work-order. There should be formal kick-off meeting  and the minutes have to be attached to the work-order.
+
+
+The scope / instruction of the job bellow is provided as guidance, moreover the planning method (calendar based/ running hours / counters) should be adjusted to match the driver (e.g. gas turbine / electrical motor).
+  
+-    30 monthly inspection with bearing checks, and assessment of dry gas seals
+   
+-    Instrumentation Checks
+
+
+In addition the centrifugal compressor and relevant auxiliaries (power, operation mode) require the following:
+  
+-    Vibration monitoring
+  
+-    Lube oil monitoring
+
+
+Inspection of electrical motors (for auxiliaries) based on the criticality rating should follow the job:
+  
+-    LV motor inspection";"This document discusses centrifugal compressors, excluding dynamic axial flow compressors. Centrifugal compressors convert kinetic energy into potential energy, with gas entering through a guide vane assembly aligned with the rotor. The high-velocity gas passes through a diffuser, converting dynamic pressure into static pressure. The compressor casing can be vertical or horizontal, and the rotor may consist of one wheel or an assembly of several wheels, making it a multi-stage compressor.
+
+To minimize size and weight, multiple compression stages may be mounted on the same shaft and casing, with impellers arranged back-to-back. The shaft rotation is transmitted via a coupling, guided by two bearings, and a thrust bearing compensates for axial forces created by compression. Gas sealing is critical for safe operation, achieved through oil or gas sealing, with tandem dry gas seals common in flammable gas applications. Controlled leaks through primary seals to a safe location ensure overall gas containment.
+
+Secondary seals prevent gas loss in case of primary seal failure. Filtered seal gas is heated to prevent condensation or hydrate formation. Tertiary seals, such as labyrinth or carbon rings, prevent gas migration and are purged with inert gas or instrument air. Bearings are lubricated to remove heat and avoid friction, with oil temperature, pressure, and filtration monitored for optimal performance.
+
+Centrifugal compressors feature a Unit Control Panel (UCP) for monitoring temperatures, pressures, vibrations, and control functions. Condition monitoring relies on vibration and temperature detection, linked to software like Bentley Nevada System 1. The Control and Monitoring System manages start-up, acceleration, operation, and shutdown controls. Anti-surge systems protect against backflow, while load sharing controls total gas flow between parallel compressors. Controllers adjust anti-surge valves and operating speeds based on process parameters like pressure an";CO;"PKGC – Gas Compression Package, COCE maintenance performed at PKGC level when COCE children of PKGC
+
+
+PKLO – Lubrication Package
+
+
+DRGB – Gearbox & Coupling
+
+
+SYVM – System Vibration Monitoring 
+
+
+VACV – Control valve (to cover Anti surge valve)
+
+
+VESB – Scrubber Vessel (excluded when NOT children of COCE)
+
+
+VEVF – Filter Vessel (excluded when NOT children of COCE)
+
+
+VEPR – Pressure Vessel (excluded when NOT children of COCE)";;PM00287A;Centrifugal Compressor Performance Asses;Applicable to centrifugal Compressor MGCA, and B, CO2 C, EIGC;The centrifugal compressor assessment consists in gathering process information extracted from PI and field and compare it to the compressor curves.  The intent is to access performance over time and anticipate compressor efficiency losses.;;;36;Month;36;Month
+COCE;Centrifugal Compressor;"The boundaries of the EST include: any cooling system and local instrumentation
+  
+-    Compressor and coupling between driver and compressor
+  
+-    Dry gas seal system,
+  
+-    Primary, secondary seal and tertiary
+  
+-    Seal gas panel with relevant instrumentation, piping and valves
+  
+-    Seal gas heater thyristor panel
+  
+-    External seal gas source heater
+  
+-    External seal gas source filters/coalescer
+  
+-    External seal gas source booster compressor (if any)
+  
+-    Tertiary seal purge gas filter/coalesce (N2, or instrument air, or else)
+  
+-    Lubrication package when children of centrifugal compressor
+  
+-    Lube oil console and accessories 
+  
+-    Main/Auxiliary/Emergency pumps and respective driver
+  
+-    Oil cooler
+  
+-    Oil heater (if any)
+  
+-    Oil accumulator (if any)
+  
+-    PCVs, TCVs
+  
+-    Control and Monitoring System
+  
+-    Anti-surge and load sharing control panel
+  
+-    Vibration and temperature monitoring system (condition monitoring)
+  
+-    Unit Control Panel, PLC when children of the centrifugal compressor
+  
+-    Local instrumentation
+
+
+Exclude Anti surge valve
+
+Exclude Driver
+
+Exclude Gearbox
+
+Exclude Fire & Gas
+
+Exclude Scrubber, Filter, Heater which are not part of seal system";"Maintenance strategy for COCE – centrifugal compressor is based on:
+
+-    Checks, with parameters recording, however on proven records the job may be de-activated.
+  
+-    Yearly inspection with borescope inspection (if possible) and cleaning/replacement of filters (DGS , Lube Oil).
+
+The following inspections (frequencies and scope) shall be based on condition and the scope discussed with rotating expert. The result and agreed scope should be attached to the work-order. There should be formal kick-off meeting  and the minutes have to be attached to the work-order.
+
+
+The scope / instruction of the job bellow is provided as guidance, moreover the planning method (calendar based/ running hours / counters) should be adjusted to match the driver (e.g. gas turbine / electrical motor).
+  
+-    30 monthly inspection with bearing checks, and assessment of dry gas seals
+   
+-    Instrumentation Checks
+
+
+In addition the centrifugal compressor and relevant auxiliaries (power, operation mode) require the following:
+  
+-    Vibration monitoring
+  
+-    Lube oil monitoring
+
+
+Inspection of electrical motors (for auxiliaries) based on the criticality rating should follow the job:
+  
+-    LV motor inspection";"This document discusses centrifugal compressors, excluding dynamic axial flow compressors. Centrifugal compressors convert kinetic energy into potential energy, with gas entering through a guide vane assembly aligned with the rotor. The high-velocity gas passes through a diffuser, converting dynamic pressure into static pressure. The compressor casing can be vertical or horizontal, and the rotor may consist of one wheel or an assembly of several wheels, making it a multi-stage compressor.
+
+To minimize size and weight, multiple compression stages may be mounted on the same shaft and casing, with impellers arranged back-to-back. The shaft rotation is transmitted via a coupling, guided by two bearings, and a thrust bearing compensates for axial forces created by compression. Gas sealing is critical for safe operation, achieved through oil or gas sealing, with tandem dry gas seals common in flammable gas applications. Controlled leaks through primary seals to a safe location ensure overall gas containment.
+
+Secondary seals prevent gas loss in case of primary seal failure. Filtered seal gas is heated to prevent condensation or hydrate formation. Tertiary seals, such as labyrinth or carbon rings, prevent gas migration and are purged with inert gas or instrument air. Bearings are lubricated to remove heat and avoid friction, with oil temperature, pressure, and filtration monitored for optimal performance.
+
+Centrifugal compressors feature a Unit Control Panel (UCP) for monitoring temperatures, pressures, vibrations, and control functions. Condition monitoring relies on vibration and temperature detection, linked to software like Bentley Nevada System 1. The Control and Monitoring System manages start-up, acceleration, operation, and shutdown controls. Anti-surge systems protect against backflow, while load sharing controls total gas flow between parallel compressors. Controllers adjust anti-surge valves and operating speeds based on process parameters like pressure an";CO;"PKGC – Gas Compression Package, COCE maintenance performed at PKGC level when COCE children of PKGC
+
+
+PKLO – Lubrication Package
+
+
+DRGB – Gearbox & Coupling
+
+
+SYVM – System Vibration Monitoring 
+
+
+VACV – Control valve (to cover Anti surge valve)
+
+
+VESB – Scrubber Vessel (excluded when NOT children of COCE)
+
+
+VEVF – Filter Vessel (excluded when NOT children of COCE)
+
+
+VEPR – Pressure Vessel (excluded when NOT children of COCE)";;PM01731A;Advanced Vibration Analysis;Advanced Vibration Analysis applied in centrifugal compressors included in the Vibration Monitoring Plan and not covered by System 1.;Advanced vibration analysis to detect internal failure modes as orbit-related failures, oil whirl / oil whip, among others in centrifugal compressors without the need for intrusive inspections and shutdown.;;;36;Month;36;Month
