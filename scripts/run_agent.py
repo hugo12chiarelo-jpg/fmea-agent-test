@@ -69,9 +69,10 @@ def main():
     client = OpenAI(api_key=api_key)
 
     # Mandatory templates (these names you DO have)
-    system_prompt = Path("templates/system_prompt.md").read_text(encoding="utf-8")
-    spec = Path("templates/spec_fmea_ems_rev01.md").read_text(encoding="utf-8")
-    schema = Path("templates/output_schema.md").read_text(encoding="utf-8")
+    system_prompt = read_required("templates/system_prompt.md", "templates/templates/system_prompt.md")
+    spec = read_required("templates/spec_fmea_ems_rev01.md", "templates/templates/spec_fmea_ems_rev01.md")
+    schema = read_required("templates/output_schema.md", "templates/templates/output_schema.md")
+
 
     instruction_file = pick_instruction_file()
     instruction = instruction_file.read_text(encoding="utf-8", errors="ignore")
