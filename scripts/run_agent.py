@@ -261,7 +261,7 @@ Return ONLY the final deliverables requested in the instruction.
     resp = client.responses.create(
         model=model,
         input=[
-            {"role": "system", "content": system_prompt},
+            {"role": "system", "content": system_prompt + "\n\n### SPEC (MANDATORY)\n" + spec},
             {"role": "user", "content": user_prompt},
         ],
     )
@@ -276,7 +276,20 @@ Return ONLY the final deliverables requested in the instruction.
     if in_tokens is not None and out_tokens is not None:
         cost = (in_tokens / 1_000_000) * 0.80 + (out_tokens / 1_000_000) * 3.20
         print(f"Estimated cost (gpt-4.1-mini Standard): ${cost:.4f}")
+        
+  # --- Quality gate: ensure ALL mandatory MIs appear in output ---
+    output_text = resp.output_text or ""
+    missing = []
+    for mi_name in mandatory_mi:
+        if mi_name and (mi_name.lower() not in output_text.lower()):
+            missing.append(mi_name)
 
+    if mandatory_mi and missing:
+        raise RuntimeError(
+            f"Model output missing {len(missing)} mandatory Maintainable Items. Examples: {missing[:10]}"
+        )
+
+    
     out_dir = Path("outputs")
     out_dir.mkdir(parents=True, exist_ok=True)
 
