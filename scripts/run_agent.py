@@ -90,6 +90,8 @@ def filter_ems_for_item_class(ems_path: Path, item_class: str, max_rows: int = 2
     except Exception:
         df = pd.read_csv(ems_path, sep=";", engine="python", on_bad_lines="skip")
 
+    df.columns = [str(c).replace("\ufeff", "").strip() for c in df.columns]
+    
     col = "Item Class" if "Item Class" in df.columns else None
 
     if col is None:
@@ -115,17 +117,20 @@ def build_mi_list_from_ems_and_catalog(ems_path: Path, item_class: str, mi_catal
     except Exception:
         ems = pd.read_csv(ems_path, sep=";", engine="python", on_bad_lines="skip")
 
-    if "Item Class" not in ems.columns:
-        raise RuntimeError("EMS.csv must contain column 'Item Class'")
+    # Normalize headers (remove BOM + trim spaces)
+    ems.columns = [str(c).replace("\ufeff", "").strip() for c in ems.columns]
 
-    # Find boundary column (adapt if your EMS uses another name)
+    if "Item Class" not in ems.columns:
+        raise RuntimeError(f"EMS.csv must contain column 'Item Class'. Found: {list(ems.columns)}")
+
+    # Find boundary column
     boundary_col = None
     for c in ems.columns:
-        if c.strip().lower() in {"boundaries", "boundary"}:
+        if str(c).strip().lower() in {"boundaries", "boundary"}:
             boundary_col = c
             break
     if boundary_col is None:
-        raise RuntimeError("EMS.csv must contain a 'Boundaries' column (or 'Boundary').")
+        raise RuntimeError(f"EMS.csv must contain a 'Boundaries' column (or 'Boundary'). Found: {list(ems.columns)}")
 
     rows = ems[ems["Item Class"].astype(str).str.strip().str.lower() == item_class.strip().lower()]
     if rows.empty:
@@ -139,23 +144,24 @@ def build_mi_list_from_ems_and_catalog(ems_path: Path, item_class: str, mi_catal
     except Exception:
         mi_df = pd.read_csv(mi_catalog_path, sep=";", engine="python", on_bad_lines="skip")
 
-    # Identify MI name column in catalog (adapt if needed)
+    # Normalize headers
+    mi_df.columns = [str(c).replace("\ufeff", "").strip() for c in mi_df.columns]
+
+    # Identify MI name column in catalog
     name_col = None
     for c in mi_df.columns:
-        if c.strip().lower() in {"maintainable item", "maintainable_item", "name", "item"}:
+        if str(c).strip().lower() in {"maintainable item", "maintainable_item", "name", "item"}:
             name_col = c
             break
     if name_col is None:
-        # fallback: first column
         name_col = mi_df.columns[0]
 
     catalog_items = sorted(set(mi_df[name_col].astype(str).str.strip().tolist()))
 
-    # Match catalog items mentioned in boundary text
+    # Match catalog items mentioned in boundary text (simple containment)
     bt = boundary_text.lower()
     included = [mi for mi in catalog_items if mi and mi.lower() in bt]
 
-    # If nothing matched, still return catalog items? Better: return empty and force engineering check
     return included
 
 def pick_manual_text(item_class: str) -> Path | None:
@@ -277,7 +283,7 @@ Return ONLY the final deliverables requested in the instruction.
         cost = (in_tokens / 1_000_000) * 0.80 + (out_tokens / 1_000_000) * 3.20
         print(f"Estimated cost (gpt-4.1-mini Standard): ${cost:.4f}")
         
-  # --- Quality gate: ensure ALL mandatory MIs appear in output ---
+     # --- Quality gate: ensure ALL mandatory MIs appear in output ---
     output_text = resp.output_text or ""
     missing = []
     for mi_name in mandatory_mi:
@@ -289,12 +295,11 @@ Return ONLY the final deliverables requested in the instruction.
             f"Model output missing {len(missing)} mandatory Maintainable Items. Examples: {missing[:10]}"
         )
 
-    
     out_dir = Path("outputs")
     out_dir.mkdir(parents=True, exist_ok=True)
 
     output_name = "EMS upgrade output.md"
-    (out_dir / output_name).write_text(resp.output_text, encoding="utf-8")
+    (out_dir / output_name).write_text(output_text, encoding="utf-8")
 
     print(f"OK: Generated outputs/{output_name}")
 
