@@ -71,10 +71,10 @@ def read_text_file(path: Path, max_chars: int | None = None) -> str:
 
 def load_csv_preview(path: Path, max_rows: int = 200, max_cols: int = 30) -> str:
     try:
-    df = pd.read_csv(path, sep=None, engine="python")
-except Exception:
-    df = pd.read_csv(path, sep=";", engine="python", on_bad_lines="skip")
-    
+        df = pd.read_csv(path, sep=None, engine="python")
+    except Exception:
+        df = pd.read_csv(path, sep=";", engine="python", on_bad_lines="skip")
+
     # Limit cols for prompt compactness
     df = df.iloc[:, :max_cols]
     if len(df) > max_rows:
@@ -85,17 +85,14 @@ except Exception:
     return df.to_csv(index=False) + note
 
 def filter_ems_for_item_class(ems_path: Path, item_class: str, max_rows: int = 200) -> str:
-     try:
+    try:
         df = pd.read_csv(ems_path, sep=None, engine="python")
     except Exception:
-        # Fallback for Brazilian Excel exports
         df = pd.read_csv(ems_path, sep=";", engine="python", on_bad_lines="skip")
 
-    # Attempt common column names; adjust if your EMS.csv uses different names
     col = "Item Class" if "Item Class" in df.columns else None
 
     if col is None:
-        # fallback: send a small preview only, since we can't filter
         return "EMS.csv (unfiltered preview — Item Class column not found)\n" + load_csv_preview(ems_path, max_rows=max_rows)
 
     dff = df[df[col].astype(str).str.strip().str.lower() == item_class.strip().lower()]
@@ -110,6 +107,7 @@ def filter_ems_for_item_class(ems_path: Path, item_class: str, max_rows: int = 2
         note = f"\n\n[NOTE: filtered to Item Class='{item_class}']\n"
 
     return dff.to_csv(index=False) + note
+
 
 def pick_manual_text(item_class: str) -> Path | None:
     """
