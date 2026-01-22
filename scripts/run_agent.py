@@ -2,6 +2,16 @@ import os
 from pathlib import Path
 from openai import OpenAI
 
+def read_required(path_a: str, path_b: str) -> str:
+    """Read from path_a if it exists, otherwise path_b. Raise if neither exists."""
+    p1 = Path(path_a)
+    if p1.exists():
+        return p1.read_text(encoding="utf-8", errors="ignore")
+    p2 = Path(path_b)
+    if p2.exists():
+        return p2.read_text(encoding="utf-8", errors="ignore")
+    raise FileNotFoundError(f"Missing both: {path_a} and {path_b}")
+
 # Text-friendly formats ingested in v1
 TEXT_EXT = {".md", ".txt", ".csv", ".json"}
 
