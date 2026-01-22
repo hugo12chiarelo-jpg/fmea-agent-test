@@ -81,7 +81,11 @@ def load_csv_preview(path: Path, max_rows: int = 200, max_cols: int = 30) -> str
     return df.to_csv(index=False) + note
 
 def filter_ems_for_item_class(ems_path: Path, item_class: str, max_rows: int = 200) -> str:
-    df = pd.read_csv(ems_path)
+     try:
+        df = pd.read_csv(ems_path, sep=None, engine="python")
+    except Exception:
+        # Fallback for Brazilian Excel exports
+        df = pd.read_csv(ems_path, sep=";", engine="python", on_bad_lines="skip")
 
     # Attempt common column names; adjust if your EMS.csv uses different names
     col = "Item Class" if "Item Class" in df.columns else None
