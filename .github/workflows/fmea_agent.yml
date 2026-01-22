@@ -2,12 +2,6 @@ name: FMEA Agent
 
 on:
   workflow_dispatch: {}
-  push:
-    paths:
-      - "templates/**"
-      - "inputs/**"
-      - "scripts/**"
-      - "requirements.txt"
 
 jobs:
   run-agent:
