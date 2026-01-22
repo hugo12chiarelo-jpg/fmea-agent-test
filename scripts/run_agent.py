@@ -70,7 +70,11 @@ def read_text_file(path: Path, max_chars: int | None = None) -> str:
     return txt
 
 def load_csv_preview(path: Path, max_rows: int = 200, max_cols: int = 30) -> str:
-    df = pd.read_csv(path)
+    try:
+    df = pd.read_csv(path, sep=None, engine="python")
+except Exception:
+    df = pd.read_csv(path, sep=";", engine="python", on_bad_lines="skip")
+    
     # Limit cols for prompt compactness
     df = df.iloc[:, :max_cols]
     if len(df) > max_rows:
