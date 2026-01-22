@@ -84,8 +84,7 @@ def filter_ems_for_item_class(ems_path: Path, item_class: str, max_rows: int = 2
     df = pd.read_csv(ems_path)
 
     # Attempt common column names; adjust if your EMS.csv uses different names
-    possible_cols = ["Item Class", "ITEM_CLASS", "ITEM_CLASS_ID", "ItemClass", "ITEMCLASS"]
-    col = next((c for c in possible_cols if c in df.columns), None)
+    col = "Item Class" if "Item Class" in df.columns else None
 
     if col is None:
         # fallback: send a small preview only, since we can't filter
