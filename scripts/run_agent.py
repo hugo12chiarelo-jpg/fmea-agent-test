@@ -108,6 +108,55 @@ def filter_ems_for_item_class(ems_path: Path, item_class: str, max_rows: int = 2
 
     return dff.to_csv(index=False) + note
 
+def build_mi_list_from_ems_and_catalog(ems_path: Path, item_class: str, mi_catalog_path: Path) -> list[str]:
+    # Read EMS
+    try:
+        ems = pd.read_csv(ems_path, sep=None, engine="python")
+    except Exception:
+        ems = pd.read_csv(ems_path, sep=";", engine="python", on_bad_lines="skip")
+
+    if "Item Class" not in ems.columns:
+        raise RuntimeError("EMS.csv must contain column 'Item Class'")
+
+    # Find boundary column (adapt if your EMS uses another name)
+    boundary_col = None
+    for c in ems.columns:
+        if c.strip().lower() in {"boundaries", "boundary"}:
+            boundary_col = c
+            break
+    if boundary_col is None:
+        raise RuntimeError("EMS.csv must contain a 'Boundaries' column (or 'Boundary').")
+
+    rows = ems[ems["Item Class"].astype(str).str.strip().str.lower() == item_class.strip().lower()]
+    if rows.empty:
+        raise RuntimeError(f"No EMS rows matched Item Class='{item_class}'")
+
+    boundary_text = "\n".join(rows[boundary_col].astype(str).tolist())
+
+    # Read MI catalog
+    try:
+        mi_df = pd.read_csv(mi_catalog_path, sep=None, engine="python")
+    except Exception:
+        mi_df = pd.read_csv(mi_catalog_path, sep=";", engine="python", on_bad_lines="skip")
+
+    # Identify MI name column in catalog (adapt if needed)
+    name_col = None
+    for c in mi_df.columns:
+        if c.strip().lower() in {"maintainable item", "maintainable_item", "name", "item"}:
+            name_col = c
+            break
+    if name_col is None:
+        # fallback: first column
+        name_col = mi_df.columns[0]
+
+    catalog_items = sorted(set(mi_df[name_col].astype(str).str.strip().tolist()))
+
+    # Match catalog items mentioned in boundary text
+    bt = boundary_text.lower()
+    included = [mi for mi in catalog_items if mi and mi.lower() in bt]
+
+    # If nothing matched, still return catalog items? Better: return empty and force engineering check
+    return included
 
 def pick_manual_text(item_class: str) -> Path | None:
     """
@@ -144,6 +193,16 @@ def main():
 
     item_class = extract_item_class(instruction)
 
+    # --- Build mandatory MI list (deterministic) ---
+    ems_csv = Path("inputs/EMS/EMS.csv")
+    mi_catalog = Path("inputs/Catalogs/Maintainable Item Catalog.csv")
+
+    mandatory_mi = []
+    if ems_csv.exists() and mi_catalog.exists():
+        mandatory_mi = build_mi_list_from_ems_and_catalog(ems_csv, item_class, mi_catalog)
+
+    mandatory_mi_block = "\n".join([f"- {x}" for x in mandatory_mi]) if mandatory_mi else "[EMPTY - CHECK EMS Boundaries / Catalog]"
+    
     # --- Minimal ingestion pack ---
     parts = []
 
@@ -188,6 +247,13 @@ def main():
 
 ## INPUT DOCUMENTS (MINIMAL PACK)
 {minimal_inputs}
+
+## MANDATORY MAINTAINABLE ITEM LIST (MUST USE ALL)
+You MUST build the FMEA for EVERY Maintainable Item listed below.
+Do NOT summarize. Do NOT pick only the “most probable”.
+If any item is missing from the output, the deliverable is invalid.
+
+{mandatory_mi_block}
 
 Return ONLY the final deliverables requested in the instruction.
 """
