@@ -210,14 +210,15 @@ Return ONLY the final deliverables requested in the instruction.
     if in_tokens is not None and out_tokens is not None:
         cost = (in_tokens / 1_000_000) * 0.80 + (out_tokens / 1_000_000) * 3.20
         print(f"Estimated cost (gpt-4.1-mini Standard): ${cost:.4f}")
-    
-out_dir = Path("outputs")
-out_dir.mkdir(parents=True, exist_ok=True)
 
-output_name = "EMS upgrade output.md"
-(out_dir / output_name).write_text(resp.output_text, encoding="utf-8")
+    out_dir = Path("outputs")
+    out_dir.mkdir(parents=True, exist_ok=True)
 
-print(f"OK: Generated outputs/{output_name}")
+    output_name = "EMS upgrade output.md"
+    (out_dir / output_name).write_text(resp.output_text, encoding="utf-8")
+
+    print(f"OK: Generated outputs/{output_name}")
+
 
 if __name__ == "__main__":
     main()
