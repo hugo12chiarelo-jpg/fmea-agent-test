@@ -47,20 +47,30 @@ def pick_instruction_file() -> Path:
 
 def extract_item_class(instruction_text: str) -> str:
     """
-    Tries to extract Item Class from instruction text.
-    Expected patterns:
+    Extract Item Class from instruction text with tolerant patterns.
+    Accepts:
       - "Item Class: XYZ"
+      - "Item Class = XYZ"
+      - "Item Class - XYZ"
+      - "Item Class — XYZ"
       - "for Item Class: XYZ"
-      - "Build ... for Item Class: XYZ"
     """
     patterns = [
-        r"Item Class\s*:\s*(.+)",
-        r"for Item Class\s*:\s*(.+)",
+        r"Item\s*Class\s*[:=]\s*(.+)",
+        r"Item\s*Class\s*[-–—]\s*(.+)",
+        r"for\s+Item\s*Class\s*[:=]\s*(.+)",
+        r"for\s+Item\s*Class\s*[-–—]\s*(.+)",
     ]
     for pat in patterns:
         m = re.search(pat, instruction_text, flags=re.IGNORECASE)
         if m:
-            return m.group(1).strip().strip(".")
+            val = m.group(1).strip()
+            # stop at end of line
+            val = val.splitlines()[0].strip()
+            # remove trailing punctuation
+            val = val.rstrip(" .;:,")
+            return val
+
     return "UNKNOWN_ITEM_CLASS"
 
 def read_text_file(path: Path, max_chars: int | None = None) -> str:
