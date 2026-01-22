@@ -212,6 +212,32 @@ def main():
 
     item_class = extract_item_class(instruction)
 
+        # --- Fallback: if instruction didn't specify Item Class, pick first available from EMS ---
+if item_class == "UNKNOWN_ITEM_CLASS":
+    ems_csv_fallback = Path("inputs/EMS/EMS.csv")
+    if not ems_csv_fallback.exists():
+        raise RuntimeError("[ERROR] Instruction missing Item Class and inputs/EMS/EMS.csv not found.")
+
+    try:
+        df_ems = pd.read_csv(ems_csv_fallback, sep=None, engine="python")
+    except Exception:
+        df_ems = pd.read_csv(ems_csv_fallback, sep=";", engine="python", on_bad_lines="skip")
+
+    # normalize headers
+    df_ems.columns = [str(c).replace("\ufeff", "").strip() for c in df_ems.columns]
+
+    if "Item Class" not in df_ems.columns:
+        raise RuntimeError(f"[ERROR] Instruction missing Item Class and EMS.csv missing 'Item Class'. Found: {list(df_ems.columns)}")
+
+    candidates = df_ems["Item Class"].astype(str).str.strip()
+    candidates = candidates[candidates != ""]
+    if candidates.empty:
+        raise RuntimeError("[ERROR] Instruction missing Item Class and EMS has empty 'Item Class' values.")
+
+    item_class = candidates.iloc[0]
+    print(f"[WARN] Item Class not found in instruction. Using first EMS Item Class: {item_class}")
+
+    
     # --- Build mandatory MI list (deterministic) ---
     ems_csv = Path("inputs/EMS/EMS.csv")
     mi_catalog = Path("inputs/Catalogs/Maintainable Item Catalog.csv")
