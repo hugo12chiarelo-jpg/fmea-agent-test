@@ -193,7 +193,18 @@ Return ONLY the final deliverables requested in the instruction.
             {"role": "user", "content": user_prompt},
         ],
     )
+    usage = getattr(resp, "usage", None)
 
+    in_tokens = getattr(usage, "input_tokens", None) if usage else None
+    out_tokens = getattr(usage, "output_tokens", None) if usage else None
+
+    print(f"Token usage -> input: {in_tokens}, output: {out_tokens}")
+
+    # Estimativa de custo para gpt-4.1-mini (Standard)
+    if in_tokens is not None and out_tokens is not None:
+        cost = (in_tokens / 1_000_000) * 0.80 + (out_tokens / 1_000_000) * 3.20
+        print(f"Estimated cost (gpt-4.1-mini Standard): ${cost:.4f}")
+    
     out_dir = Path("outputs")
     out_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / "fmea_output.md").write_text(resp.output_text, encoding="utf-8")
