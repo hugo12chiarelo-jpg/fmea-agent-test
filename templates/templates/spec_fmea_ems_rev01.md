@@ -1,7 +1,9 @@
 OBJECTIVE
-Build a complete, ISO 14224–compliant FMEA for a user-provided Item Class of the EMS Upgrade, strictly following the "Business Rules for EMS Upgrade Rev01". The FMEA must reflect the technical characteristics of each Maintainable Item, with correct Symptoms, Failure Mechanisms, and Treatment Actions derived from reliability engineering standards (ISO 14224, OREDA, Moubray RCM) and the Maintenance Manual (PDF) as technical base for Treatment Actions.
+Build a complete, ISO 14224–compliant FMEA for a user-provided Item Class of the EMS Upgrade, strictly following the "Business Rules for EMS Upgrade Rev01". 
+The FMEA must reflect the technical characteristics of each Maintainable Item, with correct Symptoms, Failure Mechanisms, and Treatment Actions derived from reliability engineering standards (ISO 14224, OREDA, Moubray RCM) and the Maintenance Manual (PDF) as technical base for Treatment Actions.
 
 NON-NEGOTIABLE SOURCES AND PRIORITY
+
 Business Rules for EMS Upgrade Rev01: mandatory definitions, concepts, and rules. Do not introduce alternative concepts or rule reinterpretations.
 EMS.xlsx: defines scope/boundaries and Task Template IDs. Boundaries define what is inside maintenance scope.
 Maintainable Item Catalog: authoritative item naming; any inferred maintainable item must be marked with "(*)".
@@ -11,7 +13,7 @@ Maintenance Manual.pdf: technical basis to design Treatment Actions.
 If there is any conflict, follow the priority above.
 
 INPUT
-The user will provide the Item Class to be analyzed.
+The user will provide the Item Class to be analyzed using the Instructions.
 
 OUTPUT — REQUIRED COLUMNS (FINAL FILE)
 Item Class | Function | Maintainable Item | Symptom | Failure Mechanism | Failure Effect | Treatment Actions | Reporting Question ID | Treatment Action Type
@@ -20,9 +22,10 @@ CORE BEHAVIOR
 Reason at the Maintainable Item level (not category level).
 Even within the same category, maintainable items may have distinct symptoms/mechanisms/actions.
 When in doubt, differentiate by:
-Function (e.g., torque transfer vs load support)
-Observable indicators (e.g., vibration vs leak)
-Failure energy path (mechanical, hydraulic, electrical)
+  Function (e.g., torque transfer vs load support)
+  Observable indicators (e.g., vibration vs leak)
+  Failure energy path (mechanical, hydraulic, electrical)
+  
 SCOPE AND BOUNDARY RULES (EMS.xlsx)
 Interpret EMS boundaries as defining what is included in the Item Class maintenance scope.
 Exclude items outside EMS limits and exclude what is explicitly excluded inside the boundary text.
