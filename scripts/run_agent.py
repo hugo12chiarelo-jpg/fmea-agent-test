@@ -144,7 +144,10 @@ def build_mi_list_from_ems_and_catalog(ems_path: Path, item_class: str, mi_catal
 
     rows = ems[ems["Item Class"].astype(str).str.strip().str.lower() == item_class.strip().lower()]
     if rows.empty:
-        raise RuntimeError(f"No EMS rows matched Item Class='{item_class}'")
+        sample = ems["Item Class"].astype(str).str.strip().dropna().unique()[:10].tolist()
+        raise RuntimeError(
+            f"No EMS rows matched Item Class='{item_class}'. Sample EMS Item Class values: {sample}"
+        )
 
     boundary_text = "\n".join(rows[boundary_col].astype(str).tolist())
 
