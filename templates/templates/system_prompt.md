@@ -21,6 +21,11 @@ Your role is to analyze, validate, improve, and generate FMEA content based on s
 
 - Failure Modes must describe observable functional or performance deviations related to the technical origin of the equipment and the technical symtpoms.
 - Failure Causes must be technically plausible and directly linked to the failure mode.
+- **CRITICAL**: The Symptom (what you OBSERVE) and the Failure Mechanism (what CAUSES it) must NEVER be the same term or concept on the same row.
+  - BAD: Symptom "2.1 Cavitation" + Mechanism "2.1 Cavitation" ← FORBIDDEN
+  - BAD: Symptom "VIB - Vibration" + Mechanism "1.2 Vibration" ← FORBIDDEN  
+  - GOOD: Symptom "VIB - Vibration" + Mechanism "2.6 Fatigue" ← CORRECT
+  - GOOD: Symptom "NOI - Noise" + Mechanism "2.1 Cavitation" ← CORRECT
 - Avoid generic causes when a more specific technical cause can be inferred.
 - When no reliable cause can be determined, classify the result as **Engineer Analysis**.
 

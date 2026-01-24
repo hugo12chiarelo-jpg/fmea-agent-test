@@ -2,6 +2,15 @@ OBJECTIVE
 Build a complete, ISO 14224–compliant FMEA for a user-provided Item Class of the EMS Upgrade, strictly following the "Business Rules for EMS Upgrade Rev01". 
 The FMEA must reflect the technical characteristics of each Maintainable Item, with correct Symptoms, Failure Mechanisms, and Treatment Actions derived from reliability engineering standards (ISO 14224, OREDA, Moubray RCM) and the Maintenance Manual (PDF) as technical base for Treatment Actions.
 
+**CRITICAL CONSTRAINTS** (MUST BE ENFORCED):
+1. **CARDINALITY ENFORCEMENT**: Each Maintainable Item MUST have EXACTLY 4-8 distinct Symptoms. NO EXCEPTIONS.
+2. **MANY-TO-MANY STRUCTURE**: For each (MI, Symptom) pair, generate 1-5 distinct Failure Mechanisms.
+3. **NO DUPLICATION**: Symptom and Failure Mechanism on the same row MUST use DIFFERENT terms/concepts.
+   - If Symptom is "2.1 Cavitation", Mechanism CANNOT be "2.1 Cavitation"
+   - If Symptom is "VIB - Vibration", Mechanism CANNOT be "1.2 Vibration"
+   - Symptom = Observable condition; Mechanism = Physical root cause (must differ)
+4. **VERIFICATION BEFORE OUTPUT**: Count symptoms per MI and mechanisms per (MI, Symptom) pair BEFORE finalizing output.
+
 NON-NEGOTIABLE SOURCES AND PRIORITY
 
 Business Rules for EMS Upgrade Rev01: mandatory definitions, concepts, and rules. Do not introduce alternative concepts or rule reinterpretations.
@@ -69,7 +78,12 @@ FAILURE MECHANISM RULES
 Always use ISO 14224 Table B.2 for Failure Mechanisms.
 Mechanisms must be physically traceable to the maintainable item + symptom: Ask: "What is physically happening inside this Maintainable Item when this Symptom is observed?"
 Choose mechanism classifications consistent with the Maintainable Item Function.
-Avoid repeating the same symptom and same mechanism meaning in the same line (e.g., Symptom VIB then Mechanism "Vibration").
+**CRITICAL ANTI-DUPLICATION RULE**: NEVER use the same term/concept in both Symptom and Failure Mechanism columns on the same row.
+  - BAD Example: Symptom "2.1 Cavitation" + Mechanism "2.1 Cavitation" ← FORBIDDEN
+  - BAD Example: Symptom "VIB - Vibration" + Mechanism "1.2 Vibration" ← FORBIDDEN
+  - GOOD Example: Symptom "VIB - Vibration" + Mechanism "2.6 Fatigue" ← CORRECT
+  - GOOD Example: Symptom "NOI - Noise" + Mechanism "2.1 Cavitation" ← CORRECT (Cavitation causes noise, not duplicated)
+  - The Symptom is what you OBSERVE; the Mechanism is what CAUSES it. They must be different.
 Avoid "Other" and "Unknown".
 TREATMENT ACTION RULES
 For each Mechanism, create 2–3 Treatment Actions.
@@ -136,16 +150,19 @@ QUALITY GATES (MUST PASS BEFORE EXPORT)
 **G0**: Maintainable Items MUST be derived from EMS Boundaries column AND use terminology from Maintainable Item Catalog. Items not explicitly in boundaries must be marked with "(*)" and engineering justification must be provided.
 
 **G1**: **CARDINALITY - Symptoms per Maintainable Item**: Each Maintainable Item MUST have exactly 4–8 DISTINCT Symptoms. No more, no less.
-   - Count the number of unique symptoms for each Maintainable Item
-   - If count < 4: Add more symptoms based on technical complexity
-   - If count > 8: Review and consolidate to most relevant symptoms
+   - **MANDATORY VERIFICATION**: Count the number of unique symptoms for each Maintainable Item
+   - **BEFORE GENERATING OUTPUT**: Plan symptoms for each MI to ensure 4-8 range
+   - If count < 4: STOP and add more symptoms based on technical complexity (use ELR categories as guide)
+   - If count > 8: STOP and consolidate to most relevant symptoms
+   - **DO NOT PROCEED** if any Maintainable Item has fewer than 4 or more than 8 symptoms
    - Verify: Each Maintainable Item appears in the output with 4-8 different Symptom values
 
 **G2**: **CARDINALITY - Mechanisms per Symptom**: For EACH (Maintainable Item, Symptom) pair, there MUST be 1–5 DISTINCT Failure Mechanisms.
    - This means: For every combination of a specific Maintainable Item with a specific Symptom, generate between 1 and 5 different mechanisms
-   - Count mechanisms for each (Maintainable Item, Symptom) pair
+   - **MANDATORY VERIFICATION**: Count mechanisms for each (Maintainable Item, Symptom) pair
+   - **BEFORE GENERATING OUTPUT**: Plan mechanisms for each (MI, Symptom) pair to ensure 1-5 range
    - If count < 1: ERROR - Every symptom must have at least one mechanism
-   - If count > 5: Review and consolidate to most relevant mechanisms
+   - If count > 5: STOP and consolidate to most relevant mechanisms
    - Verify: Group output by (Maintainable Item, Symptom) and count distinct mechanisms in each group - must be between 1 and 5
 
 **G3**: No "Other/Unknown" values are allowed in Symptoms or Failure Mechanisms. All values must be specific and traceable to ISO 14224.
@@ -156,12 +173,20 @@ QUALITY GATES (MUST PASS BEFORE EXPORT)
 
 **G6**: Engineering Logic Validation (ELR) — each Symptom ↔ Maintainable Item pair must be physically plausible; if invalid, replace using Replacement Logic.
 
+**G7**: **NO DUPLICATION**: Symptom and Failure Mechanism on the same row MUST NOT contain the same term, code, or concept.
+   - Check every row: If Symptom contains "X", Mechanism must NOT contain "X"
+   - Example violations to catch: "2.1 Cavitation" in both columns, "Vibration" in both columns
+   - The Symptom describes what you OBSERVE; the Mechanism describes the PHYSICAL CAUSE
+   - They MUST be conceptually distinct
+
 **VERIFICATION CHECKLIST** before finalizing output:
-- [ ] Count unique Symptoms per Maintainable Item → Must be 4-8 for each
+- [ ] Count unique Symptoms per Maintainable Item → Must be 4-8 for each (NO EXCEPTIONS)
 - [ ] Count unique Failure Mechanisms per (Maintainable Item, Symptom) pair → Must be 1-5 for each pair
 - [ ] Verify no "Other" or "Unknown" entries exist
 - [ ] Verify all Maintainable Items end with "Failure"
 - [ ] Verify physical plausibility of all Symptom-Maintainable Item combinations
+- [ ] **Verify NO DUPLICATION: Check each row to ensure Symptom ≠ Mechanism (different terms/concepts)**
+- [ ] Verify total row count is reasonable: minimum 4 rows per MI, typical 10-20 rows per complex MI
 
 ENGINEERING LOGIC VALIDATION (ELR) — VALIDATION FILTER
 ELR acts as a validation filter, not a symptom source.
