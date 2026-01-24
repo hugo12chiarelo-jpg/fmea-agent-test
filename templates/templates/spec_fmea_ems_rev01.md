@@ -31,18 +31,23 @@ Interpret EMS boundaries as defining what is included in the Item Class maintena
 Exclude items outside EMS limits and exclude what is explicitly excluded inside the boundary text.
 Maintainable Item list must follow what is included in EMS boundary and exclude what is excluded.
 MAINTAINABLE ITEM RULES
-Transform the EMS "Boundaries" content into Maintainable Item Catalog values.
-Use Maintainable Item Catalog as the naming standard:
-Replace names with catalog equivalents.
-Mark inferred items with "(*)".
-If a maintainable item is suggested by AI and is NOT explicit in EMS boundaries, mark it with "(*)".
-Never suggest any maintainable item that is mentioned as excluded in boundaries.
-Add new maintainable items when there are relevant components/systems that could cause system failure, including (non-exhaustive): Power transmission; construction components (impeller, piston, valves, etc.); control & monitoring; lubrication system; seal system; cooling system; exhaust; fuel system; or any other relevant system.
-Appropriate level test: Ask: "What component could fail to cause system failure?" Example: Impeller Failure, Shaft Failure, Dry Gas Seal Failure.
-Grouping boundary subcomponents under one maintainable item is allowed ONLY if: (a) physically inseparable or replaced together as one unit, AND (b) identical symptoms, mechanisms, and treatment actions. Otherwise, create independent maintainable items.
-Maintainable Items must end with "Failure".
-Add a column "Maintainable Item Function": describe the function of the maintainable item relative to the Item Class.
-At the end, answer: "What are the most probable maintainable items that can cause a functional failure in the main equipment?"
+**CRITICAL**: Maintainable Items MUST be derived from the "Boundaries" column of the EMS file AND transformed using the terminology from "Maintainable Item Catalog.csv".
+
+**Process:**
+1. Read the "Boundaries" column from EMS file for the specified Item Class.
+2. Identify all components, systems, and equipment mentioned in the boundaries text.
+3. Transform each identified component name to match the standard naming from "Maintainable Item Catalog.csv".
+4. Use Maintainable Item Catalog as the authoritative naming standard:
+   - Replace boundary component names with their catalog equivalents.
+   - Example: If boundary mentions "bearing", use "Radial bearing" or "Thrust bearing" from catalog.
+5. Mark inferred items with "(*)": If a maintainable item is suggested by AI and is NOT explicitly stated in EMS boundaries, mark it with "(*)".
+6. Never suggest any maintainable item that is mentioned as excluded in boundaries.
+7. Add new maintainable items when there are relevant components/systems that could cause system failure, including (non-exhaustive): Power transmission; construction components (impeller, piston, valves, etc.); control & monitoring; lubrication system; seal system; cooling system; exhaust; fuel system; or any other relevant system.
+8. Appropriate level test: Ask: "What component could fail to cause system failure?" Example: Impeller Failure, Shaft Failure, Dry Gas Seal Failure.
+9. Grouping boundary subcomponents under one maintainable item is allowed ONLY if: (a) physically inseparable or replaced together as one unit, AND (b) identical symptoms, mechanisms, and treatment actions. Otherwise, create independent maintainable items.
+10. Maintainable Items must end with "Failure".
+11. Add a column "Maintainable Item Function": describe the function of the maintainable item relative to the Item Class.
+12. At the end, answer: "What are the most probable maintainable items that can cause a functional failure in the main equipment?"
 STRONGLY RECOMMEND ADDING (ENGINEERING VALIDATION REQUIRED)
 If the AI suggests maintainable items not explicit in EMS boundary, output a separate list: Maintainable Item | Why | Symptom | Failure Mechanisms | Suggested Treatment Actions
 
@@ -75,15 +80,18 @@ Avoid administrative/procedural/documentation-only actions.
 Use Maintenance Manual.pdf as technical basis to build the actions.
 Each mechanism row must have ≥1 Treatment Action.
 REQUIRED CARDINALITIES
-Generate 4–8 distinct symptoms per maintainable item.
-For each symptom, generate 1–5 failure mechanisms.
-Each row must have ≥1 mechanism and ≥1 treatment action.
-For critical items, ensure ≥10 distinct mechanisms across all symptoms.
+1. Each Maintainable Item MUST have 4–8 DISTINCT symptoms (not 1-to-1, but multiple symptoms per item).
+2. For EACH symptom of a Maintainable Item, generate 1–5 DISTINCT failure mechanisms (not 1-to-1, but multiple mechanisms per symptom).
+3. Each output row must contain ≥1 mechanism and ≥1 treatment action.
+4. For critical items, ensure ≥10 distinct mechanisms across all symptoms.
+
+**IMPORTANT**: The association is NOT 1-to-1. Each Maintainable Item can have MULTIPLE symptoms (4-8), and each of those symptoms can have MULTIPLE failure mechanisms (1-5). This creates a many-to-many relationship structure.
 QUALITY GATES (MUST PASS BEFORE EXPORT)
-G1: 4–8 distinct symptoms per Maintainable Item. 
-G2: 1–5 mechanisms per Symptom + Maintainable Item (no symptom without mechanisms). 
-G3: No "Other/Unknown". 
-G4: All Maintainable Items end with "Failure". 
+G0: Maintainable Items MUST be derived from EMS Boundaries column AND use terminology from Maintainable Item Catalog. Items not explicitly in boundaries must be marked with "(*)" and engineering justification must be provided.
+G1: Each Maintainable Item MUST have exactly 4–8 DISTINCT symptoms. No more, no less.
+G2: For EACH Symptom associated with a Maintainable Item, there MUST be 1–5 DISTINCT Failure Mechanisms. This means for each (Maintainable Item, Symptom) pair, generate between 1 and 5 different mechanisms. No symptom should exist without at least 1 mechanism, and no symptom should have more than 5 mechanisms.
+G3: No "Other/Unknown" values are allowed in Symptoms or Failure Mechanisms. 
+G4: All Maintainable Items MUST end with "Failure". 
 G5: Treatment Actions must prevent/predict/failure-find the mechanism for that specific maintainable item; actions do not need to start with the maintainable item name. 
 G6: Engineering Logic Validation (ELR) — each Symptom ↔ Maintainable Item pair must be physically plausible; if invalid, replace using Replacement Logic.
 

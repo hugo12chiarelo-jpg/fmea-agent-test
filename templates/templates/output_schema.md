@@ -19,9 +19,14 @@ No column may be removed, renamed, reordered, or merged.
    - Must be technically descriptive (not generic).
 
 3. Maintainable Item
-   - Name must come from Maintainable Item Catalog.
-   - Must end with "Failure".
-   - Inferred items which are not part of the Maintainable Item Catalog must be marked with "(*)".
+   - **SOURCE**: Must be derived from the "Boundaries" column in the EMS file.
+   - **NAMING**: Name must be transformed to match terminology from "Maintainable Item Catalog.csv".
+   - **FORMAT**: Must end with "Failure".
+   - **MARKING**: Inferred items which are not explicitly mentioned in EMS Boundaries must be marked with "(*)".
+   - **PROCESS**: 
+     1. Extract components from EMS Boundaries column for the Item Class
+     2. Map each component to its standard name from Maintainable Item Catalog
+     3. Ensure all catalog-based names end with "Failure"
   
 5. Maintainable Item Function
    - Function of the Maintainable Item relative to the Item Class.
@@ -31,13 +36,13 @@ No column may be removed, renamed, reordered, or merged.
    - ISO 14224 code + description (e.g., "VIB - Vibration").
    - Must follow Symptom Catalog from ISO 14224.
    - Any non-catalog symptom must be marked with "(*)".
-   - For each Maintainable Item must exist at least 4 until 8 Symptoms
+   - **CARDINALITY**: For each Maintainable Item there must exist 4 to 8 DISTINCT Symptoms (not 1-to-1).
 
 7. Failure Mechanism  
    - ISO 14224 Table B.2 mechanism.
    - Must be physically linked to the Maintainable Item and the Symptom.
    - Avoid generic or duplicated meaning with the Symptom.
-   - For each symptom must exist 1 until 5 Failure mechanism
+   - **CARDINALITY**: For each (Maintainable Item, Symptom) pair there must exist 1 to 5 DISTINCT Failure Mechanisms (not 1-to-1).
 
 8. Failure Effect  
    - Describe the local effect of the failure at the Maintainable Item level.
@@ -62,16 +67,28 @@ No column may be removed, renamed, reordered, or merged.
    - One type per Treatment Action.
 
 ## CARDINALITY RULES
-- 4–8 Symptoms per Maintainable Item.
-- 1–5 Failure Mechanisms per Symptom.
-- 2–3 Treatment Actions per Failure Mechanism.
+
+**CRITICAL**: The relationship between Maintainable Items, Symptoms, and Failure Mechanisms is NOT 1-to-1.
+
+- Each Maintainable Item MUST have 4–8 DISTINCT Symptoms (many symptoms per item).
+- For EACH Symptom associated with a Maintainable Item, there MUST be 1–5 DISTINCT Failure Mechanisms (many mechanisms per symptom).
+- Each Failure Mechanism MUST have 2–3 Treatment Actions.
 - Each output row must contain:
   ≥1 Symptom, ≥1 Failure Mechanism, ≥1 Treatment Action.
 
+**Example Structure:**
+- Maintainable Item A → Symptom 1 → Mechanisms 1.1, 1.2, 1.3
+- Maintainable Item A → Symptom 2 → Mechanisms 2.1, 2.2
+- Maintainable Item A → Symptom 3 → Mechanisms 3.1, 3.2, 3.3, 3.4
+- ... (continuing until Maintainable Item A has 4-8 symptoms total)
+
 ## VALIDATION BEFORE OUTPUT
 Before finalizing the output, the agent must confirm:
-- All Quality Gates G1–G6 are satisfied.
-- No Maintainable Item outside EMS boundaries is included.
+- All Quality Gates G0–G6 are satisfied.
+- All Maintainable Items are derived from EMS Boundaries column and use Maintainable Item Catalog terminology.
+- Each Maintainable Item has exactly 4-8 distinct symptoms.
+- Each (Maintainable Item, Symptom) pair has 1-5 distinct failure mechanisms.
+- No Maintainable Item outside EMS boundaries is included (unless marked with "(*)" with justification).
 - No "Other" or "Unknown" values are present.
 - All Maintainable Items end with "Failure".
 
