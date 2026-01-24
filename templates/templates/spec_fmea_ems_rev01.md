@@ -80,20 +80,88 @@ Avoid administrative/procedural/documentation-only actions.
 Use Maintenance Manual.pdf as technical basis to build the actions.
 Each mechanism row must have ≥1 Treatment Action.
 REQUIRED CARDINALITIES
-1. Each Maintainable Item MUST have 4–8 DISTINCT symptoms (not 1-to-1, but multiple symptoms per item).
-2. For EACH symptom of a Maintainable Item, generate 1–5 DISTINCT failure mechanisms (not 1-to-1, but multiple mechanisms per symptom).
-3. Each output row must contain ≥1 mechanism and ≥1 treatment action.
-4. For critical items, ensure ≥10 distinct mechanisms across all symptoms.
 
-**IMPORTANT**: The association is NOT 1-to-1. Each Maintainable Item can have MULTIPLE symptoms (4-8), and each of those symptoms can have MULTIPLE failure mechanisms (1-5). This creates a many-to-many relationship structure.
+**CRITICAL RELATIONSHIP STRUCTURE**: The relationship between Maintainable Items, Symptoms, and Failure Mechanisms is MANY-TO-MANY, NOT 1-to-1.
+
+### Cardinality Rules:
+
+1. **Maintainable Item → Symptoms**: Each Maintainable Item MUST have 4–8 DISTINCT Symptoms
+   - The number depends on the technical complexity of the Maintainable Item relative to its Item Class
+   - More complex items need more symptoms (up to 8)
+   - Simpler items need fewer symptoms (at least 4)
+   - Example: A complex Maintainable Item like "Impeller Failure" may have 6-8 symptoms, while a simpler one like "Filter Failure" may have 4-5 symptoms
+
+2. **Symptom → Failure Mechanisms**: For EACH Symptom of a Maintainable Item, generate 1–5 DISTINCT Failure Mechanisms
+   - The number depends on the technical complexity and importance of the Maintainable Item for the Item Class
+   - Critical/complex Maintainable Items with a specific Symptom may have 3-5 mechanisms for that symptom
+   - Less critical/simple Maintainable Items with a specific Symptom may have 1-2 mechanisms for that symptom
+   - Example: For "Shaft Failure" with symptom "VIB - Vibration", you might have 4 mechanisms: Fatigue, Misalignment, Unbalance, and Wear
+
+3. **Each output row** must contain ≥1 mechanism and ≥1 treatment action
+
+4. **For critical items**, ensure ≥10 distinct mechanisms distributed across all symptoms
+
+### Concrete Example of Many-to-Many Structure:
+
+**Maintainable Item: Impeller Failure**
+- Symptom 1: VIB - Vibration
+  - Mechanism 1.1: Unbalance
+  - Mechanism 1.2: Cavitation erosion
+  - Mechanism 1.3: Fatigue
+- Symptom 2: PDE - Parameter deviation
+  - Mechanism 2.1: Erosion
+  - Mechanism 2.2: Corrosion
+- Symptom 3: NOI - Noise
+  - Mechanism 3.1: Cavitation
+  - Mechanism 3.2: Impact/collision
+  - Mechanism 3.3: Resonance
+- Symptom 4: LOO - Leak of oil
+  - Mechanism 4.1: Seal wear
+- Symptom 5: OHE - Overheating
+  - Mechanism 5.1: Friction
+  - Mechanism 5.2: Inadequate cooling
+- Symptom 6: FWR - Abnormal wear
+  - Mechanism 6.1: Abrasion
+  - Mechanism 6.2: Erosion
+  - Mechanism 6.3: Corrosion
+
+This example shows:
+- 1 Maintainable Item ("Impeller Failure") has 6 Symptoms (within 4-8 range)
+- Each Symptom has 1-3 Failure Mechanisms (within 1-5 range)
+- Total: 15 distinct mechanism entries for this Maintainable Item
+
+**DO NOT create 1-to-1 relationships.** Each Maintainable Item MUST be expanded into multiple (Maintainable Item, Symptom) pairs, and each such pair MUST be expanded into multiple (Maintainable Item, Symptom, Failure Mechanism) rows.
 QUALITY GATES (MUST PASS BEFORE EXPORT)
-G0: Maintainable Items MUST be derived from EMS Boundaries column AND use terminology from Maintainable Item Catalog. Items not explicitly in boundaries must be marked with "(*)" and engineering justification must be provided.
-G1: Each Maintainable Item MUST have exactly 4–8 DISTINCT symptoms. No more, no less.
-G2: For EACH Symptom associated with a Maintainable Item, there MUST be 1–5 DISTINCT Failure Mechanisms. This means for each (Maintainable Item, Symptom) pair, generate between 1 and 5 different mechanisms. No symptom should exist without at least 1 mechanism, and no symptom should have more than 5 mechanisms.
-G3: No "Other/Unknown" values are allowed in Symptoms or Failure Mechanisms. 
-G4: All Maintainable Items MUST end with "Failure". 
-G5: Treatment Actions must prevent/predict/failure-find the mechanism for that specific maintainable item; actions do not need to start with the maintainable item name. 
-G6: Engineering Logic Validation (ELR) — each Symptom ↔ Maintainable Item pair must be physically plausible; if invalid, replace using Replacement Logic.
+
+**G0**: Maintainable Items MUST be derived from EMS Boundaries column AND use terminology from Maintainable Item Catalog. Items not explicitly in boundaries must be marked with "(*)" and engineering justification must be provided.
+
+**G1**: **CARDINALITY - Symptoms per Maintainable Item**: Each Maintainable Item MUST have exactly 4–8 DISTINCT Symptoms. No more, no less.
+   - Count the number of unique symptoms for each Maintainable Item
+   - If count < 4: Add more symptoms based on technical complexity
+   - If count > 8: Review and consolidate to most relevant symptoms
+   - Verify: Each Maintainable Item appears in the output with 4-8 different Symptom values
+
+**G2**: **CARDINALITY - Mechanisms per Symptom**: For EACH (Maintainable Item, Symptom) pair, there MUST be 1–5 DISTINCT Failure Mechanisms.
+   - This means: For every combination of a specific Maintainable Item with a specific Symptom, generate between 1 and 5 different mechanisms
+   - Count mechanisms for each (Maintainable Item, Symptom) pair
+   - If count < 1: ERROR - Every symptom must have at least one mechanism
+   - If count > 5: Review and consolidate to most relevant mechanisms
+   - Verify: Group output by (Maintainable Item, Symptom) and count distinct mechanisms in each group - must be between 1 and 5
+
+**G3**: No "Other/Unknown" values are allowed in Symptoms or Failure Mechanisms. All values must be specific and traceable to ISO 14224.
+
+**G4**: All Maintainable Items MUST end with "Failure". 
+
+**G5**: Treatment Actions must prevent/predict/failure-find the mechanism for that specific maintainable item; actions do not need to start with the maintainable item name. 
+
+**G6**: Engineering Logic Validation (ELR) — each Symptom ↔ Maintainable Item pair must be physically plausible; if invalid, replace using Replacement Logic.
+
+**VERIFICATION CHECKLIST** before finalizing output:
+- [ ] Count unique Symptoms per Maintainable Item → Must be 4-8 for each
+- [ ] Count unique Failure Mechanisms per (Maintainable Item, Symptom) pair → Must be 1-5 for each pair
+- [ ] Verify no "Other" or "Unknown" entries exist
+- [ ] Verify all Maintainable Items end with "Failure"
+- [ ] Verify physical plausibility of all Symptom-Maintainable Item combinations
 
 ENGINEERING LOGIC VALIDATION (ELR) — VALIDATION FILTER
 ELR acts as a validation filter, not a symptom source.

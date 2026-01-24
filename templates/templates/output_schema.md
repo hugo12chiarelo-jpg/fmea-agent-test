@@ -36,13 +36,27 @@ No column may be removed, renamed, reordered, or merged.
    - ISO 14224 code + description (e.g., "VIB - Vibration").
    - Must follow Symptom Catalog from ISO 14224.
    - Any non-catalog symptom must be marked with "(*)".
-   - **CARDINALITY**: For each Maintainable Item there must exist 4 to 8 DISTINCT Symptoms (not 1-to-1).
+   - **CARDINALITY**: Each Maintainable Item MUST have 4-8 DISTINCT Symptoms (NOT 1-to-1)
+   - The number of symptoms depends on technical complexity of the Maintainable Item:
+     * Complex/Critical Maintainable Items: 6-8 symptoms
+     * Moderate complexity: 5-6 symptoms
+     * Simpler items: 4-5 symptoms
+   - Examples:
+     * "Impeller Failure" (complex) → 6-8 different symptoms
+     * "Filter Failure" (simpler) → 4-5 different symptoms
 
 7. Failure Mechanism  
    - ISO 14224 Table B.2 mechanism.
    - Must be physically linked to the Maintainable Item and the Symptom.
    - Avoid generic or duplicated meaning with the Symptom.
-   - **CARDINALITY**: For each (Maintainable Item, Symptom) pair there must exist 1 to 5 DISTINCT Failure Mechanisms (not 1-to-1).
+   - **CARDINALITY**: For EACH (Maintainable Item, Symptom) pair, there MUST be 1-5 DISTINCT Failure Mechanisms (NOT 1-to-1)
+   - The number of mechanisms per symptom depends on:
+     * Technical importance of the Maintainable Item for the Item Class
+     * Complexity of failure physics for that specific symptom
+   - Examples for "Shaft Failure":
+     * Symptom "VIB - Vibration" → 4 mechanisms: Fatigue, Misalignment, Unbalance, Wear
+     * Symptom "PDE - Parameter deviation" → 2 mechanisms: Deformation, Corrosion
+     * Symptom "FWR - Abnormal wear" → 3 mechanisms: Abrasion, Erosion, Fretting
 
 8. Failure Effect  
    - Describe the local effect of the failure at the Maintainable Item level.
@@ -68,28 +82,134 @@ No column may be removed, renamed, reordered, or merged.
 
 ## CARDINALITY RULES
 
-**CRITICAL**: The relationship between Maintainable Items, Symptoms, and Failure Mechanisms is NOT 1-to-1.
+**CRITICAL UNDERSTANDING**: The relationship between Maintainable Items, Symptoms, and Failure Mechanisms follows a MANY-TO-MANY structure, NOT 1-to-1 mappings.
 
-- Each Maintainable Item MUST have 4–8 DISTINCT Symptoms (many symptoms per item).
-- For EACH Symptom associated with a Maintainable Item, there MUST be 1–5 DISTINCT Failure Mechanisms (many mechanisms per symptom).
-- Each Failure Mechanism MUST have 2–3 Treatment Actions.
-- Each output row must contain:
-  ≥1 Symptom, ≥1 Failure Mechanism, ≥1 Treatment Action.
+### Rule 1: Maintainable Item → Symptoms (4-8 per item)
+- Each Maintainable Item MUST have 4–8 DISTINCT Symptoms (many symptoms per item)
+- The exact number within this range depends on the **technical complexity** of the Maintainable Item:
+  * **High complexity/critical items** (e.g., Impeller, Shaft, Turbine Rotor): 6-8 symptoms
+  * **Moderate complexity** (e.g., Bearing, Coupling, Seal): 5-6 symptoms
+  * **Lower complexity** (e.g., Filter, Sensor, Simple valve): 4-5 symptoms
+- DO NOT create only 1 or 2 symptoms per Maintainable Item
 
-**Example Structure:**
-- Maintainable Item A → Symptom 1 → Mechanisms 1.1, 1.2, 1.3
-- Maintainable Item A → Symptom 2 → Mechanisms 2.1, 2.2
-- Maintainable Item A → Symptom 3 → Mechanisms 3.1, 3.2, 3.3, 3.4
-- ... (continuing until Maintainable Item A has 4-8 symptoms total)
+### Rule 2: (Maintainable Item, Symptom) → Failure Mechanisms (1-5 per symptom)
+- For EACH Symptom associated with a Maintainable Item, there MUST be 1–5 DISTINCT Failure Mechanisms (many mechanisms per symptom)
+- The exact number within this range depends on:
+  * **Technical importance** of the Maintainable Item for the Item Class
+  * **Complexity of failure physics** for that specific symptom
+  * **Criticality** of the equipment
+- Examples:
+  * **Critical symptom on critical item**: 3-5 mechanisms (e.g., Vibration on Shaft → 4 mechanisms)
+  * **Moderate importance**: 2-3 mechanisms (e.g., Noise on Bearing → 2 mechanisms)
+  * **Simple/single cause symptom**: 1-2 mechanisms (e.g., Leak on Simple Seal → 1 mechanism)
+
+### Rule 3: Treatment Actions per Mechanism
+- Each Failure Mechanism MUST have 2–3 Treatment Actions
+- Each Treatment Action must be binary, measurable, and auditable
+
+### Rule 4: Output Row Structure
+- Each output row represents: **ONE Maintainable Item + ONE Symptom + ONE Failure Mechanism + Treatment Actions**
+- To satisfy Rules 1 and 2, you MUST generate multiple rows for the same Maintainable Item
+
+### Concrete Example Structure:
+
+**Scenario**: Analyzing "Compressor Shaft Failure" (high complexity item)
+
+**Required output structure** (simplified, showing only key columns):
+
+| Maintainable Item | Symptom | Failure Mechanism |
+|-------------------|---------|-------------------|
+| Compressor Shaft Failure | VIB - Vibration | Fatigue |
+| Compressor Shaft Failure | VIB - Vibration | Misalignment |
+| Compressor Shaft Failure | VIB - Vibration | Unbalance |
+| Compressor Shaft Failure | VIB - Vibration | Wear |
+| Compressor Shaft Failure | PDE - Parameter deviation | Deformation |
+| Compressor Shaft Failure | PDE - Parameter deviation | Corrosion |
+| Compressor Shaft Failure | NOI - Noise | Cavitation |
+| Compressor Shaft Failure | NOI - Noise | Impact |
+| Compressor Shaft Failure | LOO - Leak of oil | Seal wear |
+| Compressor Shaft Failure | OHE - Overheating | Friction |
+| Compressor Shaft Failure | OHE - Overheating | Inadequate cooling |
+| Compressor Shaft Failure | FWR - Abnormal wear | Abrasion |
+| Compressor Shaft Failure | FWR - Abnormal wear | Erosion |
+
+**Analysis of the example:**
+- **Rule 1 Check**: "Compressor Shaft Failure" has 6 distinct symptoms (VIB, PDE, NOI, LOO, OHE, FWR) → ✓ Within 4-8 range
+- **Rule 2 Check**: 
+  * VIB has 4 mechanisms → ✓ Within 1-5 range
+  * PDE has 2 mechanisms → ✓ Within 1-5 range
+  * NOI has 2 mechanisms → ✓ Within 1-5 range
+  * LOO has 1 mechanism → ✓ Within 1-5 range
+  * OHE has 2 mechanisms → ✓ Within 1-5 range
+  * FWR has 2 mechanisms → ✓ Within 1-5 range
+- **Total output rows**: 13 rows for this single Maintainable Item
+
+**Anti-Pattern Example** (INCORRECT - DO NOT DO THIS):
+
+| Maintainable Item | Symptom | Failure Mechanism |
+|-------------------|---------|-------------------|
+| Compressor Shaft Failure | VIB - Vibration | Fatigue |
+
+This is WRONG because:
+- ❌ Only 1 symptom per Maintainable Item (violates Rule 1: need 4-8)
+- ❌ Only 1 mechanism per symptom (acceptable but may be insufficient for complex items)
+- ❌ Results in only 1 row for a complex Maintainable Item (should have 10-40 rows typically)
+
+### Summary Formula:
+- **Minimum rows per Maintainable Item** = 4 symptoms × 1 mechanism = 4 rows
+- **Maximum rows per Maintainable Item** = 8 symptoms × 5 mechanisms = 40 rows
+- **Typical for complex item** = 6 symptoms × 2-3 mechanisms = 12-18 rows
+- **Typical for simple item** = 4 symptoms × 1-2 mechanisms = 4-8 rows
 
 ## VALIDATION BEFORE OUTPUT
-Before finalizing the output, the agent must confirm:
-- All Quality Gates G0–G6 are satisfied.
-- All Maintainable Items are derived from EMS Boundaries column and use Maintainable Item Catalog terminology.
-- Each Maintainable Item has exactly 4-8 distinct symptoms.
-- Each (Maintainable Item, Symptom) pair has 1-5 distinct failure mechanisms.
-- No Maintainable Item outside EMS boundaries is included (unless marked with "(*)" with justification).
-- No "Other" or "Unknown" values are present.
-- All Maintainable Items end with "Failure".
 
-If any rule is violated, the agent must correct the output before presenting it.
+Before finalizing the output, the agent must confirm ALL of the following:
+
+### Quality Gate Checks:
+- **G0**: All Maintainable Items are derived from EMS Boundaries column and use Maintainable Item Catalog terminology
+- **G1**: Each Maintainable Item has exactly 4-8 distinct symptoms
+  - Method: Group by Maintainable Item, count unique Symptoms → must be between 4 and 8
+- **G2**: Each (Maintainable Item, Symptom) pair has 1-5 distinct failure mechanisms
+  - Method: Group by (Maintainable Item, Symptom), count unique Mechanisms → must be between 1 and 5
+- **G3**: No "Other" or "Unknown" values are present in Symptoms or Failure Mechanisms
+- **G4**: All Maintainable Items end with "Failure"
+- **G5**: Treatment Actions are technically feasible for the specific mechanism
+- **G6**: Each Symptom ↔ Maintainable Item pair is physically plausible (ELR validation)
+
+### Boundary Validation:
+- No Maintainable Item outside EMS boundaries is included (unless marked with "(*)" with engineering justification)
+
+### Cardinality Validation Steps:
+
+**Step 1**: Count Symptoms per Maintainable Item
+```
+For each unique Maintainable Item:
+  Count distinct Symptoms
+  If count < 4 or count > 8: FAIL - Fix required
+```
+
+**Step 2**: Count Mechanisms per (Maintainable Item, Symptom) pair
+```
+For each unique (Maintainable Item, Symptom) combination:
+  Count distinct Failure Mechanisms
+  If count < 1 or count > 5: FAIL - Fix required
+```
+
+**Step 3**: Verify output row count makes sense
+```
+Expected rows per Maintainable Item ≈ (Number of Symptoms) × (Average mechanisms per symptom)
+Typical range: 4-40 rows per Maintainable Item
+If outside range: Review for errors
+```
+
+### Validation Checklist (must ALL be true):
+- [ ] Every Maintainable Item appears with 4-8 different Symptoms
+- [ ] Every (Maintainable Item, Symptom) pair appears with 1-5 different Failure Mechanisms
+- [ ] No "Other" or "Unknown" entries exist anywhere
+- [ ] Every Maintainable Item name ends with "Failure"
+- [ ] All Symptom-Maintainable Item combinations are physically plausible
+- [ ] All Maintainable Items are derived from EMS Boundaries (or marked with "(*)") and use Catalog terminology
+- [ ] Each mechanism has 2-3 Treatment Actions listed
+- [ ] Total number of output rows is reasonable (typically 50-200+ rows for a complete Item Class FMEA)
+
+**If any validation check fails**, the agent MUST correct the output before presenting it. DO NOT proceed with invalid output.
