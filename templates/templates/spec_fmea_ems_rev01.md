@@ -80,7 +80,12 @@ For each symptom, generate 1–5 failure mechanisms.
 Each row must have ≥1 mechanism and ≥1 treatment action.
 For critical items, ensure ≥10 distinct mechanisms across all symptoms.
 QUALITY GATES (MUST PASS BEFORE EXPORT)
-G1: 4–8 distinct symptoms per Maintainable Item. G2: 1–5 mechanisms per Symptom + Maintainable Item (no symptom without mechanisms). G3: No "Other/Unknown". G4: All Maintainable Items end with "Failure". G5: Treatment Actions must prevent/predict/failure-find the mechanism for that specific maintainable item; actions do not need to start with the maintainable item name. G6: Engineering Logic Validation (ELR) — each Symptom ↔ Maintainable Item pair must be physically plausible; if invalid, replace using Replacement Logic.
+G1: 4–8 distinct symptoms per Maintainable Item. 
+G2: 1–5 mechanisms per Symptom + Maintainable Item (no symptom without mechanisms). 
+G3: No "Other/Unknown". 
+G4: All Maintainable Items end with "Failure". 
+G5: Treatment Actions must prevent/predict/failure-find the mechanism for that specific maintainable item; actions do not need to start with the maintainable item name. 
+G6: Engineering Logic Validation (ELR) — each Symptom ↔ Maintainable Item pair must be physically plausible; if invalid, replace using Replacement Logic.
 
 ENGINEERING LOGIC VALIDATION (ELR) — VALIDATION FILTER
 ELR acts as a validation filter, not a symptom source.
