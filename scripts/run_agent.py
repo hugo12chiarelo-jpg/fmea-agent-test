@@ -1,5 +1,6 @@
 import os
 import re
+from io import StringIO
 from pathlib import Path
 
 import pandas as pd
@@ -213,8 +214,6 @@ def validate_output_cardinality(output_text: str) -> list[str]:
     errors = []
     
     try:
-        from io import StringIO
-        
         # Extract the table from the output
         lines = output_text.split('\n')
         table_lines = []
@@ -240,6 +239,13 @@ def validate_output_cardinality(output_text: str) -> list[str]:
         df = pd.read_csv(StringIO(table_text), sep='|', skipinitialspace=True)
         df = df.iloc[:, 1:-1]  # Remove empty first and last columns
         df.columns = df.columns.str.strip()
+        
+        # Validate required columns exist
+        required_cols = ['Item Class', 'Maintainable Item', 'Symptom', 'Failure Mechanism']
+        missing_cols = [col for col in required_cols if col not in df.columns]
+        if missing_cols:
+            errors.append(f"Missing required columns: {missing_cols}")
+            return errors
         
         # Remove separator row if present
         df = df[df['Item Class'].str.strip() != '---']
@@ -271,6 +277,9 @@ def validate_output_cardinality(output_text: str) -> list[str]:
                 errors.append(f"G2 VIOLATION: '{mi_clean}' + '{sym_clean}' has {count} mechanisms, need 1-5")
         
         # G7: Check for duplication between Symptom and Failure Mechanism
+        # Minimum term length to check for duplication (avoids false positives on short terms)
+        MIN_TERM_LENGTH = 5
+        
         for idx, row in df.iterrows():
             symptom = str(row['Symptom']).strip()
             mechanism = str(row['Failure Mechanism']).strip()
@@ -280,7 +289,6 @@ def validate_output_cardinality(output_text: str) -> list[str]:
                 continue
             
             # Extract key terms to check for duplication
-            # Check if symptom code appears in mechanism
             symptom_code = symptom.split()[0] if ' ' in symptom else symptom
             mechanism_code = mechanism.split()[0] if ' ' in mechanism else mechanism
             
@@ -298,8 +306,8 @@ def validate_output_cardinality(output_text: str) -> list[str]:
             symptom_term = symptom.split('-')[-1].strip().lower() if '-' in symptom else symptom_lower
             mechanism_term = mechanism_lower
             
-            # Check if main symptom term appears in mechanism
-            if len(symptom_term) > 5 and symptom_term in mechanism_term:
+            # Check if main symptom term appears in mechanism (avoid false positives on short terms)
+            if len(symptom_term) > MIN_TERM_LENGTH and symptom_term in mechanism_term:
                 errors.append(f"G7 VIOLATION: Row {idx+1} (MI: '{mi}'): Term '{symptom_term}' appears in both Symptom '{symptom}' and Mechanism '{mechanism}'")
     
     except Exception as e:
