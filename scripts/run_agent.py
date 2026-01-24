@@ -201,6 +201,113 @@ def pick_manual_text(item_class: str) -> Path | None:
     return txts[0]
 
 
+def validate_output_cardinality(output_text: str) -> list[str]:
+    """
+    Validate that the output meets cardinality requirements:
+    - Each Maintainable Item has 4-8 distinct Symptoms
+    - Each (MI, Symptom) pair has 1-5 distinct Failure Mechanisms
+    - No duplication between Symptom and Failure Mechanism on the same row
+    
+    Returns a list of error messages (empty if valid).
+    """
+    errors = []
+    
+    try:
+        from io import StringIO
+        
+        # Extract the table from the output
+        lines = output_text.split('\n')
+        table_lines = []
+        in_table = False
+        
+        for line in lines:
+            if line.strip().startswith('|') and 'Item Class' in line:
+                in_table = True
+            if in_table:
+                if line.strip().startswith('|'):
+                    table_lines.append(line)
+                elif line.strip() == '' or line.strip().startswith('---'):
+                    # End of table or separator
+                    if len(table_lines) > 2:  # Has header + separator + data
+                        break
+        
+        if len(table_lines) < 3:
+            errors.append("Could not find valid table in output")
+            return errors
+        
+        # Parse the table
+        table_text = '\n'.join(table_lines)
+        df = pd.read_csv(StringIO(table_text), sep='|', skipinitialspace=True)
+        df = df.iloc[:, 1:-1]  # Remove empty first and last columns
+        df.columns = df.columns.str.strip()
+        
+        # Remove separator row if present
+        df = df[df['Item Class'].str.strip() != '---']
+        df = df[df['Item Class'].str.strip() != '']
+        
+        if len(df) == 0:
+            errors.append("No data rows found in table")
+            return errors
+        
+        # G1: Check symptoms per Maintainable Item (4-8)
+        symptom_counts = df.groupby('Maintainable Item')['Symptom'].nunique()
+        for mi, count in symptom_counts.items():
+            mi_clean = str(mi).strip()
+            if mi_clean.lower() in ['see above', '']:
+                continue
+            if count < 4:
+                errors.append(f"G1 VIOLATION: '{mi_clean}' has only {count} symptom(s), need 4-8")
+            elif count > 8:
+                errors.append(f"G1 VIOLATION: '{mi_clean}' has {count} symptoms, need 4-8")
+        
+        # G2: Check mechanisms per (MI, Symptom) pair (1-5)
+        mechanism_counts = df.groupby(['Maintainable Item', 'Symptom'])['Failure Mechanism'].nunique()
+        for (mi, sym), count in mechanism_counts.items():
+            mi_clean = str(mi).strip()
+            sym_clean = str(sym).strip()
+            if mi_clean.lower() in ['see above', ''] or sym_clean.lower() in ['see above', '']:
+                continue
+            if count > 5:
+                errors.append(f"G2 VIOLATION: '{mi_clean}' + '{sym_clean}' has {count} mechanisms, need 1-5")
+        
+        # G7: Check for duplication between Symptom and Failure Mechanism
+        for idx, row in df.iterrows():
+            symptom = str(row['Symptom']).strip()
+            mechanism = str(row['Failure Mechanism']).strip()
+            mi = str(row['Maintainable Item']).strip()
+            
+            if symptom.lower() in ['see above', ''] or mechanism.lower() in ['see above', '']:
+                continue
+            
+            # Extract key terms to check for duplication
+            # Check if symptom code appears in mechanism
+            symptom_code = symptom.split()[0] if ' ' in symptom else symptom
+            mechanism_code = mechanism.split()[0] if ' ' in mechanism else mechanism
+            
+            # Check exact match or same code
+            if symptom == mechanism:
+                errors.append(f"G7 VIOLATION: Row {idx+1} (MI: '{mi}'): Symptom and Mechanism are identical: '{symptom}'")
+            elif symptom_code == mechanism_code and len(symptom_code) > 1:
+                errors.append(f"G7 VIOLATION: Row {idx+1} (MI: '{mi}'): Symptom '{symptom}' and Mechanism '{mechanism}' use same code")
+            
+            # Check for key term duplication (e.g., "Cavitation" in both)
+            symptom_lower = symptom.lower()
+            mechanism_lower = mechanism.lower()
+            
+            # Extract main term after the code
+            symptom_term = symptom.split('-')[-1].strip().lower() if '-' in symptom else symptom_lower
+            mechanism_term = mechanism_lower
+            
+            # Check if main symptom term appears in mechanism
+            if len(symptom_term) > 5 and symptom_term in mechanism_term:
+                errors.append(f"G7 VIOLATION: Row {idx+1} (MI: '{mi}'): Term '{symptom_term}' appears in both Symptom '{symptom}' and Mechanism '{mechanism}'")
+    
+    except Exception as e:
+        errors.append(f"Validation error: {str(e)}")
+    
+    return errors
+
+
 def main():
     api_key = os.getenv("OPENAI_API_KEY")
     model = os.getenv("OPENAI_MODEL", "gpt-4.1-mini")
@@ -302,6 +409,25 @@ If any item is missing from the output, the deliverable is invalid.
 
 {mandatory_mi_block}
 
+## CRITICAL REMINDERS BEFORE YOU START:
+**CARDINALITY REQUIREMENTS** - Your output WILL BE AUTOMATICALLY VALIDATED:
+1. Each Maintainable Item MUST have EXACTLY 4-8 DISTINCT Symptoms (NO EXCEPTIONS)
+   - Count symptoms per MI before finalizing
+   - Add more symptoms if < 4
+   - Consolidate if > 8
+   
+2. Each (Maintainable Item, Symptom) pair MUST have 1-5 DISTINCT Failure Mechanisms
+   - Plan mechanisms for each symptom based on complexity
+   
+3. NO DUPLICATION: Symptom and Failure Mechanism on same row MUST be DIFFERENT terms
+   - BAD: Symptom "2.1 Cavitation" + Mechanism "2.1 Cavitation" ← FORBIDDEN
+   - BAD: Symptom "VIB - Vibration" + Mechanism "1.2 Vibration" ← FORBIDDEN
+   - GOOD: Symptom "VIB - Vibration" + Mechanism "2.6 Fatigue" ← CORRECT
+   - GOOD: Symptom "NOI - Noise" + Mechanism "2.1 Cavitation" ← CORRECT
+   - Check EVERY row before finalizing
+
+**THE OUTPUT WILL BE REJECTED IF ANY OF THESE RULES ARE VIOLATED**
+
 Return ONLY the final deliverables requested in the instruction.
 """
 
@@ -334,6 +460,16 @@ Return ONLY the final deliverables requested in the instruction.
         raise RuntimeError(
             f"Model output missing {len(missing)} mandatory Maintainable Items. Examples: {missing[:10]}"
         )
+
+    # --- Quality gate: validate cardinality rules ---
+    print("\n[VALIDATION] Checking cardinality and duplication rules...")
+    validation_errors = validate_output_cardinality(output_text)
+    if validation_errors:
+        print("\n[ERROR] Output validation failed:")
+        for err in validation_errors:
+            print(f"  - {err}")
+        raise RuntimeError(f"Output validation failed with {len(validation_errors)} error(s). See above for details.")
+    print("[VALIDATION] ✓ All quality gates passed")
 
     out_dir = Path("outputs")
     out_dir.mkdir(parents=True, exist_ok=True)
