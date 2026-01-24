@@ -75,15 +75,17 @@ Avoid administrative/procedural/documentation-only actions.
 Use Maintenance Manual.pdf as technical basis to build the actions.
 Each mechanism row must have ≥1 Treatment Action.
 REQUIRED CARDINALITIES
-Generate 4–8 distinct symptoms per maintainable item.
-For each symptom, generate 1–5 failure mechanisms.
-Each row must have ≥1 mechanism and ≥1 treatment action.
-For critical items, ensure ≥10 distinct mechanisms across all symptoms.
+1. Each Maintainable Item MUST have 4–8 DISTINCT symptoms (not 1-to-1, but multiple symptoms per item).
+2. For EACH symptom of a Maintainable Item, generate 1–5 DISTINCT failure mechanisms (not 1-to-1, but multiple mechanisms per symptom).
+3. Each output row must contain ≥1 mechanism and ≥1 treatment action.
+4. For critical items, ensure ≥10 distinct mechanisms across all symptoms.
+
+**IMPORTANT**: The association is NOT 1-to-1. Each Maintainable Item can have MULTIPLE symptoms (4-8), and each of those symptoms can have MULTIPLE failure mechanisms (1-5). This creates a many-to-many relationship structure.
 QUALITY GATES (MUST PASS BEFORE EXPORT)
-G1: 4–8 distinct symptoms per Maintainable Item. 
-G2: 1–5 mechanisms per Symptom + Maintainable Item (no symptom without mechanisms). 
-G3: No "Other/Unknown". 
-G4: All Maintainable Items end with "Failure". 
+G1: Each Maintainable Item MUST have exactly 4–8 DISTINCT symptoms. No more, no less.
+G2: For EACH Symptom associated with a Maintainable Item, there MUST be 1–5 DISTINCT Failure Mechanisms. This means for each (Maintainable Item, Symptom) pair, generate between 1 and 5 different mechanisms. No symptom should exist without at least 1 mechanism, and no symptom should have more than 5 mechanisms.
+G3: No "Other/Unknown" values are allowed in Symptoms or Failure Mechanisms. 
+G4: All Maintainable Items MUST end with "Failure". 
 G5: Treatment Actions must prevent/predict/failure-find the mechanism for that specific maintainable item; actions do not need to start with the maintainable item name. 
 G6: Engineering Logic Validation (ELR) — each Symptom ↔ Maintainable Item pair must be physically plausible; if invalid, replace using Replacement Logic.
 
