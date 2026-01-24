@@ -19,9 +19,14 @@ No column may be removed, renamed, reordered, or merged.
    - Must be technically descriptive (not generic).
 
 3. Maintainable Item
-   - Name must come from Maintainable Item Catalog.
-   - Must end with "Failure".
-   - Inferred items which are not part of the Maintainable Item Catalog must be marked with "(*)".
+   - **SOURCE**: Must be derived from the "Boundaries" column in the EMS file.
+   - **NAMING**: Name must be transformed to match terminology from "Maintainable Item Catalog.csv".
+   - **FORMAT**: Must end with "Failure".
+   - **MARKING**: Inferred items which are not explicitly mentioned in EMS Boundaries must be marked with "(*)".
+   - **PROCESS**: 
+     1. Extract components from EMS Boundaries column for the Item Class
+     2. Map each component to its standard name from Maintainable Item Catalog
+     3. Ensure all catalog-based names end with "Failure"
   
 5. Maintainable Item Function
    - Function of the Maintainable Item relative to the Item Class.
@@ -79,8 +84,11 @@ No column may be removed, renamed, reordered, or merged.
 
 ## VALIDATION BEFORE OUTPUT
 Before finalizing the output, the agent must confirm:
-- All Quality Gates G1–G6 are satisfied.
-- No Maintainable Item outside EMS boundaries is included.
+- All Quality Gates G0–G6 are satisfied.
+- All Maintainable Items are derived from EMS Boundaries column and use Maintainable Item Catalog terminology.
+- Each Maintainable Item has exactly 4-8 distinct symptoms.
+- Each (Maintainable Item, Symptom) pair has 1-5 distinct failure mechanisms.
+- No Maintainable Item outside EMS boundaries is included (unless marked with "(*)" with justification).
 - No "Other" or "Unknown" values are present.
 - All Maintainable Items end with "Failure".
 
