@@ -8,6 +8,9 @@ from openai import OpenAI
 
 TEXT_EXT = {".md", ".txt", ".csv", ".json"}
 
+# Validation threshold: Flag if more than this ratio of (MI, Symptom) pairs have only 1 mechanism
+MAX_SINGLE_MECHANISM_RATIO = 0.70
+
 
 def read_required(path_a: str, path_b: str) -> str:
     p1 = Path(path_a)
@@ -332,13 +335,13 @@ def validate_output_cardinality(output_text: str) -> list[str]:
                 errors.append(f"G2 VIOLATION: '{mi_clean}' + '{sym_clean}' has {count} mechanisms, need 1-5")
         
         # G2b: Check if too many pairs have only 1 mechanism (quality check)
-        # This is a heuristic: if more than 70% of pairs have only 1 mechanism, 
+        # This is a heuristic: if more than MAX_SINGLE_MECHANISM_RATIO of pairs have only 1 mechanism, 
         # it likely means the AI is not generating enough mechanisms
         if total_pairs > 0:
             single_ratio = single_mechanism_count / total_pairs
-            if single_ratio > 0.70:
+            if single_ratio > MAX_SINGLE_MECHANISM_RATIO:
                 errors.append(
-                    f"G2 QUALITY WARNING: {single_mechanism_count}/{total_pairs} ({single_ratio:.0%}) of (MI, Symptom) pairs have only 1 mechanism. "
+                    f"G2 QUALITY WARNING: {single_mechanism_count}/{total_pairs} ({int(single_ratio * 100)}%) of (MI, Symptom) pairs have only 1 mechanism. "
                     f"For complex/critical items, most symptoms should have 2-5 mechanisms representing different physical causes. "
                     f"Review each symptom and expand with additional plausible failure mechanisms from ISO 14224 Table B.2."
                 )
