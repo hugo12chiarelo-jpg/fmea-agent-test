@@ -291,9 +291,12 @@ def validate_output_cardinality(output_text: str) -> list[str]:
             errors.append(f"Missing required columns: {missing_cols}")
             return errors
         
-        # Remove separator row if present
-        df = df[df['Item Class'].str.strip() != '---']
-        df = df[df['Item Class'].str.strip() != '']
+        # Remove separator rows and invalid data
+        # Filter out rows where Item Class or Maintainable Item is just dashes or empty
+        df = df[~df['Item Class'].astype(str).str.strip().str.match(r'^-+$')]
+        df = df[~df['Maintainable Item'].astype(str).str.strip().str.match(r'^-+$')]
+        df = df[df['Item Class'].astype(str).str.strip() != '']
+        df = df[df['Maintainable Item'].astype(str).str.strip() != '']
         
         if len(df) == 0:
             errors.append("No data rows found in table")
