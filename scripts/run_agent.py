@@ -202,6 +202,41 @@ def pick_manual_text(item_class: str) -> Path | None:
     return txts[0]
 
 
+def build_correction_prompt(validation_errors: list[str]) -> str:
+    """
+    Build a prompt to request AI to fix validation errors.
+    
+    Args:
+        validation_errors: List of validation error messages
+        
+    Returns:
+        Formatted correction prompt
+    """
+    error_summary = "\n".join([f"  - {err}" for err in validation_errors])
+    return f"""
+The output you provided has validation errors that MUST be fixed:
+
+{error_summary}
+
+Please revise the ENTIRE FMEA table to fix these violations while keeping the same structure and format.
+
+CRITICAL RULES TO FOLLOW:
+1. Each Maintainable Item MUST have EXACTLY 4-8 DISTINCT Symptoms
+   - If an MI has fewer than 4 symptoms, ADD more distinct symptoms from the catalogs
+   - If an MI has more than 8 symptoms, CONSOLIDATE similar ones
+   
+2. Each (Maintainable Item, Symptom) pair MUST have 1-5 DISTINCT Failure Mechanisms
+   
+3. NO DUPLICATION: Symptom and Failure Mechanism on same row MUST use DIFFERENT terms
+   - If Symptom is "VIB - Vibration", Mechanism CANNOT be "1.2 Vibration" or contain "Vibration"
+   - If Symptom is "2.1 Cavitation", Mechanism CANNOT be "2.1 Cavitation" or contain "Cavitation"
+   - Symptom = what you OBSERVE (effect)
+   - Mechanism = what CAUSES it (root cause) - must be different from the symptom
+
+Return the COMPLETE corrected output with the FULL table (not just the fixes).
+"""
+
+
 def validate_output_cardinality(output_text: str) -> list[str]:
     """
     Validate that the output meets cardinality requirements:
@@ -476,13 +511,15 @@ Return ONLY the final deliverables requested in the instruction.
     print("\n[VALIDATION] Checking cardinality and duplication rules...")
     validation_errors = validate_output_cardinality(output_text)
     
-    correction_attempt = 0
-    conversation_history = [
-        {"role": "system", "content": system_prompt + "\n\n### SPEC (MANDATORY)\n" + spec},
-        {"role": "user", "content": user_prompt},
-        {"role": "assistant", "content": output_text}
-    ]
+    # Initialize conversation history once for reuse
+    if validation_errors:
+        conversation_history = [
+            {"role": "system", "content": system_prompt + "\n\n### SPEC (MANDATORY)\n" + spec},
+            {"role": "user", "content": user_prompt},
+            {"role": "assistant", "content": output_text}
+        ]
     
+    correction_attempt = 0
     while validation_errors and correction_attempt < max_correction_attempts:
         correction_attempt += 1
         print(f"\n[VALIDATION] ⚠️  Found {len(validation_errors)} validation error(s) (Attempt {correction_attempt}/{max_correction_attempts}):")
@@ -492,30 +529,7 @@ Return ONLY the final deliverables requested in the instruction.
         print(f"\n[CORRECTION] Requesting AI to fix validation errors...")
         
         # Build correction prompt with specific errors
-        error_summary = "\n".join([f"  - {err}" for err in validation_errors])
-        correction_prompt = f"""
-The output you provided has validation errors that MUST be fixed:
-
-{error_summary}
-
-Please revise the ENTIRE FMEA table to fix these violations while keeping the same structure and format.
-
-CRITICAL RULES TO FOLLOW:
-1. Each Maintainable Item MUST have EXACTLY 4-8 DISTINCT Symptoms
-   - If an MI has fewer than 4 symptoms, ADD more distinct symptoms from the catalogs
-   - If an MI has more than 8 symptoms, CONSOLIDATE similar ones
-   
-2. Each (Maintainable Item, Symptom) pair MUST have 1-5 DISTINCT Failure Mechanisms
-   
-3. NO DUPLICATION: Symptom and Failure Mechanism on same row MUST use DIFFERENT terms
-   - If Symptom is "VIB - Vibration", Mechanism CANNOT be "1.2 Vibration" or contain "Vibration"
-   - If Symptom is "2.1 Cavitation", Mechanism CANNOT be "2.1 Cavitation" or contain "Cavitation"
-   - Symptom = what you OBSERVE (effect)
-   - Mechanism = what CAUSES it (root cause) - must be different from the symptom
-
-Return the COMPLETE corrected output with the FULL table (not just the fixes).
-"""
-        
+        correction_prompt = build_correction_prompt(validation_errors)
         conversation_history.append({"role": "user", "content": correction_prompt})
         
         # Request correction from AI
