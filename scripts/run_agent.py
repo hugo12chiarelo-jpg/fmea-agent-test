@@ -458,6 +458,8 @@ Return ONLY the final deliverables requested in the instruction.
         print(f"Estimated cost (gpt-4.1-mini Standard): ${cost:.4f}")
 
     # --- Quality gate: ensure ALL mandatory MIs appear in output ---
+    if not resp.choices:
+        raise RuntimeError("OpenAI API returned no response choices")
     output_text = resp.choices[0].message.content or ""
     missing: list[str] = []
     for mi_name in mandatory_mi:
