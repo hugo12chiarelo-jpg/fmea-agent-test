@@ -55,14 +55,17 @@ No column may be removed, renamed, reordered, or merged.
      * GOOD: Symptom "NOI - Noise" + Mechanism "2.1 Cavitation" ← CORRECT (different observation vs cause)
    - The Symptom is what you OBSERVE; the Mechanism is what CAUSES it. They must be distinct.
    - Avoid generic or duplicated meaning with the Symptom.
-   - **CARDINALITY**: For EACH (Maintainable Item, Symptom) pair, there MUST be 1-5 DISTINCT Failure Mechanisms (NOT 1-to-1)
+   - **CARDINALITY**: For EACH (Maintainable Item, Symptom) pair, generate MULTIPLE (1-5) DISTINCT Failure Mechanisms
+   - **CRITICAL**: DO NOT generate only 1 mechanism per symptom for most items - generate 2-5 mechanisms per symptom
    - The number of mechanisms per symptom depends on:
      * Technical importance of the Maintainable Item for the Item Class
      * Complexity of failure physics for that specific symptom
-   - Examples for "Shaft Failure":
-     * Symptom "VIB - Vibration" → 4 mechanisms: Fatigue, Misalignment, Unbalance, Wear
-     * Symptom "PDE - Parameter deviation" → 2 mechanisms: Deformation, Corrosion
-     * Symptom "FWR - Abnormal wear" → 3 mechanisms: Abrasion, Erosion, Fretting
+   - For each symptom, think: "What are the DIFFERENT physical causes that could produce this symptom?"
+   - Examples showing MULTIPLE mechanisms per symptom:
+     * "Shaft Failure" + "VIB - Vibration" → 4 mechanisms: Fatigue, Misalignment, Unbalance, Wear (4 separate rows)
+     * "Bearing Failure" + "VIB - Vibration" → 3 mechanisms: Wear, Misalignment, Fatigue (3 separate rows)
+     * "Impeller Failure" + "PDE - Parameter deviation" → 2 mechanisms: Erosion, Corrosion (2 separate rows)
+     * "Filter Failure" + "PLU - Plugged" → 2 mechanisms: Blockage, Contamination (2 separate rows)
 
 8. Failure Effect  
    - Describe the local effect of the failure at the Maintainable Item level.
@@ -98,16 +101,19 @@ No column may be removed, renamed, reordered, or merged.
   * **Lower complexity** (e.g., Filter, Sensor, Simple valve): 4-5 symptoms
 - DO NOT create only 1 or 2 symptoms per Maintainable Item
 
-### Rule 2: (Maintainable Item, Symptom) → Failure Mechanisms (1-5 per symptom)
-- For EACH Symptom associated with a Maintainable Item, there MUST be 1–5 DISTINCT Failure Mechanisms (many mechanisms per symptom)
+### Rule 2: (Maintainable Item, Symptom) → Failure Mechanisms (MULTIPLE: 1-5 per symptom)
+- **CRITICAL**: For EACH Symptom associated with a Maintainable Item, generate MULTIPLE (1–5) DISTINCT Failure Mechanisms
+- **COMMON ERROR**: Generating only 1 mechanism per symptom for all items - this is INCORRECT
+- **CORRECT APPROACH**: For each symptom, identify 2-5 different physical causes that could produce that symptom
 - The exact number within this range depends on:
   * **Technical importance** of the Maintainable Item for the Item Class
   * **Complexity of failure physics** for that specific symptom
   * **Criticality** of the equipment
-- Examples:
-  * **Critical symptom on critical item**: 3-5 mechanisms (e.g., Vibration on Shaft → 4 mechanisms)
-  * **Moderate importance**: 2-3 mechanisms (e.g., Noise on Bearing → 2 mechanisms)
-  * **Simple/single cause symptom**: 1-2 mechanisms (e.g., Leak on Simple Seal → 1 mechanism)
+- Examples showing MULTIPLE mechanisms:
+  * **Critical symptom on critical item**: 3-5 mechanisms (e.g., "Shaft Failure" + "VIB - Vibration" → 4 mechanisms: Fatigue, Misalignment, Unbalance, Wear)
+  * **Moderate importance**: 2-3 mechanisms (e.g., "Bearing Failure" + "NOI - Noise" → 3 mechanisms: Wear, Misalignment, Cavitation)
+  * **Simple symptom on simple item**: 1-2 mechanisms (e.g., "Filter Failure" + "PLU - Plugged" → 2 mechanisms: Blockage, Contamination)
+- Each mechanism gets its OWN output row (same MI + Symptom can appear on multiple rows with different mechanisms)
 
 ### Rule 3: Treatment Actions per Mechanism
 - Each Failure Mechanism MUST have 2–3 Treatment Actions

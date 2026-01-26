@@ -105,11 +105,17 @@ REQUIRED CARDINALITIES
    - Simpler items need fewer symptoms (at least 4)
    - Example: A complex Maintainable Item like "Impeller Failure" may have 6-8 symptoms, while a simpler one like "Filter Failure" may have 4-5 symptoms
 
-2. **Symptom → Failure Mechanisms**: For EACH Symptom of a Maintainable Item, generate 1–5 DISTINCT Failure Mechanisms
+2. **Symptom → Failure Mechanisms**: For EACH Symptom of a Maintainable Item, generate MULTIPLE (1–5) DISTINCT Failure Mechanisms
+   - **CRITICAL**: DO NOT generate only 1 mechanism per symptom for most items - this is the most common error
    - The number depends on the technical complexity and importance of the Maintainable Item for the Item Class
-   - Critical/complex Maintainable Items with a specific Symptom may have 3-5 mechanisms for that symptom
+   - Critical/complex Maintainable Items with a specific Symptom SHOULD have 2-5 mechanisms for that symptom
    - Less critical/simple Maintainable Items with a specific Symptom may have 1-2 mechanisms for that symptom
-   - Example: For "Shaft Failure" with symptom "VIB - Vibration", you might have 4 mechanisms: Fatigue, Misalignment, Unbalance, and Wear
+   - For each symptom, ask: "What are the DIFFERENT physical root causes that could produce this observable symptom?"
+   - Examples showing MULTIPLE mechanisms per symptom:
+     * "Shaft Failure" + "VIB - Vibration" → 4 mechanisms: Fatigue, Misalignment, Unbalance, Wear
+     * "Bearing Failure" + "VIB - Vibration" → 3 mechanisms: Wear, Misalignment, Fatigue
+     * "Impeller Failure" + "NOI - Noise" → 3 mechanisms: Cavitation, Impact/collision, Resonance
+   - Generate a SEPARATE OUTPUT ROW for each mechanism (same MI + Symptom appears on multiple rows)
 
 3. **Each output row** must contain ≥1 mechanism and ≥1 treatment action
 
@@ -157,8 +163,10 @@ QUALITY GATES (MUST PASS BEFORE EXPORT)
    - **DO NOT PROCEED** if any Maintainable Item has fewer than 4 or more than 8 symptoms
    - Verify: Each Maintainable Item appears in the output with 4-8 different Symptom values
 
-**G2**: **CARDINALITY - Mechanisms per Symptom**: For EACH (Maintainable Item, Symptom) pair, there MUST be 1–5 DISTINCT Failure Mechanisms.
+**G2**: **CARDINALITY - Mechanisms per Symptom**: For EACH (Maintainable Item, Symptom) pair, there MUST be MULTIPLE (1–5) DISTINCT Failure Mechanisms.
    - This means: For every combination of a specific Maintainable Item with a specific Symptom, generate between 1 and 5 different mechanisms
+   - **CRITICAL**: Most (MI, Symptom) pairs should have 2-5 mechanisms, NOT just 1
+   - **COMMON ERROR**: Generating only 1 mechanism per symptom for all items - this is INCORRECT
    - **MANDATORY VERIFICATION**: Count mechanisms for each (Maintainable Item, Symptom) pair
    - **BEFORE GENERATING OUTPUT**: Plan mechanisms for each (MI, Symptom) pair to ensure 1-5 range
    - If count < 1: ERROR - Every symptom must have at least one mechanism
