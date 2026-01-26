@@ -319,6 +319,7 @@ def validate_output_cardinality(output_text: str) -> list[str]:
 def main():
     api_key = os.getenv("OPENAI_API_KEY")
     model = os.getenv("OPENAI_MODEL", "gpt-4.1-mini")
+    max_correction_attempts = int(os.getenv("MAX_CORRECTION_ATTEMPTS", "3"))
     if not api_key:
         raise RuntimeError("Missing OPENAI_API_KEY secret")
 
@@ -471,15 +472,85 @@ Return ONLY the final deliverables requested in the instruction.
             f"Model output missing {len(missing)} mandatory Maintainable Items. Examples: {missing[:10]}"
         )
 
-    # --- Quality gate: validate cardinality rules ---
+    # --- Quality gate: validate cardinality rules with automatic correction ---
     print("\n[VALIDATION] Checking cardinality and duplication rules...")
     validation_errors = validate_output_cardinality(output_text)
-    if validation_errors:
-        print("\n[ERROR] Output validation failed:")
+    
+    correction_attempt = 0
+    conversation_history = [
+        {"role": "system", "content": system_prompt + "\n\n### SPEC (MANDATORY)\n" + spec},
+        {"role": "user", "content": user_prompt},
+        {"role": "assistant", "content": output_text}
+    ]
+    
+    while validation_errors and correction_attempt < max_correction_attempts:
+        correction_attempt += 1
+        print(f"\n[VALIDATION] ⚠️  Found {len(validation_errors)} validation error(s) (Attempt {correction_attempt}/{max_correction_attempts}):")
         for err in validation_errors:
             print(f"  - {err}")
-        raise RuntimeError(f"Output validation failed with {len(validation_errors)} error(s). See above for details.")
-    print("[VALIDATION] ✓ All quality gates passed")
+        
+        print(f"\n[CORRECTION] Requesting AI to fix validation errors...")
+        
+        # Build correction prompt with specific errors
+        error_summary = "\n".join([f"  - {err}" for err in validation_errors])
+        correction_prompt = f"""
+The output you provided has validation errors that MUST be fixed:
+
+{error_summary}
+
+Please revise the ENTIRE FMEA table to fix these violations while keeping the same structure and format.
+
+CRITICAL RULES TO FOLLOW:
+1. Each Maintainable Item MUST have EXACTLY 4-8 DISTINCT Symptoms
+   - If an MI has fewer than 4 symptoms, ADD more distinct symptoms from the catalogs
+   - If an MI has more than 8 symptoms, CONSOLIDATE similar ones
+   
+2. Each (Maintainable Item, Symptom) pair MUST have 1-5 DISTINCT Failure Mechanisms
+   
+3. NO DUPLICATION: Symptom and Failure Mechanism on same row MUST use DIFFERENT terms
+   - If Symptom is "VIB - Vibration", Mechanism CANNOT be "1.2 Vibration" or contain "Vibration"
+   - If Symptom is "2.1 Cavitation", Mechanism CANNOT be "2.1 Cavitation" or contain "Cavitation"
+   - Symptom = what you OBSERVE (effect)
+   - Mechanism = what CAUSES it (root cause) - must be different from the symptom
+
+Return the COMPLETE corrected output with the FULL table (not just the fixes).
+"""
+        
+        conversation_history.append({"role": "user", "content": correction_prompt})
+        
+        # Request correction from AI
+        correction_resp = client.chat.completions.create(
+            model=model,
+            messages=conversation_history,
+        )
+        
+        usage = getattr(correction_resp, "usage", None)
+        in_tokens = getattr(usage, "prompt_tokens", None) if usage else None
+        out_tokens = getattr(usage, "completion_tokens", None) if usage else None
+        
+        print(f"Token usage (correction) -> input: {in_tokens}, output: {out_tokens}")
+        
+        if in_tokens is not None and out_tokens is not None:
+            cost = (in_tokens / 1_000_000) * 0.80 + (out_tokens / 1_000_000) * 3.20
+            print(f"Estimated cost (gpt-4.1-mini Standard): ${cost:.4f}")
+        
+        if not correction_resp.choices:
+            print("[ERROR] AI correction failed - no response received")
+            break
+        
+        output_text = correction_resp.choices[0].message.content or ""
+        conversation_history.append({"role": "assistant", "content": output_text})
+        
+        # Validate the corrected output
+        validation_errors = validate_output_cardinality(output_text)
+    
+    if validation_errors:
+        print(f"\n[VALIDATION] ❌ Output still has {len(validation_errors)} validation error(s) after {correction_attempt} correction attempt(s):")
+        for err in validation_errors:
+            print(f"  - {err}")
+        print("\n[WARNING] Saving output with validation errors. Please review manually.")
+    else:
+        print("[VALIDATION] ✓ All quality gates passed")
 
     out_dir = Path("outputs")
     out_dir.mkdir(parents=True, exist_ok=True)
