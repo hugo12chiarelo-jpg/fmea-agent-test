@@ -48,6 +48,12 @@ No column may be removed, renamed, reordered, or merged.
 7. Failure Mechanism  
    - ISO 14224 Table B.2 mechanism.
    - Must be physically linked to the Maintainable Item and the Symptom.
+   - **CRITICAL**: NEVER use the same term/code/concept as the Symptom on the same row
+     * BAD: Symptom "2.1 Cavitation" + Mechanism "2.1 Cavitation" ← FORBIDDEN  
+     * BAD: Symptom "VIB - Vibration" + Mechanism "1.2 Vibration" ← FORBIDDEN  
+     * GOOD: Symptom "VIB - Vibration" + Mechanism "2.6 Fatigue" ← CORRECT  
+     * GOOD: Symptom "NOI - Noise" + Mechanism "2.1 Cavitation" ← CORRECT (different observation vs cause)
+   - The Symptom is what you OBSERVE; the Mechanism is what CAUSES it. They must be distinct.
    - Avoid generic or duplicated meaning with the Symptom.
    - **CARDINALITY**: For EACH (Maintainable Item, Symptom) pair, there MUST be 1-5 DISTINCT Failure Mechanisms (NOT 1-to-1)
    - The number of mechanisms per symptom depends on:
@@ -167,14 +173,20 @@ Before finalizing the output, the agent must confirm ALL of the following:
 
 ### Quality Gate Checks:
 - **G0**: All Maintainable Items are derived from EMS Boundaries column and use Maintainable Item Catalog terminology
-- **G1**: Each Maintainable Item has exactly 4-8 distinct symptoms
+- **G1**: Each Maintainable Item has exactly 4-8 distinct symptoms (**NO EXCEPTIONS - DO NOT PROCEED WITH FEWER**)
   - Method: Group by Maintainable Item, count unique Symptoms → must be between 4 and 8
+  - **BEFORE generating output**: Create a symptom plan for each MI ensuring 4-8 symptoms
+  - Use ELR categories to guide symptom selection based on MI type
 - **G2**: Each (Maintainable Item, Symptom) pair has 1-5 distinct failure mechanisms
   - Method: Group by (Maintainable Item, Symptom), count unique Mechanisms → must be between 1 and 5
+  - **BEFORE generating output**: Plan mechanisms for each symptom considering complexity
 - **G3**: No "Other" or "Unknown" values are present in Symptoms or Failure Mechanisms
 - **G4**: All Maintainable Items end with "Failure"
 - **G5**: Treatment Actions are technically feasible for the specific mechanism
 - **G6**: Each Symptom ↔ Maintainable Item pair is physically plausible (ELR validation)
+- **G7**: **NO DUPLICATION**: Each row must have DIFFERENT terms in Symptom vs Failure Mechanism columns
+  - Check: If Symptom contains term "X", Mechanism must NOT contain term "X"
+  - Symptom = what you OBSERVE; Mechanism = what CAUSES it (must be distinct concepts)
 
 ### Boundary Validation:
 - No Maintainable Item outside EMS boundaries is included (unless marked with "(*)" with engineering justification)
@@ -203,13 +215,14 @@ If outside range: Review for errors
 ```
 
 ### Validation Checklist (must ALL be true):
-- [ ] Every Maintainable Item appears with 4-8 different Symptoms
+- [ ] **CRITICAL**: Every Maintainable Item appears with EXACTLY 4-8 different Symptoms (count and verify each MI)
 - [ ] Every (Maintainable Item, Symptom) pair appears with 1-5 different Failure Mechanisms
+- [ ] **CRITICAL**: NO DUPLICATION - Every row has different terms in Symptom vs Mechanism (check each row)
 - [ ] No "Other" or "Unknown" entries exist anywhere
 - [ ] Every Maintainable Item name ends with "Failure"
 - [ ] All Symptom-Maintainable Item combinations are physically plausible
 - [ ] All Maintainable Items are derived from EMS Boundaries (or marked with "(*)") and use Catalog terminology
 - [ ] Each mechanism has 2-3 Treatment Actions listed
-- [ ] Total number of output rows is reasonable (typically 50-200+ rows for a complete Item Class FMEA)
+- [ ] Total number of output rows is reasonable (minimum: 4 rows per MI; typical: 10-20 rows per complex MI)
 
 **If any validation check fails**, the agent MUST correct the output before presenting it. DO NOT proceed with invalid output.
