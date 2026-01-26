@@ -225,7 +225,15 @@ CRITICAL RULES TO FOLLOW:
    - If an MI has fewer than 4 symptoms, ADD more distinct symptoms from the catalogs
    - If an MI has more than 8 symptoms, CONSOLIDATE similar ones
    
-2. Each (Maintainable Item, Symptom) pair MUST have 1-5 DISTINCT Failure Mechanisms
+2. Each (Maintainable Item, Symptom) pair MUST have MULTIPLE (1-5) DISTINCT Failure Mechanisms
+   - **DO NOT generate only 1 mechanism per symptom for all items**
+   - Complex/critical items should have 2-5 mechanisms per symptom
+   - For each symptom, think: "What are the DIFFERENT physical causes that could produce this symptom?"
+   - Examples:
+     * "Shaft Failure" + "VIB - Vibration" → should have 3-4 mechanisms like: Fatigue, Misalignment, Unbalance, Wear
+     * "Bearing Failure" + "VIB - Vibration" → should have 2-3 mechanisms like: Wear, Misalignment, Fatigue
+     * "Filter Failure" + "PLU - Plugged" → may have 1-2 mechanisms like: Blockage, Contamination
+   - Generate separate rows for each mechanism (same MI + Symptom can appear on multiple rows with different mechanisms)
    
 3. NO DUPLICATION: Symptom and Failure Mechanism on same row MUST use DIFFERENT terms
    - If Symptom is "VIB - Vibration", Mechanism CANNOT be "1.2 Vibration" or contain "Vibration"
@@ -234,6 +242,7 @@ CRITICAL RULES TO FOLLOW:
    - Mechanism = what CAUSES it (root cause) - must be different from the symptom
 
 Return the COMPLETE corrected output with the FULL table (not just the fixes).
+Include ALL rows with the expanded mechanisms.
 """
 
 
@@ -303,13 +312,34 @@ def validate_output_cardinality(output_text: str) -> list[str]:
         
         # G2: Check mechanisms per (MI, Symptom) pair (1-5)
         mechanism_counts = df.groupby(['Maintainable Item', 'Symptom'])['Failure Mechanism'].nunique()
+        single_mechanism_count = 0
+        total_pairs = 0
+        
         for (mi, sym), count in mechanism_counts.items():
             mi_clean = str(mi).strip()
             sym_clean = str(sym).strip()
             if mi_clean.lower() in ['see above', ''] or sym_clean.lower() in ['see above', '']:
                 continue
+            
+            total_pairs += 1
+            if count == 1:
+                single_mechanism_count += 1
+            
             if count > 5:
                 errors.append(f"G2 VIOLATION: '{mi_clean}' + '{sym_clean}' has {count} mechanisms, need 1-5")
+        
+        # G2b: Check if too many pairs have only 1 mechanism (quality check)
+        # This is a heuristic: if more than 70% of pairs have only 1 mechanism, 
+        # it likely means the AI is not generating enough mechanisms
+        if total_pairs > 0:
+            single_ratio = single_mechanism_count / total_pairs
+            if single_ratio > 0.70:
+                errors.append(
+                    f"G2 QUALITY WARNING: {single_mechanism_count}/{total_pairs} ({single_ratio:.0%}) of (MI, Symptom) pairs have only 1 mechanism. "
+                    f"For complex/critical items, most symptoms should have 2-5 mechanisms representing different physical causes. "
+                    f"Review each symptom and expand with additional plausible failure mechanisms from ISO 14224 Table B.2."
+                )
+
         
         # G7: Check for duplication between Symptom and Failure Mechanism
         # Minimum term length to check for duplication (avoids false positives on short terms)
@@ -460,8 +490,16 @@ If any item is missing from the output, the deliverable is invalid.
    - Add more symptoms if < 4
    - Consolidate if > 8
    
-2. Each (Maintainable Item, Symptom) pair MUST have 1-5 DISTINCT Failure Mechanisms
-   - Plan mechanisms for each symptom based on complexity
+2. Each (Maintainable Item, Symptom) pair MUST have MULTIPLE (1-5) DISTINCT Failure Mechanisms
+   - **CRITICAL**: DO NOT generate only 1 mechanism per symptom for all items
+   - Complex/critical items with common symptoms should have 2-5 mechanisms
+   - Example: "Shaft Failure" + "VIB - Vibration" → 3-4 mechanisms (Fatigue, Misalignment, Unbalance, Wear)
+   - Example: "Bearing Failure" + "VIB - Vibration" → 2-3 mechanisms (Wear, Misalignment, Fatigue)
+   - Only very simple items or rare symptoms may have just 1 mechanism
+   - Plan mechanisms for each symptom based on:
+     * Technical complexity of the Maintainable Item
+     * Criticality of the equipment
+     * Number of plausible physical causes for that symptom
    
 3. NO DUPLICATION: Symptom and Failure Mechanism on same row MUST be DIFFERENT terms
    - BAD: Symptom "2.1 Cavitation" + Mechanism "2.1 Cavitation" ← FORBIDDEN
