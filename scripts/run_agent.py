@@ -439,17 +439,17 @@ If any item is missing from the output, the deliverable is invalid.
 Return ONLY the final deliverables requested in the instruction.
 """
 
-    resp = client.responses.create(
+    resp = client.chat.completions.create(
         model=model,
-        input=[
+        messages=[
             {"role": "system", "content": system_prompt + "\n\n### SPEC (MANDATORY)\n" + spec},
             {"role": "user", "content": user_prompt},
         ],
     )
 
     usage = getattr(resp, "usage", None)
-    in_tokens = getattr(usage, "input_tokens", None) if usage else None
-    out_tokens = getattr(usage, "output_tokens", None) if usage else None
+    in_tokens = getattr(usage, "prompt_tokens", None) if usage else None
+    out_tokens = getattr(usage, "completion_tokens", None) if usage else None
 
     print(f"Token usage -> input: {in_tokens}, output: {out_tokens}")
 
@@ -458,7 +458,7 @@ Return ONLY the final deliverables requested in the instruction.
         print(f"Estimated cost (gpt-4.1-mini Standard): ${cost:.4f}")
 
     # --- Quality gate: ensure ALL mandatory MIs appear in output ---
-    output_text = resp.output_text or ""
+    output_text = resp.choices[0].message.content or ""
     missing: list[str] = []
     for mi_name in mandatory_mi:
         if mi_name and (mi_name.lower() not in output_text.lower()):
