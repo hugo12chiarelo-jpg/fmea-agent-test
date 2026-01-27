@@ -151,7 +151,7 @@ No column may be removed, renamed, reordered, or merged.
   * VIB has 4 mechanisms → ✓ Within 2-5 range
   * PDE has 2 mechanisms → ✓ Within 2-5 range
   * NOI has 2 mechanisms → ✓ Within 2-5 range
-  * LOO has 2 mechanisms → ✓ Within 2-5 range (Note: adjusted from 1 to meet minimum requirement)
+  * LOO has 2 mechanisms → ✓ Within 2-5 range
   * OHE has 2 mechanisms → ✓ Within 2-5 range
   * FWR has 2 mechanisms → ✓ Within 2-5 range
 - **Total output rows**: 13 rows for this single Maintainable Item
