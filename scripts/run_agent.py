@@ -547,34 +547,60 @@ def build_missing_mi_correction_prompt(missing_mi: list[str]) -> str:
     """
     missing_summary = "\n".join([f"  - {mi} Failure" for mi in missing_mi])
     return f"""
-The FMEA table you provided is INCOMPLETE. It is MISSING mandatory Maintainable Items that MUST appear in the table:
+⚠️ CRITICAL ERROR: The FMEA table you provided is INCOMPLETE and INVALID.
+
+**MISSING MANDATORY MAINTAINABLE ITEMS** (have ZERO rows in the table):
 
 {missing_summary}
 
-**CRITICAL ISSUE**: Your previous output did NOT include actual table rows for these Maintainable Items.
+**ROOT CAUSE**: You used placeholder text like "(Additional rows... omitted for brevity)" instead of generating ACTUAL TABLE ROWS.
 
-**REQUIRED ACTION**: Regenerate the ENTIRE FMEA table with:
+**THIS IS UNACCEPTABLE**. Each Maintainable Item MUST have its complete set of rows explicitly written in the table.
 
-1. **ALL existing Maintainable Items** (keep everything you already generated)
+**REQUIRED CORRECTIVE ACTION**:
 
-2. **COMPLETE sections for ALL missing Maintainable Items**:
-   - Each missing MI MUST have 4-8 DISTINCT Symptoms
-   - Each (MI, Symptom) pair MUST have 2-5 DISTINCT Failure Mechanisms
-   - Generate separate rows for each mechanism (same MI + Symptom appears multiple times with different mechanisms)
+Regenerate the COMPLETE FMEA table from scratch with EVERY SINGLE ROW written out explicitly:
 
-3. **NO PLACEHOLDERS OR SHORTCUTS**:
-   - Do NOT write "[The rest of the table...]" or "[See above]"
-   - Do NOT reference "previous completion" or "unchanged sections"
-   - Every single row must be explicitly written out
-   
-4. **NAMING**: All Maintainable Items MUST end with " Failure" (e.g., "Bearing Failure", "Rotor Failure")
+1. **INCLUDE ALL MAINTAINABLE ITEMS**:
+   - All existing MIs you already generated (keep them)
+   - ALL missing MIs listed above (add them with complete rows)
 
-5. **QUALITY RULES**:
-   - NO DUPLICATION: Symptom and Mechanism on same row MUST use DIFFERENT terms
-   - Symptom = what you OBSERVE (effect)
-   - Mechanism = what CAUSES it (root cause)
+2. **FOR EACH MAINTAINABLE ITEM**:
+   - Generate 4-8 DISTINCT Symptoms
+   - For EACH Symptom, generate 2-5 DISTINCT Failure Mechanisms
+   - Write a separate table row for EACH mechanism
+   - Example: "Rotor Failure" with 5 symptoms × 3 mechanisms each = 15 rows minimum
 
-Return the COMPLETE corrected FMEA table with ALL rows for ALL Maintainable Items (existing + newly added).
+3. **ABSOLUTELY FORBIDDEN**:
+   - ❌ NO placeholder text like "(Additional rows...)", "[The rest...]", "[See above]"
+   - ❌ NO ellipsis (...) or truncation
+   - ❌ NO references like "unchanged sections", "similar to above", "previously shown"
+   - ❌ NO summarizing or shortcutting - write every single row explicitly
+
+4. **NAMING CONVENTION**:
+   - All Maintainable Items MUST end with " Failure" suffix
+   - Examples: "Bearing Failure", "Rotor Failure", "Stator Failure", "Windings Failure"
+
+5. **QUALITY RULES** (will be validated):
+   - Each MI MUST have EXACTLY 4-8 distinct symptoms
+   - Each (MI, Symptom) pair MUST have 2-5 distinct mechanisms
+   - NO DUPLICATION: Symptom and Mechanism on same row must use DIFFERENT terms
+   - Symptom = observable effect, Mechanism = root cause
+
+**OUTPUT FORMAT**: 
+Return ONLY the complete markdown FMEA table with the following structure:
+- Table header row
+- Separator row
+- Data rows for EVERY Maintainable Item (no exceptions, no placeholders)
+- Optional summary at the end
+
+**VERIFICATION BEFORE SUBMITTING**:
+Before you finalize, count:
+- How many distinct Maintainable Items have rows? (Must be ALL of them)
+- Does any MI have < 4 or > 8 symptoms? (Fix if yes)
+- Do you see any placeholder text? (Remove and write actual rows)
+
+Return the COMPLETE, EXPLICIT, FULLY-EXPANDED FMEA table now.
 """
 
 
@@ -625,6 +651,7 @@ Include ALL rows with the expanded mechanisms.
 def validate_mi_in_table(output_text: str, mandatory_mi: list[str]) -> list[str]:
     """
     Validate that all mandatory MIs appear in the actual FMEA table (not just in text).
+    Also detects if AI is using placeholders instead of generating actual rows.
     
     Args:
         output_text: The AI-generated output
@@ -634,6 +661,30 @@ def validate_mi_in_table(output_text: str, mandatory_mi: list[str]) -> list[str]
         List of missing MI names (empty if all are present in table)
     """
     missing: list[str] = []
+    
+    # First, detect placeholder text patterns that indicate incomplete output
+    placeholder_patterns = [
+        'additional rows',
+        'omitted for brevity',
+        'follow,',
+        'see above',
+        'unchanged',
+        'rest of the table',
+        'similar to above',
+        'previously shown',
+        'as shown above',
+        '...',  # ellipsis often indicates truncation
+    ]
+    
+    output_lower = output_text.lower()
+    found_placeholders = []
+    for pattern in placeholder_patterns:
+        if pattern in output_lower:
+            found_placeholders.append(pattern)
+    
+    if found_placeholders:
+        print(f"[VALIDATION] ⚠️  Detected placeholder text patterns: {found_placeholders}")
+        print("[VALIDATION] This indicates the AI generated an incomplete table instead of full rows for all MIs")
     
     try:
         # Extract the table from the output
@@ -647,41 +698,70 @@ def validate_mi_in_table(output_text: str, mandatory_mi: list[str]) -> list[str]
             if in_table:
                 if line.strip().startswith('|'):
                     table_lines.append(line)
-                elif line.strip() == '' or line.strip().startswith('---'):
-                    # Check if this is just a separator or end of table
-                    if len(table_lines) > 2 and line.strip().startswith('---'):
-                        # End of table
-                        break
+                elif line.strip() == '':
+                    continue  # Skip empty lines within table
+                else:
+                    # Non-table content - check if it's a placeholder
+                    if any(p in line.lower() for p in placeholder_patterns):
+                        # Found placeholder after table - this means incomplete table
+                        print(f"[VALIDATION] Found placeholder after table: {line.strip()[:100]}")
+                    # End of table
+                    break
         
         if len(table_lines) < 3:
-            # No valid table found, fall back to text search
-            for mi_name in mandatory_mi:
-                if mi_name and (mi_name.lower() not in output_text.lower()):
-                    missing.append(mi_name)
-            return missing
+            # No valid table found, all MIs are missing
+            return list(mandatory_mi)
         
-        # Parse the table
-        table_text = '\n'.join(table_lines)
+        # Parse actual Maintainable Items from the table column (column 4)
+        # This is more precise than searching in the entire line
+        actual_mis_in_table = set()
+        for line in table_lines[2:]:  # Skip header and separator
+            if not line.strip().startswith('|'):
+                continue
+            parts = line.split('|')
+            if len(parts) > 3:
+                mi_cell = parts[3].strip()  # Maintainable Item is typically column 4
+                if mi_cell and mi_cell.lower() not in ['maintainable item', 'see above', '']:
+                    # Normalize: remove " Failure" suffix for comparison
+                    mi_normalized = mi_cell.lower().replace(' failure', '').strip()
+                    actual_mis_in_table.add(mi_normalized)
         
-        # Check each mandatory MI
+        # Count rows per MI for diagnostic output
+        mi_row_counts = {}
         for mi_name in mandatory_mi:
             if not mi_name:
                 continue
             
-            # Check if MI appears in the table
-            # Look for both exact name and with " Failure" suffix
             mi_lower = mi_name.lower().strip()
             mi_with_failure = (mi_lower + " failure").lower()
             
-            # Search in table text
-            table_lower = table_text.lower()
+            # Count how many actual table rows contain this MI in the MI column
+            row_count = 0
+            for line in table_lines[2:]:  # Skip header and separator
+                if not line.strip().startswith('|'):
+                    continue
+                parts = line.split('|')
+                if len(parts) > 3:
+                    mi_cell = parts[3].strip().lower()
+                    if mi_lower in mi_cell or mi_with_failure in mi_cell:
+                        row_count += 1
             
-            if mi_lower not in table_lower and mi_with_failure not in table_lower:
+            mi_row_counts[mi_name] = row_count
+            
+            # Check if this MI is actually in the table
+            if mi_lower not in actual_mis_in_table:
                 missing.append(mi_name)
+        
+        # Print diagnostic info
+        if mi_row_counts:
+            print(f"[VALIDATION] Row counts per MI:")
+            for mi, count in sorted(mi_row_counts.items()):
+                status = "✗ MISSING" if mi in missing else "✓"
+                print(f"  {status} {mi}: {count} rows")
     
     except Exception as e:
         # If parsing fails, fall back to simple text search
-        print(f"[DEBUG] Table parsing failed: {e}. Falling back to text search.")
+        print(f"[DEBUG] Table parsing failed: {e}. Falling back to simple check.")
         for mi_name in mandatory_mi:
             if mi_name and (mi_name.lower() not in output_text.lower()):
                 missing.append(mi_name)
@@ -962,6 +1042,13 @@ The list below contains Maintainable Items derived from EMS Boundaries column, e
 - Transform all names to match Maintainable Item Catalog terminology
 
 ## CRITICAL REMINDERS BEFORE YOU START:
+
+**NO PLACEHOLDERS OR TRUNCATION ALLOWED:**
+- ❌ NEVER write "(Additional rows...)", "[The rest of the table...]", "[See above]", "[unchanged]", or "..."
+- ❌ NEVER use phrases like "omitted for brevity", "similar to above", "follows the same pattern"
+- ✅ Every single row for every Maintainable Item MUST be explicitly written in the output table
+- ✅ If you have 13 Maintainable Items with 5 symptoms each × 2 mechanisms = 130+ rows minimum - write them ALL
+
 **CARDINALITY REQUIREMENTS** - Your output WILL BE AUTOMATICALLY VALIDATED:
 1. Each Maintainable Item MUST have EXACTLY 4-8 DISTINCT Symptoms (NO EXCEPTIONS)
    - Count symptoms per MI before finalizing
