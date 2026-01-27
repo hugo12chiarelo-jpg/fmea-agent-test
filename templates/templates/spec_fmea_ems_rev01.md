@@ -10,7 +10,7 @@ The FMEA must reflect the technical characteristics of each Maintainable Item, w
    - If Symptom is "VIB - Vibration", Mechanism CANNOT be "1.2 Vibration"
    - Symptom = Observable condition; Mechanism = Physical root cause (must differ)
 4. **NO SYMPTOM CODES IN MAINTAINABLE ITEM COLUMN**: Maintainable Items MUST be physical equipment/components, NOT symptom codes.
-   - ❌ NEVER use "PTO - Power / signal transmission failure" as a Maintainable Item (this is a SYMPTOM)
+   - ❌ NEVER use "PTF - Power/signal transmission failure" as a Maintainable Item (this is a SYMPTOM)
    - ❌ NEVER use "VIB - Vibration", "NOI - Noise", "OHE - Overheating" as Maintainable Items (these are SYMPTOMS)
    - ✅ ALWAYS use equipment names like "Bearing Failure", "Rotor Failure", "Windings Failure"
 5. **VERIFICATION BEFORE OUTPUT**: Count symptoms per MI and mechanisms per (MI, Symptom) pair BEFORE finalizing output.
@@ -54,9 +54,10 @@ MAINTAINABLE ITEM RULES
 **CRITICAL**: Maintainable Items MUST be derived from the "Boundaries" column of the EMS file AND transformed using the terminology from "Maintainable Item Catalog.csv".
 
 **IMPORTANT - DO NOT USE SYMPTOM CODES AS MAINTAINABLE ITEMS:**
-- ❌ BAD: "PTO - Power / signal transmission failure" (this is a SYMPTOM code)
+- ❌ BAD: "PTF - Power/signal transmission failure" (this is a SYMPTOM code from the catalog)
 - ❌ BAD: "VIB - Vibration" (this is a SYMPTOM code)
 - ❌ BAD: "NOI - Noise" (this is a SYMPTOM code)
+- ❌ BAD: "PTO - Power..." (typo/incorrect code - still looks like a symptom)
 - ✅ GOOD: "Bearing Failure" (equipment/component)
 - ✅ GOOD: "Rotor Failure" (equipment/component)
 - ✅ GOOD: "Windings Failure" (equipment/component)

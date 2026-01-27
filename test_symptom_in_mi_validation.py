@@ -12,6 +12,32 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent / 'scripts'))
 
 from run_agent import validate_output_cardinality
+import pandas as pd
+
+
+def verify_symptom_catalog_loads():
+    """Verify that the Symptom Catalog can be loaded correctly"""
+    symptom_catalog_path = Path("inputs/Catalogs/Symptom Catalog.csv")
+    assert symptom_catalog_path.exists(), "Symptom Catalog file must exist"
+    
+    # Test loading with correct separator
+    symptom_df = pd.read_csv(symptom_catalog_path, sep=';', encoding='utf-8', encoding_errors='ignore')
+    assert 'Code' in symptom_df.columns, "Symptom Catalog must have 'Code' column"
+    
+    # Extract codes
+    symptom_codes = set()
+    for code in symptom_df['Code'].dropna():
+        code_str = str(code).strip().replace('\ufeff', '')
+        if code_str and code_str not in ['Code', '']:
+            symptom_codes.add(code_str.upper())
+    
+    assert len(symptom_codes) > 0, "Symptom Catalog must contain symptom codes"
+    assert 'PTF' in symptom_codes, "PTF must be in Symptom Catalog"
+    assert 'VIB' in symptom_codes, "VIB must be in Symptom Catalog"
+    assert 'NOI' in symptom_codes, "NOI must be in Symptom Catalog"
+    
+    print(f"✓ Symptom Catalog loaded successfully with {len(symptom_codes)} codes")
+    return symptom_codes
 
 
 def test_g8_detects_exact_symptom_code():
@@ -106,6 +132,10 @@ if __name__ == "__main__":
     print("Running G8 validation tests...\n")
     
     try:
+        # First verify Symptom Catalog loads correctly
+        symptom_codes = verify_symptom_catalog_loads()
+        print()
+        
         test_g8_detects_exact_symptom_code()
         test_g8_detects_symptom_like_pattern()
         test_g8_allows_valid_maintainable_items()

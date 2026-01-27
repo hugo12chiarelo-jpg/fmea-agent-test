@@ -786,7 +786,8 @@ def validate_output_cardinality(output_text: str) -> list[str]:
     symptom_catalog_path = Path("inputs/Catalogs/Symptom Catalog.csv")
     if symptom_catalog_path.exists():
         try:
-            symptom_df = pd.read_csv(symptom_catalog_path, encoding='utf-8', encoding_errors='ignore')
+            # Symptom Catalog uses semicolon as separator
+            symptom_df = pd.read_csv(symptom_catalog_path, sep=';', encoding='utf-8', encoding_errors='ignore')
             # Extract symptom codes from first column (Code)
             if 'Code' in symptom_df.columns or len(symptom_df.columns) > 0:
                 code_col = 'Code' if 'Code' in symptom_df.columns else symptom_df.columns[0]
@@ -851,7 +852,7 @@ def validate_output_cardinality(output_text: str) -> list[str]:
                 continue
             
             # Extract the first part (code) from the Maintainable Item
-            # Symptom codes are typically 3-4 letter acronyms before a dash (e.g., "VIB - Vibration")
+            # Symptom codes are typically 2-4 letter acronyms before a dash (e.g., "VIB - Vibration", "AI - Abnormal")
             mi_code = mi.split()[0].upper() if ' ' in mi else mi.upper()
             # Remove trailing punctuation
             mi_code = mi_code.rstrip(':-,.')
@@ -863,9 +864,9 @@ def validate_output_cardinality(output_text: str) -> list[str]:
                     f"Maintainable Items must be equipment/components (e.g., 'Bearing Failure', 'Rotor Failure'), "
                     f"not symptom codes from the Symptom Catalog."
                 )
-            # Also check for symptom-like pattern: 3-4 uppercase letters followed by " - " and description
-            # This catches typos or incorrect symptom codes like "PTO - Power..."
-            elif re.match(r'^[A-Z]{3,4}\s*-\s+', mi):
+            # Also check for symptom-like pattern: 2-4 uppercase letters followed by " - " and description
+            # This catches typos or incorrect symptom codes like "PTO - Power..." (PTO is a typo for PTF)
+            elif re.match(r'^[A-Z]{2,4}\s*-\s+', mi):
                 errors.append(
                     f"G8 VIOLATION: Row {idx+1}: Maintainable Item '{mi}' uses a symptom-like code pattern. "
                     f"Maintainable Items must be equipment/components (e.g., 'Bearing Failure', 'Rotor Failure'), "
@@ -1098,9 +1099,10 @@ The list below contains Maintainable Items derived from EMS Boundaries column, e
 
 **NO SYMPTOM CODES IN MAINTAINABLE ITEM COLUMN:**
 - ❌ NEVER use Symptom codes as Maintainable Items
-- ❌ BAD: "PTO - Power / signal transmission failure" (this is a SYMPTOM, not equipment)
+- ❌ BAD: "PTF - Power/signal transmission failure" (this is a SYMPTOM, not equipment)
 - ❌ BAD: "VIB - Vibration" (this is a SYMPTOM, not equipment)
 - ❌ BAD: "NOI - Noise" (this is a SYMPTOM, not equipment)
+- ❌ BAD: "PTO - Power..." (typo/incorrect code - still looks like a symptom)
 - ✅ GOOD: "Bearing Failure" (this is physical equipment)
 - ✅ GOOD: "Rotor Failure" (this is physical equipment)
 - ✅ GOOD: "Windings Failure" (this is physical equipment)
