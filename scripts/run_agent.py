@@ -47,9 +47,11 @@ def pick_instruction_file() -> Path:
         candidates.sort(key=lambda x: x.stat().st_mtime, reverse=True)
         return candidates[0]
 
-    no_ext = instr_dir / "Daily Instructions"
-    if no_ext.exists() and no_ext.is_file():
-        return no_ext
+    # Check for common no-extension instruction files
+    for name in ["instructions", "Daily Instructions", "instruction"]:
+        no_ext = instr_dir / name
+        if no_ext.exists() and no_ext.is_file():
+            return no_ext
 
     fallback = instr_dir / "README.md"
     if fallback.exists():
