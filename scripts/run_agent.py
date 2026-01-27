@@ -112,29 +112,28 @@ def match_item_class_rows(df: pd.DataFrame, item_class: str) -> pd.DataFrame:
     """
     Match rows in EMS dataframe by Item Class code OR Item Class Name.
     
+    The function attempts to match in the following order:
+    1. First tries 'Item Class' column (e.g., code like 'COCE')
+    2. If no match, tries 'Item Class Name' column (e.g., name like 'Centrifugal Compressor')
+    
     Args:
         df: DataFrame with 'Item Class' and optionally 'Item Class Name' columns
         item_class: Item Class to match (can be code like 'COCE' or name like 'Centrifugal Compressor')
         
     Returns:
-        Filtered DataFrame matching the item class
+        Filtered DataFrame matching the item class, or empty DataFrame if no match
     """
     item_class_lower = item_class.strip().lower()
     
-    # Try matching by Item Class column
-    if "Item Class" in df.columns:
-        mask = df["Item Class"].astype(str).str.strip().str.lower() == item_class_lower
-        if mask.any():
-            return df[mask]
+    # Try matching by both columns
+    for col in ["Item Class", "Item Class Name"]:
+        if col in df.columns:
+            mask = df[col].astype(str).str.strip().str.lower() == item_class_lower
+            if mask.any():
+                return df[mask]
     
-    # Try matching by Item Class Name column
-    if "Item Class Name" in df.columns:
-        mask = df["Item Class Name"].astype(str).str.strip().str.lower() == item_class_lower
-        if mask.any():
-            return df[mask]
-    
-    # No match found
-    return df.iloc[0:0]  # Return empty DataFrame with same columns
+    # No match found - return empty DataFrame with same columns
+    return df.iloc[0:0]
 
 
 def filter_ems_for_item_class(ems_path: Path, item_class: str, max_rows: int = 200) -> str:
