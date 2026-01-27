@@ -364,6 +364,45 @@ def pick_manual_text(item_class: str) -> Path | None:
     return txts[0]
 
 
+def build_missing_mi_correction_prompt(missing_mi: list[str]) -> str:
+    """
+    Build a prompt to request AI to add missing mandatory Maintainable Items.
+    
+    Args:
+        missing_mi: List of missing mandatory Maintainable Item names
+        
+    Returns:
+        Formatted correction prompt
+    """
+    missing_summary = "\n".join([f"  - {mi}" for mi in missing_mi])
+    return f"""
+The output you provided is MISSING mandatory Maintainable Items that MUST be included:
+
+{missing_summary}
+
+Please revise the ENTIRE FMEA table to include these missing Maintainable Items.
+
+CRITICAL REQUIREMENTS:
+1. Add a complete FMEA section for EACH missing Maintainable Item listed above
+2. Each Maintainable Item MUST have EXACTLY 4-8 DISTINCT Symptoms
+   - Select appropriate symptoms from the Symptom Catalog
+   - Consider technical failures relevant to each item
+   
+3. Each (Maintainable Item, Symptom) pair MUST have MULTIPLE (1-5) DISTINCT Failure Mechanisms
+   - Complex/critical items should have 2-5 mechanisms per symptom
+   - Think: "What are the DIFFERENT physical causes that could produce this symptom?"
+   - Generate separate rows for each mechanism
+   
+4. NO DUPLICATION: Symptom and Failure Mechanism on same row MUST use DIFFERENT terms
+   - Symptom = what you OBSERVE (effect)
+   - Mechanism = what CAUSES it (root cause) - must be different from the symptom
+
+5. Keep ALL existing Maintainable Items in the output - only ADD the missing ones
+
+Return the COMPLETE corrected output with the FULL table including the newly added Maintainable Items.
+"""
+
+
 def build_correction_prompt(validation_errors: list[str]) -> str:
     """
     Build a prompt to request AI to fix validation errors.
@@ -712,27 +751,75 @@ Return ONLY the final deliverables requested in the instruction.
     if not resp.choices:
         raise RuntimeError("OpenAI API returned no response choices")
     output_text = resp.choices[0].message.content or ""
+    
+    # Initialize conversation history for potential corrections
+    conversation_history = [
+        {"role": "system", "content": system_prompt + "\n\n### SPEC (MANDATORY)\n" + spec},
+        {"role": "user", "content": user_prompt},
+        {"role": "assistant", "content": output_text}
+    ]
+    
+    # Check for missing mandatory MIs and attempt correction
     missing: list[str] = []
     for mi_name in mandatory_mi:
         if mi_name and (mi_name.lower() not in output_text.lower()):
             missing.append(mi_name)
 
     if mandatory_mi and missing:
-        raise RuntimeError(
-            f"Model output missing {len(missing)} mandatory Maintainable Items. Examples: {missing[:10]}"
-        )
+        print(f"\n[VALIDATION] ⚠️  Model output missing {len(missing)} mandatory Maintainable Items:")
+        for mi in missing[:10]:  # Show up to 10 examples
+            print(f"  - {mi}")
+        
+        # Attempt to correct missing MIs
+        correction_attempt = 0
+        while missing and correction_attempt < max_correction_attempts:
+            correction_attempt += 1
+            print(f"\n[CORRECTION] Requesting AI to add missing Maintainable Items (Attempt {correction_attempt}/{max_correction_attempts})...")
+            
+            # Build correction prompt for missing MIs
+            mi_correction_prompt = build_missing_mi_correction_prompt(missing)
+            conversation_history.append({"role": "user", "content": mi_correction_prompt})
+            
+            # Request correction from AI
+            correction_resp = client.chat.completions.create(
+                model=model,
+                messages=conversation_history,
+            )
+            
+            usage = getattr(correction_resp, "usage", None)
+            in_tokens = getattr(usage, "prompt_tokens", None) if usage else None
+            out_tokens = getattr(usage, "completion_tokens", None) if usage else None
+            
+            print(f"Token usage (missing MI correction) -> input: {in_tokens}, output: {out_tokens}")
+            
+            if in_tokens is not None and out_tokens is not None:
+                cost = (in_tokens / 1_000_000) * 0.80 + (out_tokens / 1_000_000) * 3.20
+                print(f"Estimated cost (gpt-4.1-mini Standard): ${cost:.4f}")
+            
+            if not correction_resp.choices:
+                print("[ERROR] AI correction failed - no response received")
+                break
+            
+            output_text = correction_resp.choices[0].message.content or ""
+            conversation_history.append({"role": "assistant", "content": output_text})
+            
+            # Re-check for missing MIs
+            missing = []
+            for mi_name in mandatory_mi:
+                if mi_name and (mi_name.lower() not in output_text.lower()):
+                    missing.append(mi_name)
+        
+        if missing:
+            print(f"\n[VALIDATION] ⚠️  Output still missing {len(missing)} mandatory Maintainable Items after {correction_attempt} correction attempt(s):")
+            for mi in missing[:10]:
+                print(f"  - {mi}")
+            print("\n[WARNING] Continuing with output that has missing Maintainable Items. Please review manually.")
+        else:
+            print("[VALIDATION] ✓ All mandatory Maintainable Items are present")
 
     # --- Quality gate: validate cardinality rules with automatic correction ---
     print("\n[VALIDATION] Checking cardinality and duplication rules...")
     validation_errors = validate_output_cardinality(output_text)
-    
-    # Initialize conversation history once for reuse
-    if validation_errors:
-        conversation_history = [
-            {"role": "system", "content": system_prompt + "\n\n### SPEC (MANDATORY)\n" + spec},
-            {"role": "user", "content": user_prompt},
-            {"role": "assistant", "content": output_text}
-        ]
     
     correction_attempt = 0
     while validation_errors and correction_attempt < max_correction_attempts:
