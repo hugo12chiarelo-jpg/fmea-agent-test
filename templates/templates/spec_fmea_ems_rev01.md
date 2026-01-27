@@ -83,7 +83,7 @@ MAINTAINABLE ITEM RULES
      * Bearing System Failure (radial bearings, thrust bearings, bearing housings)
      * Monitoring/Control System Failure (sensors, transmitters, control units)
      * Power Supply System Failure (internal power supplies, batteries, inverters)
-   - **Mark ALL suggested items with "(*)** to indicate they are inferred from ISO 14224/manual, not explicit in boundaries
+   - **Mark ALL suggested items with "(*)"** to indicate they are inferred from ISO 14224/manual, not explicit in boundaries
    - **Engineering validation**: Verify each suggested item is relevant to the specific Item Class and failure risk profile
 8. Mark inferred items with "(*)": If a maintainable item is suggested by AI from ISO 14224, manual, or engineering judgment and is NOT explicitly stated in EMS boundaries, mark it with "(*)".
 9. Never suggest any maintainable item that is mentioned as excluded in boundaries.
@@ -103,7 +103,7 @@ If the AI suggests maintainable items not explicit in EMS boundary, output a sep
 | [Example: Lubrication System Failure (*)] | [ISO 14224 standard MI for rotating equipment; critical for bearing health and motor reliability] | [LOO, PDE, OHE] | [Contamination, Degradation, Leakage] | [Oil analysis, Filter inspection, Leak detection] |
 
 **Instructions for this section:**
-1. List ALL maintainable items marked with "(*)* in the main FMEA table
+1. List ALL maintainable items marked with "(*)" in the main FMEA table
 2. Provide clear engineering justification for each suggested item (reference ISO 14224, reliability standards, or failure risk analysis)
 3. Include preview of expected symptoms and mechanisms to demonstrate technical plausibility
 4. This section helps validate that AI suggestions are technically sound and not arbitrary

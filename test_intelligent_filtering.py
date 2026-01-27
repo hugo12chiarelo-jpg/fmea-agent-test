@@ -12,15 +12,18 @@ This script validates that:
 import sys
 from pathlib import Path
 
+# File path constants
+SPEC_PATH = Path("templates/templates/spec_fmea_ems_rev01.md")
+RUN_AGENT_PATH = Path("scripts/run_agent.py")
+
 
 def test_spec_contains_intelligent_filtering():
     """Test that spec file has intelligent filtering guidance."""
-    spec_path = Path("templates/templates/spec_fmea_ems_rev01.md")
-    if not spec_path.exists():
+    if not SPEC_PATH.exists():
         print("✗ FAIL: spec file not found")
         return False
     
-    spec_content = spec_path.read_text()
+    spec_content = SPEC_PATH.read_text()
     
     # Check for key phrases
     checks = [
@@ -46,8 +49,7 @@ def test_spec_contains_intelligent_filtering():
 
 def test_spec_contains_iso14224_suggestions():
     """Test that spec file encourages ISO 14224 suggestions."""
-    spec_path = Path("templates/templates/spec_fmea_ems_rev01.md")
-    spec_content = spec_path.read_text()
+    spec_content = SPEC_PATH.read_text()
     
     checks = [
         ("PROACTIVELY SUGGEST ISO 14224-COMPLIANT", "Proactive ISO 14224 suggestions"),
@@ -70,8 +72,7 @@ def test_spec_contains_iso14224_suggestions():
 
 def test_spec_contains_justification_section():
     """Test that spec file has updated justification section."""
-    spec_path = Path("templates/templates/spec_fmea_ems_rev01.md")
-    spec_content = spec_path.read_text()
+    spec_content = SPEC_PATH.read_text()
     
     checks = [
         ("SUGGESTED ADDITIONAL MAINTAINABLE ITEMS", "Justification section header"),
@@ -92,12 +93,11 @@ def test_spec_contains_justification_section():
 
 def test_run_agent_prompts():
     """Test that run_agent.py has updated prompts."""
-    script_path = Path("scripts/run_agent.py")
-    if not script_path.exists():
+    if not RUN_AGENT_PATH.exists():
         print("✗ FAIL: run_agent.py not found")
         return False
     
-    script_content = script_path.read_text()
+    script_content = RUN_AGENT_PATH.read_text()
     
     checks = [
         ("APPLY ENGINEERING INTELLIGENCE", "Engineering intelligence in prompts"),
@@ -121,8 +121,7 @@ def test_run_agent_prompts():
 
 def test_validation_is_lenient():
     """Test that validation allows intelligent filtering."""
-    script_path = Path("scripts/run_agent.py")
-    script_content = script_path.read_text()
+    script_content = RUN_AGENT_PATH.read_text()
     
     checks = [
         ("[INFO]", "Informational logging for missing items"),
