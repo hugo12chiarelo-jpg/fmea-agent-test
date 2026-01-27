@@ -47,9 +47,11 @@ def pick_instruction_file() -> Path:
         candidates.sort(key=lambda x: x.stat().st_mtime, reverse=True)
         return candidates[0]
 
-    no_ext = instr_dir / "Daily Instructions"
-    if no_ext.exists() and no_ext.is_file():
-        return no_ext
+    # Check for common no-extension instruction files
+    for name in ["instructions", "Daily Instructions", "instruction"]:
+        no_ext = instr_dir / name
+        if no_ext.exists() and no_ext.is_file():
+            return no_ext
 
     fallback = instr_dir / "README.md"
     if fallback.exists():
@@ -106,6 +108,34 @@ def load_csv_preview(path: Path, max_rows: int = 200, max_cols: int = 30) -> str
     return df.to_csv(index=False) + note
 
 
+def match_item_class_rows(df: pd.DataFrame, item_class: str) -> pd.DataFrame:
+    """
+    Match rows in EMS dataframe by Item Class code OR Item Class Name.
+    
+    The function attempts to match in the following order:
+    1. First tries 'Item Class' column (e.g., code like 'COCE')
+    2. If no match, tries 'Item Class Name' column (e.g., name like 'Centrifugal Compressor')
+    
+    Args:
+        df: DataFrame with 'Item Class' and optionally 'Item Class Name' columns
+        item_class: Item Class to match (can be code like 'COCE' or name like 'Centrifugal Compressor')
+        
+    Returns:
+        Filtered DataFrame matching the item class, or empty DataFrame if no match
+    """
+    item_class_lower = item_class.strip().lower()
+    
+    # Try matching by both columns
+    for col in ["Item Class", "Item Class Name"]:
+        if col in df.columns:
+            mask = df[col].astype(str).str.strip().str.lower() == item_class_lower
+            if mask.any():
+                return df[mask]
+    
+    # No match found - return empty DataFrame with same columns
+    return df.iloc[0:0]
+
+
 def filter_ems_for_item_class(ems_path: Path, item_class: str, max_rows: int = 200) -> str:
     try:
         df = pd.read_csv(ems_path, sep=None, engine="python")
@@ -115,18 +145,17 @@ def filter_ems_for_item_class(ems_path: Path, item_class: str, max_rows: int = 2
     # Normalize headers
     df.columns = [str(c).replace("\ufeff", "").strip() for c in df.columns]
 
-    col = "Item Class" if "Item Class" in df.columns else None
-    if col is None:
+    if "Item Class" not in df.columns:
         return (
             "EMS.csv (unfiltered preview — Item Class column not found)\n"
             + load_csv_preview(ems_path, max_rows=max_rows)
         )
 
-    dff = df[df[col].astype(str).str.strip().str.lower() == item_class.strip().lower()]
+    dff = match_item_class_rows(df, item_class)
 
     if dff.empty:
         return (
-            f"EMS.csv (no rows matched Item Class='{item_class}' in column '{col}')\n"
+            f"EMS.csv (no rows matched Item Class='{item_class}' in 'Item Class' or 'Item Class Name' columns)\n"
             + load_csv_preview(ems_path, max_rows=max_rows)
         )
 
@@ -180,11 +209,11 @@ def build_mi_list_from_ems_and_catalog(ems_path: Path, item_class: str, mi_catal
             f"EMS.csv must contain a 'Boundaries' column (or 'Boundary'). Found: {list(ems.columns)}"
         )
 
-    rows = ems[ems["Item Class"].astype(str).str.strip().str.lower() == item_class.strip().lower()]
+    rows = match_item_class_rows(ems, item_class)
     if rows.empty:
         sample = ems["Item Class"].astype(str).str.strip().dropna().unique()[:10].tolist()
         raise RuntimeError(
-            f"No EMS rows matched Item Class='{item_class}'. Sample EMS Item Class values: {sample}"
+            f"No EMS rows matched Item Class='{item_class}' (tried both 'Item Class' and 'Item Class Name'). Sample EMS Item Class values: {sample}"
         )
 
     boundary_text = "\n".join(rows[boundary_col].astype(str).tolist())
