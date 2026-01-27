@@ -4,7 +4,7 @@ The FMEA must reflect the technical characteristics of each Maintainable Item, w
 
 **CRITICAL CONSTRAINTS** (MUST BE ENFORCED):
 1. **CARDINALITY ENFORCEMENT**: Each Maintainable Item MUST have EXACTLY 4-8 distinct Symptoms. NO EXCEPTIONS.
-2. **MANY-TO-MANY STRUCTURE**: For each (MI, Symptom) pair, generate 1-5 distinct Failure Mechanisms.
+2. **MANY-TO-MANY STRUCTURE**: For each (MI, Symptom) pair, generate 2-5 distinct Failure Mechanisms.
 3. **NO DUPLICATION**: Symptom and Failure Mechanism on the same row MUST use DIFFERENT terms/concepts.
    - If Symptom is "2.1 Cavitation", Mechanism CANNOT be "2.1 Cavitation"
    - If Symptom is "VIB - Vibration", Mechanism CANNOT be "1.2 Vibration"
@@ -117,7 +117,7 @@ REQUIRED CARDINALITIES
    - Simpler items need fewer symptoms (at least 4)
    - Example: A complex Maintainable Item like "Impeller Failure" may have 6-8 symptoms, while a simpler one like "Filter Failure" may have 4-5 symptoms
 
-2. **Symptom → Failure Mechanisms**: For EACH Symptom of a Maintainable Item, generate MULTIPLE (1–5) DISTINCT Failure Mechanisms
+2. **Symptom → Failure Mechanisms**: For EACH Symptom of a Maintainable Item, generate MULTIPLE (2–5) DISTINCT Failure Mechanisms
    - **CRITICAL**: DO NOT generate only 1 mechanism per symptom for most items - this is the most common error
    - The number depends on the technical complexity and importance of the Maintainable Item for the Item Class
    - Critical/complex Maintainable Items with a specific Symptom SHOULD have 2-5 mechanisms for that symptom
@@ -159,7 +159,7 @@ REQUIRED CARDINALITIES
 
 This example shows:
 - 1 Maintainable Item ("Impeller Failure") has 6 Symptoms (within 4-8 range)
-- Each Symptom has 1-3 Failure Mechanisms (within 1-5 range)
+- Each Symptom has 1-3 Failure Mechanisms (within 2-5 range)
 - Total: 15 distinct mechanism entries for this Maintainable Item
 
 **DO NOT create 1-to-1 relationships.** Each Maintainable Item MUST be expanded into multiple (Maintainable Item, Symptom) pairs, and each such pair MUST be expanded into multiple (Maintainable Item, Symptom, Failure Mechanism) rows.
@@ -175,15 +175,15 @@ QUALITY GATES (MUST PASS BEFORE EXPORT)
    - **DO NOT PROCEED** if any Maintainable Item has fewer than 4 or more than 8 symptoms
    - Verify: Each Maintainable Item appears in the output with 4-8 different Symptom values
 
-**G2**: **CARDINALITY - Mechanisms per Symptom**: For EACH (Maintainable Item, Symptom) pair, there MUST be MULTIPLE (1–5) DISTINCT Failure Mechanisms.
-   - This means: For every combination of a specific Maintainable Item with a specific Symptom, generate between 1 and 5 different mechanisms
+**G2**: **CARDINALITY - Mechanisms per Symptom**: For EACH (Maintainable Item, Symptom) pair, there MUST be MULTIPLE (2–5) DISTINCT Failure Mechanisms.
+   - This means: For every combination of a specific Maintainable Item with a specific Symptom, generate between 2 and 5 different mechanisms
    - **CRITICAL**: Most (MI, Symptom) pairs should have 2-5 mechanisms, NOT just 1
    - **COMMON ERROR**: Generating only 1 mechanism per symptom for all items - this is INCORRECT
    - **MANDATORY VERIFICATION**: Count mechanisms for each (Maintainable Item, Symptom) pair
-   - **BEFORE GENERATING OUTPUT**: Plan mechanisms for each (MI, Symptom) pair to ensure 1-5 range
-   - If count < 1: ERROR - Every symptom must have at least one mechanism
+   - **BEFORE GENERATING OUTPUT**: Plan mechanisms for each (MI, Symptom) pair to ensure 2-5 range
+   - If count < 2: ERROR - Every symptom must have at least two mechanisms
    - If count > 5: STOP and consolidate to most relevant mechanisms
-   - Verify: Group output by (Maintainable Item, Symptom) and count distinct mechanisms in each group - must be between 1 and 5
+   - Verify: Group output by (Maintainable Item, Symptom) and count distinct mechanisms in each group - must be between 2 and 5
 
 **G3**: No "Other/Unknown" values are allowed in Symptoms or Failure Mechanisms. All values must be specific and traceable to ISO 14224.
 
@@ -201,7 +201,7 @@ QUALITY GATES (MUST PASS BEFORE EXPORT)
 
 **VERIFICATION CHECKLIST** before finalizing output:
 - [ ] Count unique Symptoms per Maintainable Item → Must be 4-8 for each (NO EXCEPTIONS)
-- [ ] Count unique Failure Mechanisms per (Maintainable Item, Symptom) pair → Must be 1-5 for each pair
+- [ ] Count unique Failure Mechanisms per (Maintainable Item, Symptom) pair → Must be 2-5 for each pair
 - [ ] Verify no "Other" or "Unknown" entries exist
 - [ ] Verify all Maintainable Items end with "Failure"
 - [ ] Verify physical plausibility of all Symptom-Maintainable Item combinations

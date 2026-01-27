@@ -388,7 +388,7 @@ CRITICAL REQUIREMENTS:
    - Select appropriate symptoms from the Symptom Catalog
    - Consider technical failures relevant to each item
    
-3. Each (Maintainable Item, Symptom) pair MUST have MULTIPLE (1-5) DISTINCT Failure Mechanisms
+3. Each (Maintainable Item, Symptom) pair MUST have MULTIPLE (2-5) DISTINCT Failure Mechanisms
    - Complex/critical items should have 2-5 mechanisms per symptom
    - Think: "What are the DIFFERENT physical causes that could produce this symptom?"
    - Generate separate rows for each mechanism
@@ -426,7 +426,7 @@ CRITICAL RULES TO FOLLOW:
    - If an MI has fewer than 4 symptoms, ADD more distinct symptoms from the catalogs
    - If an MI has more than 8 symptoms, CONSOLIDATE similar ones
    
-2. Each (Maintainable Item, Symptom) pair MUST have MULTIPLE (1-5) DISTINCT Failure Mechanisms
+2. Each (Maintainable Item, Symptom) pair MUST have MULTIPLE (2-5) DISTINCT Failure Mechanisms
    - **DO NOT generate only 1 mechanism per symptom for all items**
    - Complex/critical items should have 2-5 mechanisms per symptom
    - For each symptom, think: "What are the DIFFERENT physical causes that could produce this symptom?"
@@ -451,7 +451,7 @@ def validate_output_cardinality(output_text: str) -> list[str]:
     """
     Validate that the output meets cardinality requirements:
     - Each Maintainable Item has 4-8 distinct Symptoms
-    - Each (MI, Symptom) pair has 1-5 distinct Failure Mechanisms
+    - Each (MI, Symptom) pair has 2-5 distinct Failure Mechanisms
     - No duplication between Symptom and Failure Mechanism on the same row
     
     Returns a list of error messages (empty if valid).
@@ -514,7 +514,7 @@ def validate_output_cardinality(output_text: str) -> list[str]:
             elif count > 8:
                 errors.append(f"G1 VIOLATION: '{mi_clean}' has {count} symptoms, need 4-8")
         
-        # G2: Check mechanisms per (MI, Symptom) pair (1-5)
+        # G2: Check mechanisms per (MI, Symptom) pair (2-5)
         mechanism_counts = df.groupby(['Maintainable Item', 'Symptom'])['Failure Mechanism'].nunique()
         single_mechanism_count = 0
         total_pairs = 0
@@ -529,8 +529,10 @@ def validate_output_cardinality(output_text: str) -> list[str]:
             if count == 1:
                 single_mechanism_count += 1
             
-            if count > 5:
-                errors.append(f"G2 VIOLATION: '{mi_clean}' + '{sym_clean}' has {count} mechanisms, need 1-5")
+            if count < 2:
+                errors.append(f"G2 VIOLATION: '{mi_clean}' + '{sym_clean}' has only {count} mechanism(s), need 2-5")
+            elif count > 5:
+                errors.append(f"G2 VIOLATION: '{mi_clean}' + '{sym_clean}' has {count} mechanisms, need 2-5")
         
         # G2b: Check if too many pairs have only 1 mechanism (quality check)
         # This is a heuristic: if more than MAX_SINGLE_MECHANISM_RATIO of pairs have only 1 mechanism, 
@@ -706,7 +708,7 @@ The list below contains Maintainable Items derived from EMS Boundaries column, e
    - Add more symptoms if < 4
    - Consolidate if > 8
    
-2. Each (Maintainable Item, Symptom) pair MUST have MULTIPLE (1-5) DISTINCT Failure Mechanisms
+2. Each (Maintainable Item, Symptom) pair MUST have MULTIPLE (2-5) DISTINCT Failure Mechanisms
    - **CRITICAL**: DO NOT generate only 1 mechanism per symptom for all items
    - Complex/critical items with common symptoms should have 2-5 mechanisms
    - Example: "Shaft Failure" + "VIB - Vibration" → 3-4 mechanisms (Fatigue, Misalignment, Unbalance, Wear)

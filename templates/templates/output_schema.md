@@ -55,7 +55,7 @@ No column may be removed, renamed, reordered, or merged.
      * GOOD: Symptom "NOI - Noise" + Mechanism "2.1 Cavitation" ← CORRECT (different observation vs cause)
    - The Symptom is what you OBSERVE; the Mechanism is what CAUSES it. They must be distinct.
    - Avoid generic or duplicated meaning with the Symptom.
-   - **CARDINALITY**: For EACH (Maintainable Item, Symptom) pair, generate MULTIPLE (1-5) DISTINCT Failure Mechanisms
+   - **CARDINALITY**: For EACH (Maintainable Item, Symptom) pair, generate MULTIPLE (2-5) DISTINCT Failure Mechanisms
    - **CRITICAL**: DO NOT generate only 1 mechanism per symptom for most items - generate 2-5 mechanisms per symptom
    - The number of mechanisms per symptom depends on:
      * Technical importance of the Maintainable Item for the Item Class
@@ -101,8 +101,8 @@ No column may be removed, renamed, reordered, or merged.
   * **Lower complexity** (e.g., Filter, Sensor, Simple valve): 4-5 symptoms
 - DO NOT create only 1 or 2 symptoms per Maintainable Item
 
-### Rule 2: (Maintainable Item, Symptom) → Failure Mechanisms (MULTIPLE: 1-5 per symptom)
-- **CRITICAL**: For EACH Symptom associated with a Maintainable Item, generate MULTIPLE (1–5) DISTINCT Failure Mechanisms
+### Rule 2: (Maintainable Item, Symptom) → Failure Mechanisms (MULTIPLE: 2-5 per symptom)
+- **CRITICAL**: For EACH Symptom associated with a Maintainable Item, generate MULTIPLE (2–5) DISTINCT Failure Mechanisms
 - **COMMON ERROR**: Generating only 1 mechanism per symptom for all items - this is INCORRECT
 - **CORRECT APPROACH**: For each symptom, identify 2-5 different physical causes that could produce that symptom
 - The exact number within this range depends on:
@@ -148,12 +148,12 @@ No column may be removed, renamed, reordered, or merged.
 **Analysis of the example:**
 - **Rule 1 Check**: "Compressor Shaft Failure" has 6 distinct symptoms (VIB, PDE, NOI, LOO, OHE, FWR) → ✓ Within 4-8 range
 - **Rule 2 Check**: 
-  * VIB has 4 mechanisms → ✓ Within 1-5 range
-  * PDE has 2 mechanisms → ✓ Within 1-5 range
-  * NOI has 2 mechanisms → ✓ Within 1-5 range
-  * LOO has 1 mechanism → ✓ Within 1-5 range
-  * OHE has 2 mechanisms → ✓ Within 1-5 range
-  * FWR has 2 mechanisms → ✓ Within 1-5 range
+  * VIB has 4 mechanisms → ✓ Within 2-5 range
+  * PDE has 2 mechanisms → ✓ Within 2-5 range
+  * NOI has 2 mechanisms → ✓ Within 2-5 range
+  * LOO has 2 mechanisms → ✓ Within 2-5 range
+  * OHE has 2 mechanisms → ✓ Within 2-5 range
+  * FWR has 2 mechanisms → ✓ Within 2-5 range
 - **Total output rows**: 13 rows for this single Maintainable Item
 
 **Anti-Pattern Example** (INCORRECT - DO NOT DO THIS):
@@ -183,8 +183,8 @@ Before finalizing the output, the agent must confirm ALL of the following:
   - Method: Group by Maintainable Item, count unique Symptoms → must be between 4 and 8
   - **BEFORE generating output**: Create a symptom plan for each MI ensuring 4-8 symptoms
   - Use ELR categories to guide symptom selection based on MI type
-- **G2**: Each (Maintainable Item, Symptom) pair has 1-5 distinct failure mechanisms
-  - Method: Group by (Maintainable Item, Symptom), count unique Mechanisms → must be between 1 and 5
+- **G2**: Each (Maintainable Item, Symptom) pair has 2-5 distinct failure mechanisms
+  - Method: Group by (Maintainable Item, Symptom), count unique Mechanisms → must be between 2 and 5
   - **BEFORE generating output**: Plan mechanisms for each symptom considering complexity
 - **G3**: No "Other" or "Unknown" values are present in Symptoms or Failure Mechanisms
 - **G4**: All Maintainable Items end with "Failure"
@@ -222,7 +222,7 @@ If outside range: Review for errors
 
 ### Validation Checklist (must ALL be true):
 - [ ] **CRITICAL**: Every Maintainable Item appears with EXACTLY 4-8 different Symptoms (count and verify each MI)
-- [ ] Every (Maintainable Item, Symptom) pair appears with 1-5 different Failure Mechanisms
+- [ ] Every (Maintainable Item, Symptom) pair appears with 2-5 different Failure Mechanisms
 - [ ] **CRITICAL**: NO DUPLICATION - Every row has different terms in Symptom vs Mechanism (check each row)
 - [ ] No "Other" or "Unknown" entries exist anywhere
 - [ ] Every Maintainable Item name ends with "Failure"

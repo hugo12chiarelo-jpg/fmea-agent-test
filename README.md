@@ -20,7 +20,7 @@ The FMEA agent now automatically attempts to fix validation errors instead of st
 
 2. **Cardinality and Duplication Rules (G1-G7)**
    - Each MI must have 4-8 distinct symptoms
-   - Each (MI, Symptom) pair must have 1-5 distinct failure mechanisms
+   - Each (MI, Symptom) pair must have 2-5 distinct failure mechanisms
    - No duplication between symptom and failure mechanism on same row
 
 See [FIX_SUMMARY.md](FIX_SUMMARY.md) and [SOLUTION_SUMMARY.md](SOLUTION_SUMMARY.md) for more details on previous fixes.
