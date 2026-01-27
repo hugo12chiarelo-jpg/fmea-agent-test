@@ -37,26 +37,38 @@ When in doubt, differentiate by:
   
 SCOPE AND BOUNDARY RULES (EMS.xlsx)
 Interpret EMS boundaries as defining what is included in the Item Class maintenance scope.
-Exclude items outside EMS limits and exclude what is explicitly excluded inside the boundary text.
+
+**CRITICAL BOUNDARY PARSING RULES:**
+1. Items marked with "Exclude", "optional", "if applicable", or "if any" MUST NOT be included in Maintainable Items
+2. Everything else mentioned in boundaries IS included unless explicitly excluded
+3. Read the full boundaries text carefully to identify ALL included components, systems, and equipment
+4. Do NOT limit to only "main" or "most probable" items - include ALL technically relevant items from boundaries
+
 Maintainable Item list must follow what is included in EMS boundary and exclude what is excluded.
+
 MAINTAINABLE ITEM RULES
 **CRITICAL**: Maintainable Items MUST be derived from the "Boundaries" column of the EMS file AND transformed using the terminology from "Maintainable Item Catalog.csv".
 
 **Process:**
 1. Read the "Boundaries" column from EMS file for the specified Item Class.
-2. Identify all components, systems, and equipment mentioned in the boundaries text.
-3. Transform each identified component name to match the standard naming from "Maintainable Item Catalog.csv".
-4. Use Maintainable Item Catalog as the authoritative naming standard:
+2. **Parse boundaries to identify included vs excluded items:**
+   - Items in lines starting with "Exclude" or containing "exclude" keyword → EXCLUDE
+   - Items marked as "optional", "if applicable", "if any" → EXCLUDE
+   - All other items mentioned → INCLUDE
+3. Identify ALL components, systems, and equipment mentioned in the included boundaries text (do not limit to main items only).
+4. Transform each identified component name to match the standard naming from "Maintainable Item Catalog.csv".
+5. Use Maintainable Item Catalog as the authoritative naming standard:
    - Replace boundary component names with their catalog equivalents.
    - Example: If boundary mentions "bearing", use "Radial bearing" or "Thrust bearing" from catalog.
-5. Mark inferred items with "(*)": If a maintainable item is suggested by AI and is NOT explicitly stated in EMS boundaries, mark it with "(*)".
-6. Never suggest any maintainable item that is mentioned as excluded in boundaries.
-7. Add new maintainable items when there are relevant components/systems that could cause system failure, including (non-exhaustive): Power transmission; construction components (impeller, piston, valves, etc.); control & monitoring; lubrication system; seal system; cooling system; exhaust; fuel system; or any other relevant system.
-8. Appropriate level test: Ask: "What component could fail to cause system failure?" Example: Impeller Failure, Shaft Failure, Dry Gas Seal Failure.
-9. Grouping boundary subcomponents under one maintainable item is allowed ONLY if: (a) physically inseparable or replaced together as one unit, AND (b) identical symptoms, mechanisms, and treatment actions. Otherwise, create independent maintainable items.
-10. Maintainable Items must end with "Failure".
-11. Add a column "Maintainable Item Function": describe the function of the maintainable item relative to the Item Class.
-12. At the end, answer: "What are the most probable maintainable items that can cause a functional failure in the main equipment?"
+   - Example: If boundary mentions "compressor", use appropriate catalog terms like "Rotor w/impellers", "Casing", etc.
+6. Mark inferred items with "(*)": If a maintainable item is suggested by AI from the manual and is NOT explicitly stated in EMS boundaries, mark it with "(*)".
+7. Never suggest any maintainable item that is mentioned as excluded in boundaries.
+8. Add new maintainable items when there are relevant components/systems that could cause system failure, including (non-exhaustive): Power transmission; construction components (impeller, piston, valves, etc.); control & monitoring; lubrication system; seal system; cooling system; exhaust; fuel system; or any other relevant system.
+9. Appropriate level test: Ask: "What component could fail to cause system failure?" Example: Impeller Failure, Shaft Failure, Dry Gas Seal Failure.
+10. Grouping boundary subcomponents under one maintainable item is allowed ONLY if: (a) physically inseparable or replaced together as one unit, AND (b) identical symptoms, mechanisms, and treatment actions. Otherwise, create independent maintainable items.
+11. Maintainable Items must end with "Failure".
+12. Add a column "Maintainable Item Function": describe the function of the maintainable item relative to the Item Class.
+13. At the end, answer: "What are ALL the maintainable items (not just the most probable) that can cause a functional failure in the main equipment?"
 STRONGLY RECOMMEND ADDING (ENGINEERING VALIDATION REQUIRED)
 If the AI suggests maintainable items not explicit in EMS boundary, output a separate list: Maintainable Item | Why | Symptom | Failure Mechanisms | Suggested Treatment Actions
 

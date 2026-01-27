@@ -135,6 +135,23 @@ def filter_ems_for_item_class(ems_path: Path, item_class: str, max_rows: int = 2
 
 
 def build_mi_list_from_ems_and_catalog(ems_path: Path, item_class: str, mi_catalog_path: Path) -> list[str]:
+    """
+    Build a comprehensive list of Maintainable Items from EMS boundaries and MI catalog.
+    
+    This function:
+    1. Parses the EMS Boundaries column to identify included/excluded items
+    2. Filters out items marked with "Exclude", "optional", "if applicable"
+    3. Maps boundary terms to standard Maintainable Item Catalog terminology
+    4. Returns ALL technically relevant items from boundaries
+    
+    Args:
+        ems_path: Path to EMS.csv file
+        item_class: Target Item Class to filter
+        mi_catalog_path: Path to Maintainable Item Catalog.csv
+        
+    Returns:
+        List of Maintainable Items (catalog terminology) that should be included
+    """
     # Read EMS
     try:
         ems = pd.read_csv(ems_path, sep=None, engine="python")
@@ -185,12 +202,109 @@ def build_mi_list_from_ems_and_catalog(ems_path: Path, item_class: str, mi_catal
         name_col = mi_df.columns[0]
 
     catalog_items = sorted(set(mi_df[name_col].astype(str).str.strip().tolist()))
-
-    # Simple containment match
-    bt = boundary_text.lower()
-    included = [mi for mi in catalog_items if mi and mi.lower() in bt]
-
-    return included
+    
+    # Parse boundaries to identify included and excluded items
+    included_items = []
+    excluded_items = []
+    
+    # Split boundary text into lines for processing
+    boundary_lines = boundary_text.split('\n')
+    
+    for line in boundary_lines:
+        line_lower = line.lower().strip()
+        
+        # Skip empty lines
+        if not line_lower:
+            continue
+            
+        # Check if line contains exclusion keywords
+        is_excluded = (
+            line_lower.startswith('exclude ') or
+            line_lower.startswith('excludes ') or
+            (len(line_lower) > 10 and 'exclude ' in line_lower[:15]) or
+            'optional' in line_lower or
+            'if applicable' in line_lower or
+            'if any' in line_lower
+        )
+        
+        # Match catalog items against this line
+        for mi in catalog_items:
+            if not mi or len(mi) < 3:  # Skip very short items
+                continue
+            mi_lower = mi.lower()
+            
+            # Check if the catalog item matches this line
+            # Prioritize exact matches over word-stem matches
+            is_match = False
+            match_type = None
+            
+            # Method 1: Direct substring match (catalog item in line) - EXACT MATCH
+            if mi_lower in line_lower:
+                is_match = True
+                match_type = "exact"
+                # Special case: Check if it's a more specific exclusion
+                # e.g., "Anti-surge" system vs "Anti surge valve"
+                # If the exclusion line specifies a more specific item (contains additional words after the match),
+                # don't exclude the general item
+                if is_excluded:
+                    # Extract the part after the catalog item match
+                    match_idx = line_lower.find(mi_lower)
+                    after_match = line_lower[match_idx + len(mi_lower):].strip()
+                    # If there are significant words after the match, it's a more specific item
+                    after_words = [w for w in after_match.split() if len(w) > 2 and w not in {'and', 'the', 'or', 'with'}]
+                    if after_words:
+                        # This is a more specific item (e.g., "anti surge valve"), don't exclude the general item
+                        is_match = False
+            
+            # Method 2: Check if any word in line starts with catalog item (for stems) - WORD STEM MATCH
+            # Only use this if no exact match was found
+            if not is_match:
+                # e.g., "instrument" matches "instrumentation"
+                words = re.split(r'[\s,/\-()]+', line_lower)
+                for word in words:
+                    if word.startswith(mi_lower) or mi_lower.startswith(word):
+                        # Only match if similarity is high enough
+                        shorter = min(len(word), len(mi_lower))
+                        if shorter >= 5:  # Increased minimum to 5 chars to avoid false positives
+                            is_match = True
+                            match_type = "stem"
+                            break
+            
+            if is_match:
+                if is_excluded:
+                    if mi not in excluded_items:
+                        excluded_items.append(mi)
+                else:
+                    if mi not in included_items:
+                        included_items.append(mi)
+    
+    # Remove any items that appear in both lists (exclusion takes precedence)
+    final_included = [mi for mi in included_items if mi not in excluded_items]
+    
+    # Also do a broader match on the entire boundary text (excluding explicit exclusion sections)
+    # This helps catch items that might be phrased differently
+    bt_lower = boundary_text.lower()
+    
+    # Split into included and excluded sections
+    boundary_parts = re.split(r'\n\s*exclude\s+', bt_lower, flags=re.IGNORECASE)
+    included_boundary = boundary_parts[0] if boundary_parts else ""
+    
+    # Check catalog items against included boundary section
+    for mi in catalog_items:
+        if not mi:
+            continue
+        mi_lower = mi.lower()
+        
+        # Check if item is mentioned in included section
+        if mi_lower in included_boundary:
+            # Make sure it's not in excluded items and not already in final list
+            if mi not in excluded_items and mi not in final_included:
+                final_included.append(mi)
+    
+    # Sort for consistency
+    final_included = sorted(set(final_included))
+    
+    return final_included
 
 
 def pick_manual_text(item_class: str) -> Path | None:
@@ -482,12 +596,24 @@ def main():
 ## INPUT DOCUMENTS (MINIMAL PACK)
 {minimal_inputs}
 
-## MANDATORY MAINTAINABLE ITEM LIST (MUST USE ALL)
-You MUST build the FMEA for EVERY Maintainable Item listed below.
-Do NOT summarize. Do NOT pick only the “most probable”.
-If any item is missing from the output, the deliverable is invalid.
+## MANDATORY MAINTAINABLE ITEM LIST (BASE FROM EMS BOUNDARIES)
+The list below contains Maintainable Items derived from EMS Boundaries column, excluding items marked as "Exclude", "optional", or "if applicable".
 
+**CRITICAL REQUIREMENTS:**
+1. You MUST build the FMEA for EVERY Maintainable Item listed below - this is the MINIMUM required set
+2. You MUST also review the Equipment Manual (if provided) and EMS Boundaries to identify ANY additional Maintainable Items of technical relevance
+3. Do NOT limit yourself to only the "main" or "most probable" items - include ALL technically relevant items
+4. If any base item from the list below is missing from the output, the deliverable is INVALID
+5. Mark any additional Maintainable Items you suggest (beyond the base list) with "(*)" to indicate they are inferred
+
+**Base Maintainable Items from EMS Boundaries (filtered for exclusions):**
 {mandatory_mi_block}
+
+**Additional Maintainable Items - YOUR RESPONSIBILITY:**
+- Review the Equipment Manual for components/systems that could cause functional failure
+- Consider: Power transmission, control systems, monitoring systems, structural components, sealing systems, cooling systems, auxiliary systems, etc.
+- Each suggested item should be technically justified and relevant to the Item Class
+- Transform all names to match Maintainable Item Catalog terminology
 
 ## CRITICAL REMINDERS BEFORE YOU START:
 **CARDINALITY REQUIREMENTS** - Your output WILL BE AUTOMATICALLY VALIDATED:
