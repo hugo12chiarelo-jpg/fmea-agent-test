@@ -168,6 +168,126 @@ def filter_ems_for_item_class(ems_path: Path, item_class: str, max_rows: int = 2
     return dff.to_csv(index=False) + note
 
 
+def apply_item_class_specific_rules(mi_list: list[str], item_class: str) -> list[str]:
+    """
+    Apply item-class-specific business rules to filter and adjust the MI list.
+    
+    Args:
+        mi_list: Initial list of Maintainable Items
+        item_class: The Item Class being analyzed
+        
+    Returns:
+        Filtered and adjusted MI list
+    """
+    item_class_lower = item_class.lower().strip()
+    
+    # Rules for "Motor, Electric"
+    if "motor" in item_class_lower and "electric" in item_class_lower:
+        # Filter out invalid items for Electric Motor
+        invalid_items = {
+            "motor",  # Motor Failure is not a valid MI for electric motor itself
+            "shaft",  # Shaft Failure can be disregarded per requirements
+            "system",  # Too generic
+            "stem",  # Too generic
+            "gear",  # Use Gearbox instead
+        }
+        
+        # Preferred naming for duplicates (map shorter/incorrect names to preferred names)
+        preferred_names = {
+            "cooling": "Cooling system",
+            "heater": "Heaters",
+            "instrument": "Monitoring",  # Instrumentation → Monitoring
+            "control system": "Control system",  # Normalize casing
+        }
+        
+        # Filter and normalize
+        filtered = []
+        seen_lower = set()
+        
+        for mi in mi_list:
+            mi_lower = mi.lower().strip()
+            
+            # Skip if it's in the invalid set
+            if mi_lower in invalid_items:
+                continue
+            
+            # Skip very generic or short terms
+            if len(mi) < 3:
+                continue
+            
+            # Apply preferred naming
+            if mi_lower in preferred_names:
+                preferred = preferred_names[mi_lower]
+                preferred_lower = preferred.lower().strip()
+                if preferred_lower not in seen_lower:
+                    filtered.append(preferred)
+                    seen_lower.add(preferred_lower)
+                continue
+            
+            # Check for duplicates (e.g., "Heaters" when we already have "Heater" → prefer "Heaters")
+            # If current item is singular and we have plural, skip
+            # If current item is plural and we have singular, replace
+            plural = mi_lower + 's' if not mi_lower.endswith('s') else mi_lower
+            singular = mi_lower[:-1] if mi_lower.endswith('s') and len(mi_lower) > 4 else mi_lower
+            
+            # Skip if we've already seen a variant
+            if plural in seen_lower or singular in seen_lower:
+                # Prefer plural form
+                if plural == mi_lower:
+                    # Current is plural, remove singular if present
+                    filtered = [f for f in filtered if f.lower().strip() != singular]
+                    seen_lower.discard(singular)
+                    filtered.append(mi)
+                    seen_lower.add(mi_lower)
+                # else: skip (singular, we already have plural or exact)
+                continue
+            
+            # Add if not seen
+            if mi_lower not in seen_lower:
+                filtered.append(mi)
+                seen_lower.add(mi_lower)
+        
+        # Ensure critical items are present with proper naming
+        critical_items = {
+            "Bearing",  # Can be NDE Bearing, DE Bearing, or just Bearing
+            "Rotor",
+            "Stator", 
+            "Windings",
+            "Coupling",
+            "Gearbox",
+            "Brushes",
+            "Cooling system",
+            "Enclosure",
+            "Control system",
+            "Junction box",
+            "Heaters",
+            "Monitoring",
+        }
+        
+        # Add any missing critical items
+        existing_lower = {mi.lower().strip() for mi in filtered}
+        for critical in critical_items:
+            critical_lower = critical.lower().strip()
+            # Check if any variation already exists
+            found = critical_lower in existing_lower
+            if not found:
+                filtered.append(critical)
+        
+        # Final deduplication (case-insensitive, keep first occurrence)
+        final = []
+        seen = set()
+        for mi in filtered:
+            mi_lower = mi.lower().strip()
+            if mi_lower not in seen:
+                final.append(mi)
+                seen.add(mi_lower)
+        
+        return sorted(final)
+    
+    # Default: return as-is for other item classes
+    return mi_list
+
+
 def build_mi_list_from_ems_and_catalog(ems_path: Path, item_class: str, mi_catalog_path: Path) -> list[str]:
     """
     Build a comprehensive list of Maintainable Items from EMS boundaries and MI catalog.
@@ -176,7 +296,8 @@ def build_mi_list_from_ems_and_catalog(ems_path: Path, item_class: str, mi_catal
     1. Parses the EMS Boundaries column to identify included/excluded items
     2. Filters out items marked with "Exclude", "optional", "if applicable"
     3. Maps boundary terms to standard Maintainable Item Catalog terminology
-    4. Returns ALL technically relevant items from boundaries
+    4. Applies item-class-specific business rules
+    5. Returns ALL technically relevant items from boundaries
     
     Args:
         ems_path: Path to EMS.csv file
@@ -349,7 +470,57 @@ def build_mi_list_from_ems_and_catalog(ems_path: Path, item_class: str, mi_catal
     # Sort for consistency
     final_included = sorted(set(final_included))
     
+    # Apply item-class-specific business rules
+    final_included = apply_item_class_specific_rules(final_included, item_class)
+    
     return final_included
+
+
+def build_item_class_specific_guidance(item_class: str) -> str:
+    """
+    Build item-class-specific guidance for the AI.
+    
+    Args:
+        item_class: The Item Class being analyzed
+        
+    Returns:
+        Guidance text to be added to the prompt
+    """
+    item_class_lower = item_class.lower().strip()
+    
+    # Guidance for "Motor, Electric"
+    if "motor" in item_class_lower and "electric" in item_class_lower:
+        return """
+## ITEM-CLASS-SPECIFIC GUIDANCE: Motor, Electric
+
+**IMPORTANT CLARIFICATIONS FOR ELECTRIC MOTOR:**
+
+1. **Symptom-Specific Rules:**
+   - "LOO - Low Output" is NOT a valid symptom for Rotor or Bearing (NDE/DE)
+   - Do NOT assign "LOO - Low Output" to: Rotor Failure, Bearing Failure, NDE Bearing Failure, DE Bearing Failure
+   
+2. **Failure Mechanism Requirements:**
+   - For Stator Failure: MUST include "4.1 - Short Circuiting" and "1.5 - Looseness" as mechanisms
+     * Assign these to appropriate symptoms (e.g., "4.1 - Short Circuiting" → symptoms like "NOO - No output", "OHE - Overheating")
+     * Assign "1.5 - Looseness" → symptoms like "VIB - Vibration", "NOI - Noise"
+   
+   - For Windings Failure + Symptom "NOO - No output": MUST include "4.1 - Short circuiting" as a mechanism
+   
+3. **Naming Rules:**
+   - All Maintainable Item names MUST end with " Failure" (e.g., "Bearing Failure", "Rotor Failure")
+   - Use "Control System Failure" (not "Control Unit Failure")
+   - Use "Cooling System Failure" (not "Cooler Failure")
+   - Use "Junction Box Failure" (not "Junction Boxes Failure")
+
+4. **Completeness Requirement:**
+   - Generate the COMPLETE FMEA table for ALL Maintainable Items listed
+   - Do NOT use placeholders like "[The rest of the table...]" or "[See above]"
+   - Do NOT reference "previous completion" or "unchanged sections"
+   - Every Maintainable Item must have its full set of rows in the output table
+"""
+    
+    # Default: no specific guidance
+    return ""
 
 
 def pick_manual_text(item_class: str) -> Path | None:
@@ -665,6 +836,9 @@ def main():
         parts.append(f"### FILE: {manual_txt.as_posix()} (TRUNCATED)\n{read_text_file(manual_txt, max_chars=120_000)}")
 
     minimal_inputs = "\n\n".join(parts)
+    
+    # Build item-class-specific guidance
+    item_class_guidance = build_item_class_specific_guidance(item_class)
 
     user_prompt = f"""
 ## INSTRUCTION (from {instruction_file.as_posix()})
@@ -681,16 +855,31 @@ def main():
 
 ## INPUT DOCUMENTS (MINIMAL PACK)
 {minimal_inputs}
+{item_class_guidance}
 
 ## MANDATORY MAINTAINABLE ITEM LIST (BASE FROM EMS BOUNDARIES)
 The list below contains Maintainable Items derived from EMS Boundaries column, excluding items marked as "Exclude", "optional", or "if applicable".
 
 **CRITICAL REQUIREMENTS:**
-1. You MUST build the FMEA for EVERY Maintainable Item listed below - this is the MINIMUM required set
+1. You MUST build the COMPLETE FMEA table for EVERY Maintainable Item listed below
+   - Generate ALL rows for EACH Maintainable Item
+   - Do NOT use placeholders like "[The rest of the table...]", "[See above]", or "[unchanged]"
+   - Do NOT write notes like "The rest of the fully specified FMEA table remains unchanged"
+   - Every single Maintainable Item must appear with all its rows in the final table
+   
 2. You MUST also review the Equipment Manual (if provided) and EMS Boundaries to identify ANY additional Maintainable Items of technical relevance
+
 3. Do NOT limit yourself to only the "main" or "most probable" items - include ALL technically relevant items
-4. If any base item from the list below is missing from the output, the deliverable is INVALID
+
+4. If any base item from the list below is missing from the actual FMEA table rows, the deliverable is INVALID
+
 5. Mark any additional Maintainable Items you suggest (beyond the base list) with "(*)" to indicate they are inferred
+
+6. **OUTPUT COMPLETENESS CHECK**: Before finalizing, verify that:
+   - The FMEA table contains rows for EVERY Maintainable Item in the base list
+   - Each MI has 4-8 distinct symptoms
+   - Each (MI, Symptom) pair has 2-5 distinct failure mechanisms
+   - No placeholders or references to "previous" or "unchanged" sections exist
 
 **Base Maintainable Items from EMS Boundaries (filtered for exclusions):**
 {mandatory_mi_block}
