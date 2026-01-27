@@ -685,21 +685,37 @@ def main():
 ## MANDATORY MAINTAINABLE ITEM LIST (BASE FROM EMS BOUNDARIES)
 The list below contains Maintainable Items derived from EMS Boundaries column, excluding items marked as "Exclude", "optional", or "if applicable".
 
-**CRITICAL REQUIREMENTS:**
-1. You MUST build the FMEA for EVERY Maintainable Item listed below - this is the MINIMUM required set
-2. You MUST also review the Equipment Manual (if provided) and EMS Boundaries to identify ANY additional Maintainable Items of technical relevance
-3. Do NOT limit yourself to only the "main" or "most probable" items - include ALL technically relevant items
-4. If any base item from the list below is missing from the output, the deliverable is INVALID
-5. Mark any additional Maintainable Items you suggest (beyond the base list) with "(*)" to indicate they are inferred
+**IMPORTANT NOTE**: This base list has been filtered using basic exclusion rules, but you MUST apply additional engineering intelligence:
+- Some boundary items may be redundant or covered by other maintainable items
+- Some boundary items may not be independently maintainable
+- You should filter further based on maintainability criteria (see MAINTAINABLE ITEM RULES in spec)
+- You should also ADD maintainable items from ISO 14224 standards that are not in boundaries
 
-**Base Maintainable Items from EMS Boundaries (filtered for exclusions):**
+**CRITICAL REQUIREMENTS:**
+1. You MUST build the FMEA for EVERY relevant Maintainable Item - not just those listed below
+2. APPLY ENGINEERING JUDGMENT to filter the base list (remove items that are sub-components or not independently maintainable)
+3. PROACTIVELY ADD maintainable items from ISO 14224 Table B.15 that are relevant but not in boundaries (mark with "(*)") 
+4. Review the Equipment Manual and EMS Boundaries to identify ANY additional Maintainable Items of technical relevance
+5. Do NOT limit yourself to only the "main" or "most probable" items - include ALL technically relevant items
+6. Mark any additional Maintainable Items you suggest (beyond the base list or from ISO 14224) with "(*)" to indicate they are inferred
+
+**Base Maintainable Items from EMS Boundaries (filtered for explicit exclusions only):**
 {mandatory_mi_block}
 
 **Additional Maintainable Items - YOUR RESPONSIBILITY:**
+- **APPLY ENGINEERING INTELLIGENCE**: Not all items mentioned in boundaries should become Maintainable Items
+  * Filter out sub-components that are covered by parent items (e.g., axle covered by Shaft, commutator covered by Rotor)
+  * Only include components that are independently maintainable and have distinct failure symptoms
+  * Example (Electric Motor): From "axle, rotor, stator, commutator, field magnet(s), brushes" → Select: Rotor Failure, Stator Failure, Brushes Failure (exclude: axle, commutator, field magnets)
+- **CONSULT ISO 14224 Table B.15**: Proactively suggest standard maintainable items for this Item Class type
+  * Common ISO 14224 systems: Lubrication System, Cooling System, Seal System, Bearing System, Monitoring/Control System, Power Supply System
+  * Verify technical relevance to the specific Item Class and failure risk profile
+  * Mark ALL ISO 14224-suggested items with "(*)"
 - Review the Equipment Manual for components/systems that could cause functional failure
 - Consider: Power transmission, control systems, monitoring systems, structural components, sealing systems, cooling systems, auxiliary systems, etc.
 - Each suggested item should be technically justified and relevant to the Item Class
 - Transform all names to match Maintainable Item Catalog terminology
+- **OUTPUT VALIDATION SECTION**: At the end of the FMEA, include a "SUGGESTED ADDITIONAL MAINTAINABLE ITEMS" table with justification for each (*)-marked item
 
 ## CRITICAL REMINDERS BEFORE YOU START:
 **CARDINALITY REQUIREMENTS** - Your output WILL BE AUTOMATICALLY VALIDATED:
@@ -761,63 +777,18 @@ Return ONLY the final deliverables requested in the instruction.
         {"role": "assistant", "content": output_text}
     ]
     
-    # Check for missing mandatory MIs and attempt correction
+    # Check for missing mandatory MIs - now informational since AI can filter intelligently
     missing: list[str] = []
     for mi_name in mandatory_mi:
         if mi_name and (mi_name.lower() not in output_text.lower()):
             missing.append(mi_name)
 
     if mandatory_mi and missing:
-        print(f"\n[VALIDATION] ⚠️  Model output missing {len(missing)} mandatory Maintainable Items:")
+        print(f"\n[INFO] Model output has {len(missing)} items from base list that were filtered out:")
         for mi in missing[:10]:  # Show up to 10 examples
             print(f"  - {mi}")
-        
-        # Attempt to correct missing MIs
-        mi_correction_attempt = 0
-        while missing and mi_correction_attempt < max_correction_attempts:
-            mi_correction_attempt += 1
-            print(f"\n[CORRECTION] Requesting AI to add missing Maintainable Items (Attempt {mi_correction_attempt}/{max_correction_attempts})...")
-            
-            # Build correction prompt for missing MIs
-            mi_correction_prompt = build_missing_mi_correction_prompt(missing)
-            conversation_history.append({"role": "user", "content": mi_correction_prompt})
-            
-            # Request correction from AI
-            correction_resp = client.chat.completions.create(
-                model=model,
-                messages=conversation_history,
-            )
-            
-            usage = getattr(correction_resp, "usage", None)
-            in_tokens = getattr(usage, "prompt_tokens", None) if usage else None
-            out_tokens = getattr(usage, "completion_tokens", None) if usage else None
-            
-            print(f"Token usage (missing MI correction) -> input: {in_tokens}, output: {out_tokens}")
-            
-            if in_tokens is not None and out_tokens is not None:
-                cost = (in_tokens / 1_000_000) * 0.80 + (out_tokens / 1_000_000) * 3.20
-                print(f"Estimated cost (gpt-4.1-mini Standard): ${cost:.4f}")
-            
-            if not correction_resp.choices:
-                print("[ERROR] AI correction failed - no response received")
-                break
-            
-            output_text = correction_resp.choices[0].message.content or ""
-            conversation_history.append({"role": "assistant", "content": output_text})
-            
-            # Re-check for missing MIs
-            missing = []
-            for mi_name in mandatory_mi:
-                if mi_name and (mi_name.lower() not in output_text.lower()):
-                    missing.append(mi_name)
-        
-        if missing:
-            print(f"\n[VALIDATION] ⚠️  Output still missing {len(missing)} mandatory Maintainable Items after {mi_correction_attempt} correction attempt(s):")
-            for mi in missing[:10]:
-                print(f"  - {mi}")
-            print("\n[WARNING] Continuing with output that has missing Maintainable Items. Please review manually.")
-        else:
-            print("[VALIDATION] ✓ All mandatory Maintainable Items are present")
+        print("\n[INFO] This is acceptable if AI applied engineering judgment to filter non-maintainable or redundant items.")
+        print("[INFO] The AI should have provided justification in the output for significant omissions.")
 
     # --- Quality gate: validate cardinality rules with automatic correction ---
     print("\n[VALIDATION] Checking cardinality and duplication rules...")

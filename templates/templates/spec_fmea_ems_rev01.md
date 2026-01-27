@@ -56,21 +56,57 @@ MAINTAINABLE ITEM RULES
    - Items marked as "optional", "if applicable", "if any" → EXCLUDE
    - All other items mentioned → INCLUDE
 3. Identify ALL components, systems, and equipment mentioned in the included boundaries text (do not limit to main items only).
-4. Transform each identified component name to match the standard naming from "Maintainable Item Catalog.csv".
-5. Use Maintainable Item Catalog as the authoritative naming standard:
+4. **APPLY ENGINEERING INTELLIGENCE - Filter boundary items using maintainability criteria:**
+   - **Only include items that are INDEPENDENTLY MAINTAINABLE** (can be inspected, repaired, or replaced separately)
+   - **Exclude items that are:**
+     * Sub-components that are technically covered by a parent maintainable item
+     * Not subject to maintenance activities (inspect, repair, replace)
+     * Cannot be independently observed or monitored for failure symptoms
+   - **Example 1 - Electric Motor:** From "Includes axle, rotor, stator, commutator, field magnet(s) and brushes":
+     * INCLUDE: Rotor Failure, Stator Failure, Brushes Failure (independently maintainable, have distinct symptoms/mechanisms)
+     * EXCLUDE: Axle (covered by Shaft Failure), Commutator (covered by Rotor Failure), Field magnets (integral part of Rotor/Stator)
+   - **Example 2 - Pump:** From "Includes impeller, shaft, casing, volute":
+     * INCLUDE: Impeller Failure, Shaft Failure, Casing Failure (independently maintainable)
+     * EXCLUDE: Volute (integral part of Casing)
+   - **Engineering judgment**: Ask "Can this component be inspected, maintained, or replaced independently?" and "Does it have distinct failure symptoms?"
+5. Transform each identified component name to match the standard naming from "Maintainable Item Catalog.csv".
+6. Use Maintainable Item Catalog as the authoritative naming standard:
    - Replace boundary component names with their catalog equivalents.
    - Example: If boundary mentions "bearing", use "Radial bearing" or "Thrust bearing" from catalog.
    - Example: If boundary mentions "compressor", use appropriate catalog terms like "Rotor w/impellers", "Casing", etc.
-6. Mark inferred items with "(*)": If a maintainable item is suggested by AI from the manual and is NOT explicitly stated in EMS boundaries, mark it with "(*)".
-7. Never suggest any maintainable item that is mentioned as excluded in boundaries.
-8. Add new maintainable items when there are relevant components/systems that could cause system failure, including (non-exhaustive): Power transmission; construction components (impeller, piston, valves, etc.); control & monitoring; lubrication system; seal system; cooling system; exhaust; fuel system; or any other relevant system.
-9. Appropriate level test: Ask: "What component could fail to cause system failure?" Example: Impeller Failure, Shaft Failure, Dry Gas Seal Failure.
-10. Grouping boundary subcomponents under one maintainable item is allowed ONLY if: (a) physically inseparable or replaced together as one unit, AND (b) identical symptoms, mechanisms, and treatment actions. Otherwise, create independent maintainable items.
-11. Maintainable Items must end with "Failure".
-12. Add a column "Maintainable Item Function": describe the function of the maintainable item relative to the Item Class.
-13. At the end, answer: "What are ALL the maintainable items (not just the most probable) that can cause a functional failure in the main equipment?"
+7. **PROACTIVELY SUGGEST ISO 14224-COMPLIANT MAINTAINABLE ITEMS** not explicitly in boundaries:
+   - **Reference ISO 14224 Table B.15 (Equipment taxonomy)** to identify standard maintainable items for the Item Class
+   - **Common ISO 14224 maintainable items to consider** (non-exhaustive):
+     * Lubrication System Failure (lubrication oil, pumps, filters, cooling)
+     * Cooling System Failure (coolers, fans, heat exchangers)
+     * Seal System Failure (mechanical seals, seal oil systems, dry gas seals)
+     * Bearing System Failure (radial bearings, thrust bearings, bearing housings)
+     * Monitoring/Control System Failure (sensors, transmitters, control units)
+     * Power Supply System Failure (internal power supplies, batteries, inverters)
+   - **Mark ALL suggested items with "(*)** to indicate they are inferred from ISO 14224/manual, not explicit in boundaries
+   - **Engineering validation**: Verify each suggested item is relevant to the specific Item Class and failure risk profile
+8. Mark inferred items with "(*)": If a maintainable item is suggested by AI from ISO 14224, manual, or engineering judgment and is NOT explicitly stated in EMS boundaries, mark it with "(*)".
+9. Never suggest any maintainable item that is mentioned as excluded in boundaries.
+10. Add new maintainable items when there are relevant components/systems that could cause system failure, including (non-exhaustive): Power transmission; construction components (impeller, piston, valves, etc.); control & monitoring; lubrication system; seal system; cooling system; exhaust; fuel system; or any other relevant system.
+11. Appropriate level test: Ask: "What component could fail to cause system failure?" Example: Impeller Failure, Shaft Failure, Dry Gas Seal Failure.
+12. Grouping boundary subcomponents under one maintainable item is allowed ONLY if: (a) physically inseparable or replaced together as one unit, AND (b) identical symptoms, mechanisms, and treatment actions. Otherwise, create independent maintainable items.
+13. Maintainable Items must end with "Failure".
+14. Add a column "Maintainable Item Function": describe the function of the maintainable item relative to the Item Class.
+15. At the end, answer: "What are ALL the maintainable items (not just the most probable) that can cause a functional failure in the main equipment?"
 STRONGLY RECOMMEND ADDING (ENGINEERING VALIDATION REQUIRED)
-If the AI suggests maintainable items not explicit in EMS boundary, output a separate list: Maintainable Item | Why | Symptom | Failure Mechanisms | Suggested Treatment Actions
+If the AI suggests maintainable items not explicit in EMS boundary, output a separate list at the end of the FMEA document: 
+
+**SUGGESTED ADDITIONAL MAINTAINABLE ITEMS (for Engineering Review)**
+
+| Maintainable Item | Justification (ISO 14224 or Engineering Basis) | Expected Symptoms | Expected Failure Mechanisms | Suggested Treatment Actions |
+|-------------------|-----------------------------------------------|-------------------|----------------------------|----------------------------|
+| [Example: Lubrication System Failure (*)] | [ISO 14224 standard MI for rotating equipment; critical for bearing health and motor reliability] | [LOO, PDE, OHE] | [Contamination, Degradation, Leakage] | [Oil analysis, Filter inspection, Leak detection] |
+
+**Instructions for this section:**
+1. List ALL maintainable items marked with "(*)* in the main FMEA table
+2. Provide clear engineering justification for each suggested item (reference ISO 14224, reliability standards, or failure risk analysis)
+3. Include preview of expected symptoms and mechanisms to demonstrate technical plausibility
+4. This section helps validate that AI suggestions are technically sound and not arbitrary
 
 Note: Trust Bearing must be treated as NDE Bearing.
 
