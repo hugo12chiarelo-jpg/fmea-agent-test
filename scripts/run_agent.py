@@ -11,6 +11,11 @@ TEXT_EXT = {".md", ".txt", ".csv", ".json"}
 # Validation threshold: Flag if more than this ratio of (MI, Symptom) pairs have only 1 mechanism
 MAX_SINGLE_MECHANISM_RATIO = 0.70
 
+# Boundary parsing constants
+MIN_WORD_LENGTH_FOR_EXCLUSION = 2  # Minimum word length to consider as significant for exclusion checks
+MIN_STEM_MATCH_LENGTH = 5  # Minimum character overlap for stem matching to avoid false positives
+EXCLUSION_STOP_WORDS = {'and', 'the', 'or', 'with', 'for', 'in', 'of', 'to', 'a', 'an'}
+
 
 def read_required(path_a: str, path_b: str) -> str:
     p1 = Path(path_a)
@@ -262,7 +267,7 @@ def build_mi_list_from_ems_and_catalog(ems_path: Path, item_class: str, mi_catal
                     match_idx = line_lower.find(mi_lower)
                     after_match = line_lower[match_idx + len(mi_lower):].strip()
                     # If there are significant words after the match, it's a more specific item
-                    after_words = [w for w in after_match.split() if len(w) > 2 and w not in {'and', 'the', 'or', 'with'}]
+                    after_words = [w for w in after_match.split() if len(w) > MIN_WORD_LENGTH_FOR_EXCLUSION and w not in EXCLUSION_STOP_WORDS]
                     if after_words:
                         # This is a more specific item (e.g., "anti surge valve"), don't exclude the general item
                         is_match = False
@@ -270,16 +275,16 @@ def build_mi_list_from_ems_and_catalog(ems_path: Path, item_class: str, mi_catal
             # Method 2: Check if any word in line starts with catalog item (for stems) - WORD STEM MATCH
             # Only use this if no exact match was found
             if not is_match:
-                # e.g., "instrument" matches "instrumentation"
+                # e.g., "instrument" (catalog) matches "instrumentation" (boundary)
+                # Only match if word starts with catalog item, and catalog item is long enough to avoid false positives
                 words = re.split(r'[\s,/\-()]+', line_lower)
                 for word in words:
-                    if word.startswith(mi_lower) or mi_lower.startswith(word):
-                        # Only match if similarity is high enough
-                        shorter = min(len(word), len(mi_lower))
-                        if shorter >= 5:  # Increased minimum to 5 chars to avoid false positives
-                            is_match = True
-                            match_type = "stem"
-                            break
+                    # Catalog item must be at least MIN_STEM_MATCH_LENGTH chars to avoid false matches
+                    # Word must start with the full catalog item
+                    if len(mi_lower) >= MIN_STEM_MATCH_LENGTH and word.startswith(mi_lower):
+                        is_match = True
+                        match_type = "stem"
+                        break
             
             if is_match:
                 if is_excluded:
