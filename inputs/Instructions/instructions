@@ -1,4 +1,4 @@
-Build the complete EMS Upgrade FMEA for Item Class: Electric Motor.
+Build the complete EMS Upgrade FMEA for Item Class: Motor, Electric
 
 Mandatory:
 - Follow templates/system_prompt.md, templates/spec_fmea_ems_rev01.md, and templates/output_schema.md strictly.
