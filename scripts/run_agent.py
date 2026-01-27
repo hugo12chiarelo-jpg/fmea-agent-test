@@ -771,10 +771,10 @@ Return ONLY the final deliverables requested in the instruction.
             print(f"  - {mi}")
         
         # Attempt to correct missing MIs
-        correction_attempt = 0
-        while missing and correction_attempt < max_correction_attempts:
-            correction_attempt += 1
-            print(f"\n[CORRECTION] Requesting AI to add missing Maintainable Items (Attempt {correction_attempt}/{max_correction_attempts})...")
+        mi_correction_attempt = 0
+        while missing and mi_correction_attempt < max_correction_attempts:
+            mi_correction_attempt += 1
+            print(f"\n[CORRECTION] Requesting AI to add missing Maintainable Items (Attempt {mi_correction_attempt}/{max_correction_attempts})...")
             
             # Build correction prompt for missing MIs
             mi_correction_prompt = build_missing_mi_correction_prompt(missing)
@@ -810,7 +810,7 @@ Return ONLY the final deliverables requested in the instruction.
                     missing.append(mi_name)
         
         if missing:
-            print(f"\n[VALIDATION] ⚠️  Output still missing {len(missing)} mandatory Maintainable Items after {correction_attempt} correction attempt(s):")
+            print(f"\n[VALIDATION] ⚠️  Output still missing {len(missing)} mandatory Maintainable Items after {mi_correction_attempt} correction attempt(s):")
             for mi in missing[:10]:
                 print(f"  - {mi}")
             print("\n[WARNING] Continuing with output that has missing Maintainable Items. Please review manually.")
@@ -821,10 +821,10 @@ Return ONLY the final deliverables requested in the instruction.
     print("\n[VALIDATION] Checking cardinality and duplication rules...")
     validation_errors = validate_output_cardinality(output_text)
     
-    correction_attempt = 0
-    while validation_errors and correction_attempt < max_correction_attempts:
-        correction_attempt += 1
-        print(f"\n[VALIDATION] ⚠️  Found {len(validation_errors)} validation error(s) (Attempt {correction_attempt}/{max_correction_attempts}):")
+    cardinality_correction_attempt = 0
+    while validation_errors and cardinality_correction_attempt < max_correction_attempts:
+        cardinality_correction_attempt += 1
+        print(f"\n[VALIDATION] ⚠️  Found {len(validation_errors)} validation error(s) (Attempt {cardinality_correction_attempt}/{max_correction_attempts}):")
         for err in validation_errors:
             print(f"  - {err}")
         
@@ -861,7 +861,7 @@ Return ONLY the final deliverables requested in the instruction.
         validation_errors = validate_output_cardinality(output_text)
     
     if validation_errors:
-        print(f"\n[VALIDATION] ❌ Output still has {len(validation_errors)} validation error(s) after {correction_attempt} correction attempt(s):")
+        print(f"\n[VALIDATION] ❌ Output still has {len(validation_errors)} validation error(s) after {cardinality_correction_attempt} correction attempt(s):")
         for err in validation_errors:
             print(f"  - {err}")
         print("\n[WARNING] Saving output with validation errors. Please review manually.")
