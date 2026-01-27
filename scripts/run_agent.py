@@ -184,24 +184,35 @@ def build_mi_list_from_ems_and_catalog(ems_path: Path, item_class: str, mi_catal
 
     boundary_text = "\n".join(rows[boundary_col].astype(str).tolist())
 
-    # Read MI catalog
+    # Read MI catalog - it's a simple single-column file
     try:
-        mi_df = pd.read_csv(mi_catalog_path, sep=None, engine="python")
+        # Try reading as plain text first (most reliable for single-column files)
+        with open(mi_catalog_path, 'r', encoding='utf-8-sig') as f:
+            catalog_items = [line.strip() for line in f if line.strip() and line.strip().lower() not in ('maintainable item', 'maintainable_item')]
     except Exception:
-        mi_df = pd.read_csv(mi_catalog_path, sep=";", engine="python", on_bad_lines="skip")
-
-    mi_df.columns = [str(c).replace("\ufeff", "").strip() for c in mi_df.columns]
-
-    # Identify MI name column
-    name_col = None
-    for c in mi_df.columns:
-        if str(c).strip().lower() in {"maintainable item", "maintainable_item", "name", "item"}:
-            name_col = c
-            break
-    if name_col is None:
-        name_col = mi_df.columns[0]
-
-    catalog_items = sorted(set(mi_df[name_col].astype(str).str.strip().tolist()))
+        # Fallback to pandas
+        try:
+            mi_df = pd.read_csv(mi_catalog_path, sep=None, engine="python", on_bad_lines="skip")
+        except Exception:
+            mi_df = pd.read_csv(mi_catalog_path, sep=";", engine="python", on_bad_lines="skip")
+        
+        mi_df.columns = [str(c).replace("\ufeff", "").strip() for c in mi_df.columns]
+        
+        # Identify MI name column
+        name_col = None
+        for c in mi_df.columns:
+            if str(c).strip().lower() in {"maintainable item", "maintainable_item", "name", "item"}:
+                name_col = c
+                break
+        if name_col is None:
+            name_col = mi_df.columns[0]
+        
+        catalog_items = mi_df[name_col].astype(str).str.strip().tolist()
+        # Filter out empty, nan, and ensure all are strings
+        catalog_items = [str(item) for item in catalog_items if item and str(item).lower() not in ('nan', 'none', '')]
+    
+    # Remove duplicates and sort
+    catalog_items = sorted(list(set(catalog_items)))
     
     # Parse boundaries to identify included and excluded items
     included_items = []
