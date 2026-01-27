@@ -5,6 +5,8 @@ Test the Electric Motor specific fixes for MI filtering and validation.
 
 from pathlib import Path
 import sys
+import traceback
+
 sys.path.insert(0, 'scripts')
 
 from run_agent import (
@@ -183,7 +185,6 @@ def main():
             results[test_name] = test_func()
         except Exception as e:
             print(f"\n✗ FAILED: {test_name} raised exception: {e}")
-            import traceback
             traceback.print_exc()
             results[test_name] = False
     
