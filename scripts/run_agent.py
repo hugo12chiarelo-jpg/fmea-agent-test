@@ -545,32 +545,36 @@ def build_missing_mi_correction_prompt(missing_mi: list[str]) -> str:
     Returns:
         Formatted correction prompt
     """
-    missing_summary = "\n".join([f"  - {mi}" for mi in missing_mi])
+    missing_summary = "\n".join([f"  - {mi} Failure" for mi in missing_mi])
     return f"""
-The output you provided is MISSING mandatory Maintainable Items that MUST be included:
+The FMEA table you provided is INCOMPLETE. It is MISSING mandatory Maintainable Items that MUST appear in the table:
 
 {missing_summary}
 
-Please revise the ENTIRE FMEA table to include these missing Maintainable Items.
+**CRITICAL ISSUE**: Your previous output did NOT include actual table rows for these Maintainable Items.
 
-CRITICAL REQUIREMENTS:
-1. Add a complete FMEA section for EACH missing Maintainable Item listed above
-2. Each Maintainable Item MUST have EXACTLY 4-8 DISTINCT Symptoms
-   - Select appropriate symptoms from the Symptom Catalog
-   - Consider technical failures relevant to each item
+**REQUIRED ACTION**: Regenerate the ENTIRE FMEA table with:
+
+1. **ALL existing Maintainable Items** (keep everything you already generated)
+
+2. **COMPLETE sections for ALL missing Maintainable Items**:
+   - Each missing MI MUST have 4-8 DISTINCT Symptoms
+   - Each (MI, Symptom) pair MUST have 2-5 DISTINCT Failure Mechanisms
+   - Generate separate rows for each mechanism (same MI + Symptom appears multiple times with different mechanisms)
+
+3. **NO PLACEHOLDERS OR SHORTCUTS**:
+   - Do NOT write "[The rest of the table...]" or "[See above]"
+   - Do NOT reference "previous completion" or "unchanged sections"
+   - Every single row must be explicitly written out
    
-3. Each (Maintainable Item, Symptom) pair MUST have MULTIPLE (2-5) DISTINCT Failure Mechanisms
-   - Complex/critical items should have 2-5 mechanisms per symptom
-   - Think: "What are the DIFFERENT physical causes that could produce this symptom?"
-   - Generate separate rows for each mechanism
-   
-4. NO DUPLICATION: Symptom and Failure Mechanism on same row MUST use DIFFERENT terms
+4. **NAMING**: All Maintainable Items MUST end with " Failure" (e.g., "Bearing Failure", "Rotor Failure")
+
+5. **QUALITY RULES**:
+   - NO DUPLICATION: Symptom and Mechanism on same row MUST use DIFFERENT terms
    - Symptom = what you OBSERVE (effect)
-   - Mechanism = what CAUSES it (root cause) - must be different from the symptom
+   - Mechanism = what CAUSES it (root cause)
 
-5. Keep ALL existing Maintainable Items in the output - only ADD the missing ones
-
-Return the COMPLETE corrected output with the FULL table including the newly added Maintainable Items.
+Return the COMPLETE corrected FMEA table with ALL rows for ALL Maintainable Items (existing + newly added).
 """
 
 
@@ -616,6 +620,73 @@ CRITICAL RULES TO FOLLOW:
 Return the COMPLETE corrected output with the FULL table (not just the fixes).
 Include ALL rows with the expanded mechanisms.
 """
+
+
+def validate_mi_in_table(output_text: str, mandatory_mi: list[str]) -> list[str]:
+    """
+    Validate that all mandatory MIs appear in the actual FMEA table (not just in text).
+    
+    Args:
+        output_text: The AI-generated output
+        mandatory_mi: List of mandatory Maintainable Item names (without " Failure" suffix)
+        
+    Returns:
+        List of missing MI names (empty if all are present in table)
+    """
+    missing: list[str] = []
+    
+    try:
+        # Extract the table from the output
+        lines = output_text.split('\n')
+        table_lines = []
+        in_table = False
+        
+        for line in lines:
+            if line.strip().startswith('|') and 'Item Class' in line:
+                in_table = True
+            if in_table:
+                if line.strip().startswith('|'):
+                    table_lines.append(line)
+                elif line.strip() == '' or line.strip().startswith('---'):
+                    # Check if this is just a separator or end of table
+                    if len(table_lines) > 2 and line.strip().startswith('---'):
+                        # End of table
+                        break
+        
+        if len(table_lines) < 3:
+            # No valid table found, fall back to text search
+            for mi_name in mandatory_mi:
+                if mi_name and (mi_name.lower() not in output_text.lower()):
+                    missing.append(mi_name)
+            return missing
+        
+        # Parse the table
+        table_text = '\n'.join(table_lines)
+        
+        # Check each mandatory MI
+        for mi_name in mandatory_mi:
+            if not mi_name:
+                continue
+            
+            # Check if MI appears in the table
+            # Look for both exact name and with " Failure" suffix
+            mi_lower = mi_name.lower().strip()
+            mi_with_failure = (mi_lower + " failure").lower()
+            
+            # Search in table text
+            table_lower = table_text.lower()
+            
+            if mi_lower not in table_lower and mi_with_failure not in table_lower:
+                missing.append(mi_name)
+    
+    except Exception as e:
+        # If parsing fails, fall back to simple text search
+        print(f"[DEBUG] Table parsing failed: {e}. Falling back to text search.")
+        for mi_name in mandatory_mi:
+            if mi_name and (mi_name.lower() not in output_text.lower()):
+                missing.append(mi_name)
+    
+    return missing
 
 
 def validate_output_cardinality(output_text: str) -> list[str]:
@@ -950,11 +1021,8 @@ Return ONLY the final deliverables requested in the instruction.
         {"role": "assistant", "content": output_text}
     ]
     
-    # Check for missing mandatory MIs and attempt correction
-    missing: list[str] = []
-    for mi_name in mandatory_mi:
-        if mi_name and (mi_name.lower() not in output_text.lower()):
-            missing.append(mi_name)
+    # Check for missing mandatory MIs in the actual table and attempt correction
+    missing = validate_mi_in_table(output_text, mandatory_mi)
 
     if mandatory_mi and missing:
         print(f"\n[VALIDATION] ⚠️  Model output missing {len(missing)} mandatory Maintainable Items:")
@@ -994,11 +1062,8 @@ Return ONLY the final deliverables requested in the instruction.
             output_text = correction_resp.choices[0].message.content or ""
             conversation_history.append({"role": "assistant", "content": output_text})
             
-            # Re-check for missing MIs
-            missing = []
-            for mi_name in mandatory_mi:
-                if mi_name and (mi_name.lower() not in output_text.lower()):
-                    missing.append(mi_name)
+            # Re-check for missing MIs in the table
+            missing = validate_mi_in_table(output_text, mandatory_mi)
         
         if missing:
             print(f"\n[VALIDATION] ⚠️  Output still missing {len(missing)} mandatory Maintainable Items after {mi_correction_attempt} correction attempt(s):")
