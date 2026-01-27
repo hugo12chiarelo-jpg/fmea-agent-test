@@ -1,0 +1,257 @@
+"Item Class";"Item Class Name";"Boundaries";"Maintenance Strategy Overview";"Scope";"Parent Item Class";"Other Associated Item Classes";"Notes";"Task Template ID";"Definition";"Application";"Justification";"Low Risk Frequency";"Unit Low";"Medium Risk Frequency";"Unit Medium";"High Risk Frequency";"Unit High"
+"DREM";"Motor, Electric";"Excludes associated switchgear/MCC/control panel
+
+Excludes consideration of Ex protection rating inspection requirements
+
+Includes motor coupling to driven equipment and gearbox
+
+Includes monitoring, control and protective instrumentation or devices housed within the motors
+
+Includes anti-condensation heaters housed within motor (where fitted)
+
+Includes axle, rotor, stator, commutator, field magnet(s) and brushes
+
+Includes motor cowling, shaft, bearings and rotor/stator windings
+
+Includes motor earth bonding
+Includes motor purge/enclosure pressurisation control system (where fitted)";"The strategy for electrical motor maintenance comprises regular online visual inspections and basic condition checks carried by operations staff during normal plant surveillance and:
+
+-	Vibration analysis – where justified and feasible
+-	Electrical Testing such as balancing motor fields, continuity, Insulation resistance and Polarisations Index (PI)
+-	Thermography. (Only possible where IR window is present).
+
+-	Oil analysis – depending on type of lubrication and size of oil inventory and where justified
+
+-	Partial discharge. (HV motor which cabinet is fitted with designated ports)
+
+
+-	Periodic offline detailed inspections.
+
+-	Periodic offline electrical testing such as balancing motor fields, continuity, Insulation resistance and Polarisations Index (PI)
+
+
+
+Note:
+
+1. Motors typically carry Ex designations and thus are also subject to periodic inspection under the remit of the Ex strategy to verify their ongoing integrity.
+
+2. Regular changeover of duty/standby units can be used to mitigate the effects of fretting and false brinelling that can occur on stationary bearings that are subject to ambient vibration. The need for formally scheduling such changeover, or regularly rotating stationary equipment, depends upon the prevailing equipment operating philosophy. It has been assumed that duty/standby equipment will be periodically changed over as a matter of course to balance individual item operating run hours.";"AC motors, HV and LV and DC Motors drive equipment such as Pumps, Fans and compressors etc. which are connected to the motor by an axle and coupling, Pulley and V-belt or gearbox with the desired speed and power by converting Electrical power into rotational mechanical power.
+
+The current runs in stator windings and creates in the rotor an electro-magnetic force. 
+This force creates a torque thus the rotation of the rotor.
+Large motor can be fitted with coolers to control the enclosure temperature. Also an anti-condensation heater can be fitted to prevent moisture or water droplets on the windings.
+
+Large motor are using journal bearing while smaller one are using roller bearing either permanently lubricated or requiring greasing.";"DR";"EEDB, Motor Control Centre (MCC) excluded from DREM
+
+EEDB, Motor Starter included DREM
+
+IPLT, Detector, Leakage: For motor coolers excluded from DREM";"";"PM00048A";"LV Motor Inspection";"Applies to all LV Electric Motors.
+Task to be scheduled (where applicable) to coincide with inspection/electrical testing of associated field control station and motor/field control station EX integrity checks.
+Ideally, task should also be carried out in conjunction with relevant starter/MCC/LCP and feeder breaker.";"Electric motors are normally very reliable and failures that do occur are usually attributable to reasons other than electrical (e.g. most serious machine failures are where rotors and stators sustain damage are a direct result of a mechanical failure such as a bearing collapse). For this reason, motors with a higher criticality will normally be selected for inclusion within the vibration monitoring program.
+The initial selected inspection/electrical testing interval of 3 years for high criticality LV motors is principally directed at detecting early symptoms of insulation degradation.
+The five-yearly frequency for medium criticality motors is derived from the assumption of a nominal 20-year service life, and hence a five-year maintenance period provides a comparable safe life of 25%.";"";"";"60";"Month";"36";"Month"
+"DREM";"Motor, Electric";"Excludes associated switchgear/MCC/control panel
+
+Excludes consideration of Ex protection rating inspection requirements
+
+Includes motor coupling to driven equipment and gearbox
+
+Includes monitoring, control and protective instrumentation or devices housed within the motors
+
+Includes anti-condensation heaters housed within motor (where fitted)
+
+Includes axle, rotor, stator, commutator, field magnet(s) and brushes
+
+Includes motor cowling, shaft, bearings and rotor/stator windings
+
+Includes motor earth bonding
+Includes motor purge/enclosure pressurisation control system (where fitted)";"The strategy for electrical motor maintenance comprises regular online visual inspections and basic condition checks carried by operations staff during normal plant surveillance and:
+
+-	Vibration analysis – where justified and feasible
+-	Electrical Testing such as balancing motor fields, continuity, Insulation resistance and Polarisations Index (PI)
+-	Thermography. (Only possible where IR window is present).
+
+-	Oil analysis – depending on type of lubrication and size of oil inventory and where justified
+
+-	Partial discharge. (HV motor which cabinet is fitted with designated ports)
+
+
+-	Periodic offline detailed inspections.
+
+-	Periodic offline electrical testing such as balancing motor fields, continuity, Insulation resistance and Polarisations Index (PI)
+
+
+
+Note:
+
+1. Motors typically carry Ex designations and thus are also subject to periodic inspection under the remit of the Ex strategy to verify their ongoing integrity.
+
+2. Regular changeover of duty/standby units can be used to mitigate the effects of fretting and false brinelling that can occur on stationary bearings that are subject to ambient vibration. The need for formally scheduling such changeover, or regularly rotating stationary equipment, depends upon the prevailing equipment operating philosophy. It has been assumed that duty/standby equipment will be periodically changed over as a matter of course to balance individual item operating run hours.";"AC motors, HV and LV and DC Motors drive equipment such as Pumps, Fans and compressors etc. which are connected to the motor by an axle and coupling, Pulley and V-belt or gearbox with the desired speed and power by converting Electrical power into rotational mechanical power.
+
+The current runs in stator windings and creates in the rotor an electro-magnetic force. 
+This force creates a torque thus the rotation of the rotor.
+Large motor can be fitted with coolers to control the enclosure temperature. Also an anti-condensation heater can be fitted to prevent moisture or water droplets on the windings.
+
+Large motor are using journal bearing while smaller one are using roller bearing either permanently lubricated or requiring greasing.";"DR";"EEDB, Motor Control Centre (MCC) excluded from DREM
+
+EEDB, Motor Starter included DREM
+
+IPLT, Detector, Leakage: For motor coolers excluded from DREM";"";"PM00072A";"Visual Inspec & LubeOil Sampling Routine";"If justified base on size of oil inventory (>25L) and equipment criticality.
+Make active when included in oil sampling plan.
+If the equipment is included in package PK## check job applicability (to avoid redundancy).
+
+Make inactive when lubrication routines are managed on a 3rd party CMMS.";"Oil analysis and trending can indicate the onset of functional failure from the presence of wear particles and contaminants in the oil. It also allows the condition of the oil to be assessed.
+For those deterioration mechanisms that can be monitored by oil analysis, quarterly analysis gives sufficient indication of machine condition to enable planned intervention.
+Oil analysis is normally only justified for machines with large oil inventories (quantity >25L)";"";"";"3";"";"3";"Month"
+"DREM";"Motor, Electric";"Excludes associated switchgear/MCC/control panel
+
+Excludes consideration of Ex protection rating inspection requirements
+
+Includes motor coupling to driven equipment and gearbox
+
+Includes monitoring, control and protective instrumentation or devices housed within the motors
+
+Includes anti-condensation heaters housed within motor (where fitted)
+
+Includes axle, rotor, stator, commutator, field magnet(s) and brushes
+
+Includes motor cowling, shaft, bearings and rotor/stator windings
+
+Includes motor earth bonding
+Includes motor purge/enclosure pressurisation control system (where fitted)";"The strategy for electrical motor maintenance comprises regular online visual inspections and basic condition checks carried by operations staff during normal plant surveillance and:
+
+-	Vibration analysis – where justified and feasible
+-	Electrical Testing such as balancing motor fields, continuity, Insulation resistance and Polarisations Index (PI)
+-	Thermography. (Only possible where IR window is present).
+
+-	Oil analysis – depending on type of lubrication and size of oil inventory and where justified
+
+-	Partial discharge. (HV motor which cabinet is fitted with designated ports)
+
+
+-	Periodic offline detailed inspections.
+
+-	Periodic offline electrical testing such as balancing motor fields, continuity, Insulation resistance and Polarisations Index (PI)
+
+
+
+Note:
+
+1. Motors typically carry Ex designations and thus are also subject to periodic inspection under the remit of the Ex strategy to verify their ongoing integrity.
+
+2. Regular changeover of duty/standby units can be used to mitigate the effects of fretting and false brinelling that can occur on stationary bearings that are subject to ambient vibration. The need for formally scheduling such changeover, or regularly rotating stationary equipment, depends upon the prevailing equipment operating philosophy. It has been assumed that duty/standby equipment will be periodically changed over as a matter of course to balance individual item operating run hours.";"AC motors, HV and LV and DC Motors drive equipment such as Pumps, Fans and compressors etc. which are connected to the motor by an axle and coupling, Pulley and V-belt or gearbox with the desired speed and power by converting Electrical power into rotational mechanical power.
+
+The current runs in stator windings and creates in the rotor an electro-magnetic force. 
+This force creates a torque thus the rotation of the rotor.
+Large motor can be fitted with coolers to control the enclosure temperature. Also an anti-condensation heater can be fitted to prevent moisture or water droplets on the windings.
+
+Large motor are using journal bearing while smaller one are using roller bearing either permanently lubricated or requiring greasing.";"DR";"EEDB, Motor Control Centre (MCC) excluded from DREM
+
+EEDB, Motor Starter included DREM
+
+IPLT, Detector, Leakage: For motor coolers excluded from DREM";"";"PM00462A";"Motor, HV, Inspection";"Frequency can resort to 60 months if current spectrum analysis is carried out.
+Task to be scheduled (where applicable) to coincide with inspection/electrical testing of associated field control station and motor/field control station EX integrity check
+(If Partial Discharge test is carried out)";"Electric motors are normally very reliable and failures that do occur are usually attributable to reasons other than electrical (e.g. most serious machine failures where rotors and stators sustain damage are a direct result of bearing failures).
+The assumption is that all HV motor drives are either fitted with online (continuous) vibration monitoring equipment or will be selected for inclusion within the vessel offline vibration monitoring program, in order to predict/prevent bearing failure.
+Periodic intrusive inspection and electrical testing is principally directed at detecting early symptoms of insulation degradation. Where partial discharge testing and/or motor current spectrum analysis is not possible, this inspection should be carried out every 36 months.
+Where partial discharge testing and/or motor current spectrum analysis is possible, the frequency of the detailed inspection of the motor can be pushed out to 5 years, with the potential for ceasing this inspection altogether once history/experience is gained.";"";"";"36";"Month";"36";"Month"
+"DREM";"Motor, Electric";"Excludes associated switchgear/MCC/control panel
+
+Excludes consideration of Ex protection rating inspection requirements
+
+Includes motor coupling to driven equipment and gearbox
+
+Includes monitoring, control and protective instrumentation or devices housed within the motors
+
+Includes anti-condensation heaters housed within motor (where fitted)
+
+Includes axle, rotor, stator, commutator, field magnet(s) and brushes
+
+Includes motor cowling, shaft, bearings and rotor/stator windings
+
+Includes motor earth bonding
+Includes motor purge/enclosure pressurisation control system (where fitted)";"The strategy for electrical motor maintenance comprises regular online visual inspections and basic condition checks carried by operations staff during normal plant surveillance and:
+
+-	Vibration analysis – where justified and feasible
+-	Electrical Testing such as balancing motor fields, continuity, Insulation resistance and Polarisations Index (PI)
+-	Thermography. (Only possible where IR window is present).
+
+-	Oil analysis – depending on type of lubrication and size of oil inventory and where justified
+
+-	Partial discharge. (HV motor which cabinet is fitted with designated ports)
+
+
+-	Periodic offline detailed inspections.
+
+-	Periodic offline electrical testing such as balancing motor fields, continuity, Insulation resistance and Polarisations Index (PI)
+
+
+
+Note:
+
+1. Motors typically carry Ex designations and thus are also subject to periodic inspection under the remit of the Ex strategy to verify their ongoing integrity.
+
+2. Regular changeover of duty/standby units can be used to mitigate the effects of fretting and false brinelling that can occur on stationary bearings that are subject to ambient vibration. The need for formally scheduling such changeover, or regularly rotating stationary equipment, depends upon the prevailing equipment operating philosophy. It has been assumed that duty/standby equipment will be periodically changed over as a matter of course to balance individual item operating run hours.";"AC motors, HV and LV and DC Motors drive equipment such as Pumps, Fans and compressors etc. which are connected to the motor by an axle and coupling, Pulley and V-belt or gearbox with the desired speed and power by converting Electrical power into rotational mechanical power.
+
+The current runs in stator windings and creates in the rotor an electro-magnetic force. 
+This force creates a torque thus the rotation of the rotor.
+Large motor can be fitted with coolers to control the enclosure temperature. Also an anti-condensation heater can be fitted to prevent moisture or water droplets on the windings.
+
+Large motor are using journal bearing while smaller one are using roller bearing either permanently lubricated or requiring greasing.";"DR";"EEDB, Motor Control Centre (MCC) excluded from DREM
+
+EEDB, Motor Starter included DREM
+
+IPLT, Detector, Leakage: For motor coolers excluded from DREM";"";"PM00475A";"Motor, EXP “P” Purge Control Checks";"Only applicable to those motors that employ pressurisation as a method of equipment protection within hazardous areas (i.e. Ex ‘p’)
+";"This applies to those motors that employ pressurisation as a method of equipment protection within hazardous areas (i.e. Ex ‘p’ protection scheme). Although the motors in question will be subject to periodic inspections under the remit of the EX strategy to provide assurance of continued protection integrity, such pressurisation systems incorporate certain control elements and specifics that warrant supplementary maintenance attention.
+Purge/pressurisation control system vendors generally recommend formal checks of their equipment every six months. However, the initial selected interval of 12 months reflects typical practice within the oil and gas industry.
+";"";"";"12";"Month";"12";"Month"
+"DREM";"Motor, Electric";"Excludes associated switchgear/MCC/control panel
+
+Excludes consideration of Ex protection rating inspection requirements
+
+Includes motor coupling to driven equipment and gearbox
+
+Includes monitoring, control and protective instrumentation or devices housed within the motors
+
+Includes anti-condensation heaters housed within motor (where fitted)
+
+Includes axle, rotor, stator, commutator, field magnet(s) and brushes
+
+Includes motor cowling, shaft, bearings and rotor/stator windings
+
+Includes motor earth bonding
+Includes motor purge/enclosure pressurisation control system (where fitted)";"The strategy for electrical motor maintenance comprises regular online visual inspections and basic condition checks carried by operations staff during normal plant surveillance and:
+
+-	Vibration analysis – where justified and feasible
+-	Electrical Testing such as balancing motor fields, continuity, Insulation resistance and Polarisations Index (PI)
+-	Thermography. (Only possible where IR window is present).
+
+-	Oil analysis – depending on type of lubrication and size of oil inventory and where justified
+
+-	Partial discharge. (HV motor which cabinet is fitted with designated ports)
+
+
+-	Periodic offline detailed inspections.
+
+-	Periodic offline electrical testing such as balancing motor fields, continuity, Insulation resistance and Polarisations Index (PI)
+
+
+
+Note:
+
+1. Motors typically carry Ex designations and thus are also subject to periodic inspection under the remit of the Ex strategy to verify their ongoing integrity.
+
+2. Regular changeover of duty/standby units can be used to mitigate the effects of fretting and false brinelling that can occur on stationary bearings that are subject to ambient vibration. The need for formally scheduling such changeover, or regularly rotating stationary equipment, depends upon the prevailing equipment operating philosophy. It has been assumed that duty/standby equipment will be periodically changed over as a matter of course to balance individual item operating run hours.";"AC motors, HV and LV and DC Motors drive equipment such as Pumps, Fans and compressors etc. which are connected to the motor by an axle and coupling, Pulley and V-belt or gearbox with the desired speed and power by converting Electrical power into rotational mechanical power.
+
+The current runs in stator windings and creates in the rotor an electro-magnetic force. 
+This force creates a torque thus the rotation of the rotor.
+Large motor can be fitted with coolers to control the enclosure temperature. Also an anti-condensation heater can be fitted to prevent moisture or water droplets on the windings.
+
+Large motor are using journal bearing while smaller one are using roller bearing either permanently lubricated or requiring greasing.";"DR";"EEDB, Motor Control Centre (MCC) excluded from DREM
+
+EEDB, Motor Starter included DREM
+
+IPLT, Detector, Leakage: For motor coolers excluded from DREM";"";"PM01721A";"Electric Motor Regreasing";"Applicable to all electrical motors with greased bearings, where lubrication routines are not managed in a 3rd party CMMS.
+Note: this is a mitigation action. After a Lubrication CMMS be select SBM fleet, this WTT will be obsoleted.
+
+Frequency will be kept in blank, since the frequency for regreasing depends of each motor. Therefore, the need shall be assessed when created the PM actions.";"Regreasing electric motors is crucial for maintaining their performance and extending their lifespan. It reduces friction, prevents wear and tear on bearings, minimizes heat buildup, and protects against contaminants. Regular lubrication enhances energy efficiency, prevents unexpected downtime, and ensures the motor operates within manufacturer guidelines. This maintenance task helps avoid costly repairs and ensures the motor runs smoothl";"";"";"";"";"";""
