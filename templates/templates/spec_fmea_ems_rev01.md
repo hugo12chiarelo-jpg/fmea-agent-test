@@ -57,18 +57,26 @@ MAINTAINABLE ITEM RULES
    - All other items mentioned → INCLUDE
 3. Identify ALL components, systems, and equipment mentioned in the included boundaries text (do not limit to main items only).
 4. **APPLY ENGINEERING INTELLIGENCE - Filter boundary items using maintainability criteria:**
-   - **Only include items that are INDEPENDENTLY MAINTAINABLE** (can be inspected, repaired, or replaced separately)
-   - **Exclude items that are:**
-     * Sub-components that are technically covered by a parent maintainable item
-     * Not subject to maintenance activities (inspect, repair, replace)
+   - **Definition of INDEPENDENTLY MAINTAINABLE**: A component qualifies as a maintainable item if it meets ALL of these criteria:
+     * Can be inspected, repaired, or replaced as a separate unit
+     * Has distinct, observable failure symptoms that differ from other components
+     * Is subject to planned or corrective maintenance activities
+     * Failure would impact equipment function or performance
+   - **Exclusion criteria** - Do NOT include items that are:
+     * Sub-components physically or functionally covered by a parent maintainable item
+     * Integral parts that cannot be serviced independently (e.g., permanently assembled components)
+     * Not subject to independent maintenance actions
      * Cannot be independently observed or monitored for failure symptoms
-   - **Example 1 - Electric Motor:** From "Includes axle, rotor, stator, commutator, field magnet(s) and brushes":
-     * INCLUDE: Rotor Failure, Stator Failure, Brushes Failure (independently maintainable, have distinct symptoms/mechanisms)
-     * EXCLUDE: Axle (covered by Shaft Failure), Commutator (covered by Rotor Failure), Field magnets (integral part of Rotor/Stator)
-   - **Example 2 - Pump:** From "Includes impeller, shaft, casing, volute":
-     * INCLUDE: Impeller Failure, Shaft Failure, Casing Failure (independently maintainable)
-     * EXCLUDE: Volute (integral part of Casing)
-   - **Engineering judgment**: Ask "Can this component be inspected, maintained, or replaced independently?" and "Does it have distinct failure symptoms?"
+   - **Decision framework**: For each boundary item, evaluate:
+     1. **Independence test**: Can this component be inspected/maintained/replaced without disassembling parent equipment?
+     2. **Symptom distinctiveness test**: Does this component exhibit unique failure symptoms that differ from related components?
+     3. **Maintenance action test**: Are there specific maintenance tasks (predictive, preventive, corrective) for this component alone?
+     4. **Functional impact test**: Does failure of this component directly cause equipment functional failure?
+   - **Hierarchical component analysis**: When boundaries list multiple related components:
+     * Identify parent-child relationships (e.g., shaft vs axle, rotor assembly vs field components)
+     * Select the highest-level component that is independently maintainable
+     * Exclude sub-components that are covered by the parent's maintenance regime
+   - **Generic filtering principle**: If component A's maintenance activities and failure symptoms are fully covered by component B's FMEA, then exclude component A
 5. Transform each identified component name to match the standard naming from "Maintainable Item Catalog.csv".
 6. Use Maintainable Item Catalog as the authoritative naming standard:
    - Replace boundary component names with their catalog equivalents.
@@ -76,15 +84,24 @@ MAINTAINABLE ITEM RULES
    - Example: If boundary mentions "compressor", use appropriate catalog terms like "Rotor w/impellers", "Casing", etc.
 7. **PROACTIVELY SUGGEST ISO 14224-COMPLIANT MAINTAINABLE ITEMS** not explicitly in boundaries:
    - **Reference ISO 14224 Table B.15 (Equipment taxonomy)** to identify standard maintainable items for the Item Class
-   - **Common ISO 14224 maintainable items to consider** (non-exhaustive):
-     * Lubrication System Failure (lubrication oil, pumps, filters, cooling)
-     * Cooling System Failure (coolers, fans, heat exchangers)
-     * Seal System Failure (mechanical seals, seal oil systems, dry gas seals)
-     * Bearing System Failure (radial bearings, thrust bearings, bearing housings)
-     * Monitoring/Control System Failure (sensors, transmitters, control units)
-     * Power Supply System Failure (internal power supplies, batteries, inverters)
+   - **Generic system categories to evaluate** (applicability depends on Item Class):
+     * **Power transmission systems**: Gears, couplings, drives, shafts where torque/power is transmitted
+     * **Lubrication systems**: Oil supply, filtration, cooling, distribution components critical for reducing friction
+     * **Cooling/thermal management systems**: Heat exchangers, fans, coolant circuits for temperature control
+     * **Sealing systems**: Mechanical seals, gaskets, packing that prevent leakage or contamination
+     * **Bearing systems**: Radial, thrust, or specialized bearings supporting rotating/reciprocating motion
+     * **Monitoring/control systems**: Sensors, transmitters, controllers, protection devices
+     * **Power supply systems**: Batteries, inverters, internal power circuits, backup power
+     * **Structural/containment systems**: Casings, frames, foundations, enclosures
+     * **Fluid handling systems**: Piping, valves, filters, accumulators for process or utility fluids
+   - **Selection methodology**:
+     1. Analyze the Item Class functional requirements and operating principles
+     2. Identify which generic system categories are technically relevant
+     3. Cross-reference with ISO 14224 Table B.15 for standard maintainable items
+     4. Verify each suggested item has distinct failure modes and maintenance requirements
+     5. Ensure suggested items are not already covered by boundary-derived maintainable items
    - **Mark ALL suggested items with "(*)"** to indicate they are inferred from ISO 14224/manual, not explicit in boundaries
-   - **Engineering validation**: Verify each suggested item is relevant to the specific Item Class and failure risk profile
+   - **Engineering validation**: Each suggested item must have clear justification based on failure risk, criticality, and maintenance strategy
 8. Mark inferred items with "(*)": If a maintainable item is suggested by AI from ISO 14224, manual, or engineering judgment and is NOT explicitly stated in EMS boundaries, mark it with "(*)".
 9. Never suggest any maintainable item that is mentioned as excluded in boundaries.
 10. Add new maintainable items when there are relevant components/systems that could cause system failure, including (non-exhaustive): Power transmission; construction components (impeller, piston, valves, etc.); control & monitoring; lubrication system; seal system; cooling system; exhaust; fuel system; or any other relevant system.

@@ -704,12 +704,14 @@ The list below contains Maintainable Items derived from EMS Boundaries column, e
 
 **Additional Maintainable Items - YOUR RESPONSIBILITY:**
 - **APPLY ENGINEERING INTELLIGENCE**: Not all items mentioned in boundaries should become Maintainable Items
-  * Filter out sub-components that are covered by parent items (e.g., axle covered by Shaft, commutator covered by Rotor)
-  * Only include components that are independently maintainable and have distinct failure symptoms
-  * Example (Electric Motor): From "axle, rotor, stator, commutator, field magnet(s), brushes" → Select: Rotor Failure, Stator Failure, Brushes Failure (exclude: axle, commutator, field magnets)
+  * **Use decision framework**: For each boundary item, evaluate independence, symptom distinctiveness, maintenance action applicability, and functional impact
+  * **Filter hierarchically**: Exclude sub-components covered by parent items (use parent-child relationship analysis)
+  * **Only include components** that are independently maintainable AND have distinct failure symptoms
+  * **Generic principle**: If component A's maintenance/symptoms are fully covered by component B's FMEA, exclude component A
 - **CONSULT ISO 14224 Table B.15**: Proactively suggest standard maintainable items for this Item Class type
-  * Common ISO 14224 systems: Lubrication System, Cooling System, Seal System, Bearing System, Monitoring/Control System, Power Supply System
-  * Verify technical relevance to the specific Item Class and failure risk profile
+  * **Evaluate generic system categories**: Power transmission, lubrication, cooling, sealing, bearing, monitoring/control, power supply, structural, fluid handling
+  * **Select based on**: Item Class functional requirements, operating principles, and failure risk profile
+  * Verify technical relevance to the specific Item Class
   * Mark ALL ISO 14224-suggested items with "(*)"
 - Review the Equipment Manual for components/systems that could cause functional failure
 - Consider: Power transmission, control systems, monitoring systems, structural components, sealing systems, cooling systems, auxiliary systems, etc.

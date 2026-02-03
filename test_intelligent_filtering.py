@@ -25,15 +25,17 @@ def test_spec_contains_intelligent_filtering():
     
     spec_content = SPEC_PATH.read_text()
     
-    # Check for key phrases
+    # Check for generic framework phrases (not equipment-specific)
     checks = [
         ("APPLY ENGINEERING INTELLIGENCE", "Engineering intelligence filtering"),
         ("INDEPENDENTLY MAINTAINABLE", "Independent maintainability criteria"),
-        ("Example 1 - Electric Motor", "Electric motor example"),
-        ("Rotor Failure, Stator Failure, Brushes Failure", "Motor component examples"),
-        ("Axle (covered by", "Exclusion examples"),
+        ("Decision framework", "Decision framework present"),
+        ("Independence test", "Independence test criterion"),
+        ("Symptom distinctiveness test", "Symptom distinctiveness test"),
+        ("Maintenance action test", "Maintenance action test"),
+        ("Functional impact test", "Functional impact test"),
         ("ISO 14224", "ISO 14224 reference"),
-        ("Lubrication System", "Lubrication system example"),
+        ("Generic filtering principle", "Generic filtering principle"),
     ]
     
     all_passed = True
@@ -48,15 +50,20 @@ def test_spec_contains_intelligent_filtering():
 
 
 def test_spec_contains_iso14224_suggestions():
-    """Test that spec file encourages ISO 14224 suggestions."""
+    """Test that spec file encourages ISO 14224 suggestions with generic approach."""
     spec_content = SPEC_PATH.read_text()
     
+    # Check for generic system categories, not fixed examples
     checks = [
         ("PROACTIVELY SUGGEST ISO 14224-COMPLIANT", "Proactive ISO 14224 suggestions"),
         ("ISO 14224 Table B.15", "ISO 14224 Table B.15 reference"),
-        ("Cooling System Failure", "Cooling system example"),
-        ("Seal System Failure", "Seal system example"),
-        ("Bearing System Failure", "Bearing system example"),
+        ("Generic system categories", "Generic system categories framework"),
+        ("Power transmission systems", "Power transmission category"),
+        ("Lubrication systems", "Lubrication category"),
+        ("Cooling/thermal management", "Cooling/thermal category"),
+        ("Sealing systems", "Sealing category"),
+        ("Bearing systems", "Bearing category"),
+        ("Selection methodology", "Selection methodology present"),
     ]
     
     all_passed = True
@@ -92,18 +99,19 @@ def test_spec_contains_justification_section():
 
 
 def test_run_agent_prompts():
-    """Test that run_agent.py has updated prompts."""
+    """Test that run_agent.py has updated prompts with generic approach."""
     if not RUN_AGENT_PATH.exists():
         print("✗ FAIL: run_agent.py not found")
         return False
     
     script_content = RUN_AGENT_PATH.read_text()
     
+    # Check for generic framework, not equipment-specific examples
     checks = [
         ("APPLY ENGINEERING INTELLIGENCE", "Engineering intelligence in prompts"),
         ("CONSULT ISO 14224 Table B.15", "ISO 14224 consultation instruction"),
-        ("Lubrication System, Cooling System", "System examples in prompts"),
-        ("Electric Motor", "Electric motor example in prompts"),
+        ("decision framework", "Decision framework reference"),
+        ("Generic principle", "Generic principle mentioned"),
         ("engineering judgment to filter", "Filtering guidance"),
         ("OUTPUT VALIDATION SECTION", "Validation section instruction"),
     ]

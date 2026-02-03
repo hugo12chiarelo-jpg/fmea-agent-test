@@ -4,58 +4,82 @@
 
 As mudanças implementadas afetam **DIRETAMENTE** a lista de Maintainable Items (MIs) que aparecem no output final do FMEA. O impacto principal é:
 
-1. ✅ **Lista de MIs mais inteligente e precisa** - Remove itens redundantes/não-manuteníveis
-2. ✅ **MIs adicionais do ISO 14224** - Adiciona sistemas críticos que faltavam (ex: Lubrication System)
+1. ✅ **Lista de MIs mais inteligente e precisa** - Remove itens redundantes/não-manuteníveis usando critérios genéricos
+2. ✅ **MIs adicionais do ISO 14224** - Adiciona sistemas críticos baseados em análise funcional do Item Class
 3. ✅ **Seção de justificação** - Documenta por que cada MI sugerido foi incluído
 
 ---
 
-## Comparação: ANTES vs DEPOIS
+## Princípios de Filtragem (Genéricos para Qualquer Equipamento)
 
-### EXEMPLO: Electric Motor (DREM)
+### Framework de Decisão
 
-#### ANTES das mudanças ❌
+Para QUALQUER Item Class, a IA agora aplica 4 testes de independência:
 
-Da frase no EMS boundaries: **"Includes axle, rotor, stator, commutator, field magnet(s) and brushes"**
+#### 1. **Teste de Independência**
+- ❓ Pergunta: "Este componente pode ser inspecionado/mantido/substituído sem desmontar o equipamento pai?"
+- ✅ SIM → Candidato a MI
+- ❌ NÃO → Provavelmente coberto por componente pai
 
-**Output anterior incluía TODOS os 6 itens:**
+#### 2. **Teste de Sintomas Distintos**
+- ❓ Pergunta: "Este componente exibe sintomas de falha únicos, diferentes de componentes relacionados?"
+- ✅ SIM → Candidato a MI
+- ❌ NÃO → Sintomas já cobertos por outro MI
 
-| Maintainable Item | Status | Problema |
-|-------------------|--------|----------|
-| Axle Failure | ❌ Incluído | Redundante - coberto por Shaft Failure |
-| Rotor Failure | ✅ Incluído | Correto |
-| Stator Failure | ✅ Incluído | Correto |
-| Commutator Failure | ❌ Incluído | Redundante - parte integral do Rotor |
-| Field Magnet Failure | ❌ Incluído | Redundante - parte integral do Rotor/Stator |
-| Brushes Failure | ✅ Incluído | Correto |
+#### 3. **Teste de Ação de Manutenção**
+- ❓ Pergunta: "Existem tarefas de manutenção específicas (preditiva, preventiva, corretiva) só para este componente?"
+- ✅ SIM → Candidato a MI
+- ❌ NÃO → Manutenção coberta por componente pai
 
-**Problemas:**
-- 3 itens redundantes ou não-independentemente manuteníveis
-- Faltam sistemas críticos como Lubrication System (mencionado no ISO 14224)
+#### 4. **Teste de Impacto Funcional**
+- ❓ Pergunta: "A falha deste componente causa diretamente falha funcional do equipamento?"
+- ✅ SIM → Candidato a MI
+- ❌ NÃO → Pode ser sub-componente
+
+### Princípio de Hierarquia
+
+**Regra Geral**: Se as atividades de manutenção e sintomas do componente A estão TOTALMENTE cobertos pelo FMEA do componente B, então EXCLUA o componente A.
+
+**Exemplo de análise hierárquica** (aplicável a qualquer equipamento):
+```
+Boundary menciona: "component X, sub-part Y, assembly Z"
+
+Análise:
+- X é pai de Y? → Se sim, Y é candidato a exclusão
+- Y tem manutenção independente de X? → Se não, EXCLUA Y
+- Y tem sintomas distintos de X? → Se não, EXCLUA Y
+- Z agrupa X e Y? → Se sim, analise se Z ou X/Y são manuteníveis
+```
 
 ---
 
-#### DEPOIS das mudanças ✅
+## Sugestões ISO 14224 (Baseadas em Análise Funcional)
 
-**Output atual aplica filtro inteligente + sugestões ISO 14224:**
+### Categorias Genéricas de Sistemas
 
-| Maintainable Item | Status | Justificativa |
-|-------------------|--------|---------------|
-| Rotor Failure | ✅ Incluído | Independentemente manutenível, sintomas distintos |
-| Stator Failure | ✅ Incluído | Independentemente manutenível, sintomas distintos |
-| Brushes Failure | ✅ Incluído | Independentemente manutenível, sintomas distintos |
-| ~~Axle Failure~~ | ❌ Filtrado | Coberto por Shaft Failure |
-| ~~Commutator Failure~~ | ❌ Filtrado | Parte integral do Rotor |
-| ~~Field Magnet Failure~~ | ❌ Filtrado | Parte integral do Rotor/Stator |
-| **Gear Failure (*)** | ✅ Adicionado | ISO 14224 - Sistema de transmissão de potência |
-| **Gearbox Failure (*)** | ✅ Adicionado | ISO 14224 - Contenção e lubrificação |
-| **Lubrication System (*)** | ✅ Adicionado | ISO 14224 - Crítico para bearings e gears |
-| **Cooling System (*)** | ✅ Adicionado | ISO 14224 - Gestão térmica |
+A IA avalia **9 categorias genéricas** para QUALQUER Item Class:
 
-**Benefícios:**
-- ✅ Remove 3 itens redundantes
-- ✅ Adiciona 4+ sistemas críticos do ISO 14224
-- ✅ Lista final mais precisa e completa
+| Categoria | Aplicável quando Item Class tem... | Exemplos de MIs Sugeridos |
+|-----------|-------------------------------------|---------------------------|
+| **Power transmission** | Transmissão de torque/potência | Gear, Coupling, Drive, Shaft |
+| **Lubrication** | Componentes com fricção/atrito | Lubrication System, Oil Pump, Filter |
+| **Cooling/thermal** | Geração de calor operacional | Cooling System, Heat Exchanger, Fan |
+| **Sealing** | Contenção de fluidos/gases | Seal System, Mechanical Seal, Gasket |
+| **Bearing** | Movimento rotativo/reciprocante | Bearing System, Radial Bearing, Thrust Bearing |
+| **Monitoring/control** | Controle automático/proteção | Control System, Sensor, Transmitter |
+| **Power supply** | Energia elétrica interna | Power Supply System, Battery, Inverter |
+| **Structural** | Contenção/suporte de carga | Casing, Frame, Foundation, Enclosure |
+| **Fluid handling** | Processos com fluidos | Piping, Valve, Filter, Accumulator |
+
+### Metodologia de Seleção
+
+1. **Análise funcional**: IA identifica requisitos funcionais do Item Class
+2. **Mapeamento de categorias**: Determina quais das 9 categorias são tecnicamente relevantes
+3. **Consulta ISO 14224**: Busca MIs padrão na Tabela B.15 para as categorias aplicáveis
+4. **Validação de relevância**: Verifica se cada MI sugerido tem modos de falha distintos
+5. **Marcação**: Todos os MIs sugeridos recebem marca "(*)"
+
+**Não há listas fixas de MIs** - a seleção é dinâmica baseada no Item Class específico.
 
 ---
 
@@ -71,56 +95,28 @@ A tabela continua com as mesmas colunas:
 
 ### O QUE MUDOU: A lista de Maintainable Items
 
-#### 1. FILTROS INTELIGENTES (Menos MIs redundantes)
+#### 1. FILTROS INTELIGENTES (Aplicação de Critérios Genéricos)
 
-**ANTES:** Todos os itens do boundary eram incluídos
-```
-Bearing Failure
-Brushes Failure
-Coupling Failure
-Enclosure Failure
-Gear Failure
-Gearbox Failure
-Heaters Failure
-Instrument Failure
-Monitoring Failure
-Rotor Failure
-Stator Failure
-Shaft Failure
-Commutator Failure    ← Redundante!
-Field Magnet Failure  ← Redundante!
-Axle Failure          ← Redundante!
-```
+**ANTES:** Todos os itens do boundary eram incluídos sem análise
 
-**DEPOIS:** Filtro inteligente remove redundâncias
-```
-Bearing Failure
-Brushes Failure
-Coupling Failure
-Enclosure Failure
-Gear Failure (*)
-Gearbox Failure (*)
-Heaters Failure
-Instrument Failure
-Monitoring Failure
-Rotor Failure
-Stator Failure
-Shaft Failure
-                      ← Commutator removido (coberto por Rotor)
-                      ← Field Magnet removido (integral ao Rotor/Stator)
-                      ← Axle removido (coberto por Shaft)
-```
+**DEPOIS:** IA aplica 4 testes de decisão para cada item:
+- ✅ Teste de Independência (pode ser mantido separadamente?)
+- ✅ Teste de Sintomas Distintos (tem sintomas únicos?)
+- ✅ Teste de Ação de Manutenção (tem tarefas específicas?)
+- ✅ Teste de Impacto Funcional (falha causa impacto direto?)
 
-#### 2. SUGESTÕES ISO 14224 (Mais MIs críticos)
+**Resultado:** Apenas itens que passam TODOS os testes são incluídos
 
-**NOVOS Maintainable Items adicionados** (marcados com `(*)`):
+#### 2. SUGESTÕES ISO 14224 (Baseadas em Análise Funcional)
 
-- **Lubrication System Failure (*)** - Sistema de lubrificação para bearings e gears
-- **Cooling System Failure (*)** - Sistema de resfriamento/ventilação
-- **Seal System Failure (*)** - Sistema de vedação (se aplicável)
-- **Monitoring/Control System Failure (*)** - Sistema de sensores e controle
+**Processo genérico:**
+1. IA analisa requisitos funcionais do Item Class
+2. Identifica quais das 9 categorias genéricas são aplicáveis
+3. Consulta ISO 14224 Table B.15 para MIs padrão
+4. Sugere apenas MIs relevantes ao Item Class específico
+5. Marca com "(*)" e justifica na seção final
 
-Estes itens NÃO estavam no boundary original mas são críticos segundo ISO 14224.
+**Não há lista fixa** - diferentes Item Classes terão diferentes sugestões baseadas em suas características técnicas.
 
 ---
 
@@ -133,56 +129,25 @@ Estes itens NÃO estavam no boundary original mas são críticos segundo ISO 142
 
 | Maintainable Item | Justification (ISO 14224 or Engineering Basis) | Expected Symptoms | Expected Failure Mechanisms | Suggested Treatment Actions |
 |-------------------|-----------------------------------------------|-------------------|----------------------------|----------------------------|
-| Gear Failure (*) | ISO 14224 standard MI for gearbox assemblies; critical for power transmission in motor with gearbox | VIB, NOI, FWR, BRD | Erosion, Deformation, Wear, Breakage | Gearbox vibration analysis, Inspect gear teeth, Lubrication checks |
-| Gearbox Failure (*) | ISO 14224 standard MI for rotating equipment enclosures; contains gears and lubrication | STD, LOO, NOI, PDE | Deformation, Leakage, Wear, Contamination | Housing inspection, Seal replacement, Lubricant monitoring |
-| Lubrication System Failure (*) | ISO 14224 Table B.15 standard for rotating equipment; critical for bearing and gear health | LOO, PDE, OHE, PLU | Contamination, Degradation, Leakage, Blockage | Oil analysis, Filter inspection, Leak detection, Level monitoring |
+| [MI sugerido (*)] | [Justificativa baseada em análise funcional e ISO 14224] | [Sintomas esperados] | [Mecanismos esperados] | [Ações sugeridas] |
 ```
 
-Esta seção **documenta** por que cada item marcado com `(*)` foi sugerido pela IA.
+Esta seção **documenta** por que cada item marcado com `(*)` foi sugerido pela IA, permitindo validação por engenheiros.
 
 ---
 
-## Exemplo Real do Output
+## Impacto Quantitativo (Exemplo Genérico)
 
-### Antes (sem filtro inteligente):
+### Padrão Esperado para Qualquer Item Class
 
-```
-Commutator Failure | Transfer current in DC motor | VIB - Vibration | 2.4 Wear | ...
-Commutator Failure | Transfer current in DC motor | NOI - Noise | 2.3 Erosion | ...
-Field Magnet Failure | Generate magnetic field | PDE - Parameter deviation | 2.2 Corrosion | ...
-```
+| Métrica | ANTES | DEPOIS | Melhoria |
+|---------|-------|--------|----------|
+| MIs redundantes/cobertos | Presentes | Removidos | ✅ Lista mais limpa |
+| MIs sem manutenção independente | Presentes | Filtrados | ✅ Foco em ações práticas |
+| Sistemas críticos ausentes (ISO 14224) | 0 | Adicionados conforme relevância | ✅ Cobertura completa |
+| Rastreabilidade de sugestões | Nenhuma | Seção de justificação | ✅ Validação facilitada |
 
-❌ **Problema:** Itens redundantes ocupam espaço e não agregam valor (já cobertos por Rotor Failure)
-
-### Depois (com filtro inteligente + ISO 14224):
-
-```
-Rotor Failure | Rotate to convert electromagnetic to mechanical energy | VIB - Vibration | 2.4 Wear | ...
-Rotor Failure | Rotate to convert electromagnetic to mechanical energy | NOI - Noise | 2.3 Erosion | ...
-Lubrication System Failure (*) | Provide lubrication to bearings and gears | LOO - Leak of oil | 5.2 Contamination | ...
-Lubrication System Failure (*) | Provide lubrication to bearings and gears | PDE - Parameter deviation | 2.1 Degradation | ...
-```
-
-✅ **Melhoria:** Foco em itens verdadeiramente independentemente manuteníveis + sistemas críticos do ISO 14224
-
----
-
-## Impacto Quantitativo
-
-### Exemplo: Electric Motor (DREM)
-
-| Métrica | ANTES | DEPOIS | Diferença |
-|---------|-------|--------|-----------|
-| Total de MIs da boundary | 15 | 12 | -3 (filtrados) |
-| MIs redundantes | 3 | 0 | -3 (removidos) |
-| MIs do ISO 14224 | 0 | 4+ | +4 (adicionados) |
-| **Total de MIs no FMEA** | **15** | **16+** | **+1 a +4** |
-| MIs com justificação | 0 | 4+ | +4 (nova seção) |
-
-**Resultado líquido:**
-- Lista mais limpa (sem redundâncias)
-- Cobertura mais completa (com sistemas ISO 14224)
-- Rastreabilidade melhorada (seção de justificação)
+**Nota:** Números específicos variam conforme complexidade e tipo do Item Class.
 
 ---
 
@@ -192,22 +157,21 @@ Lubrication System Failure (*) | Provide lubrication to bearings and gears | PDE
 
 No output do FMEA, todos os Maintainable Items marcados com `(*)` foram:
 - Sugeridos pela IA (não estavam explicitamente no boundary)
-- Baseados em ISO 14224 ou análise de engenharia
+- Baseados em ISO 14224 Table B.15 e análise funcional do Item Class
+- Exemplos podem incluir sistemas de lubrificação, resfriamento, vedação, etc. (conforme aplicável)
 
-**Exemplo:**
-```
-| Motor, Electric | ... | Gear Failure (*) | ... |
-| Motor, Electric | ... | Lubrication System Failure (*) | ... |
-```
+### 2. Note a AUSÊNCIA de itens filtrados
 
-### 2. Note a AUSÊNCIA de itens redundantes
-
-Itens como "Axle Failure", "Commutator Failure", "Field Magnet Failure" **NÃO APARECEM** mais no output se forem considerados redundantes pela IA.
+Alguns itens mencionados nos boundaries podem NÃO aparecer no output se a IA determinar que:
+- São sub-componentes cobertos por um MI pai
+- Não têm manutenção independente
+- Não têm sintomas distintos
+- São partes integrais de outro componente
 
 ### 3. Verifique a seção final "SUGGESTED ADDITIONAL MAINTAINABLE ITEMS"
 
 Esta seção aparece **ao final do documento** e lista todos os itens marcados com `(*)` junto com:
-- Justificativa técnica
+- Justificativa técnica baseada em análise funcional
 - Sintomas esperados
 - Mecanismos de falha esperados
 - Ações de tratamento sugeridas
@@ -228,10 +192,10 @@ Esta seção aparece **ao final do documento** e lista todos os itens marcados c
 **DEPOIS:** Info/warning se MI do boundary foi filtrado (aceita filtro inteligente)
 
 ```
-[INFO] Model output has 3 items from base list that were filtered out:
-  - Axle
-  - Commutator
-  - Field Magnet
+[INFO] Model output has N items from base list that were filtered out:
+  - [Component A]
+  - [Component B]
+  - [Component C]
 [INFO] This is acceptable if AI applied engineering judgment to filter 
        non-maintainable or redundant items.
 ```
@@ -242,10 +206,11 @@ Esta seção aparece **ao final do documento** e lista todos os itens marcados c
 
 ### ✅ IMPACTOS POSITIVOS no Output:
 
-1. **Qualidade:** Lista de MIs mais precisa, sem redundâncias
-2. **Completude:** Sistemas críticos do ISO 14224 incluídos automaticamente
-3. **Rastreabilidade:** Seção de justificação documenta decisões
-4. **Eficiência:** Engenheiros revisam menos itens redundantes
+1. **Qualidade:** Lista de MIs mais precisa, baseada em critérios genéricos de manutenibilidade
+2. **Adaptabilidade:** Framework funciona para QUALQUER tipo de equipamento (não apenas motores/compressores)
+3. **Completude:** Sistemas críticos do ISO 14224 incluídos baseado em análise funcional
+4. **Rastreabilidade:** Seção de justificação documenta decisões da IA
+5. **Eficiência:** Engenheiros revisam apenas itens tecnicamente relevantes
 
 ### ⚠️ O que NÃO mudou:
 
@@ -256,4 +221,4 @@ Esta seção aparece **ao final do documento** e lista todos os itens marcados c
 
 ### 📊 Resultado Final:
 
-**Output mais inteligente, completo e alinhado com padrões de engenharia de confiabilidade (ISO 14224)**
+**Agente genérico e adaptável que toma decisões inteligentes baseadas em princípios de engenharia, não em exemplos fixos de equipamentos específicos**
