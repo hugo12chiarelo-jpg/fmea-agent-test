@@ -775,10 +775,29 @@ def validate_output_cardinality(output_text: str) -> list[str]:
     - Each Maintainable Item has 4-8 distinct Symptoms
     - Each (MI, Symptom) pair has 2-5 distinct Failure Mechanisms
     - No duplication between Symptom and Failure Mechanism on the same row
+    - Maintainable Items do not contain Symptom codes
     
     Returns a list of error messages (empty if valid).
     """
     errors = []
+    
+    # Load Symptom Catalog to check for symptom codes
+    symptom_codes = set()
+    symptom_catalog_path = Path("inputs/Catalogs/Symptom Catalog.csv")
+    if symptom_catalog_path.exists():
+        try:
+            # Symptom Catalog uses semicolon as separator
+            symptom_df = pd.read_csv(symptom_catalog_path, sep=';', encoding='utf-8', encoding_errors='ignore')
+            # Extract symptom codes from first column (Code)
+            if 'Code' in symptom_df.columns or len(symptom_df.columns) > 0:
+                code_col = 'Code' if 'Code' in symptom_df.columns else symptom_df.columns[0]
+                # Clean up BOM and extract codes
+                for code in symptom_df[code_col].dropna():
+                    code_str = str(code).strip().replace('\ufeff', '')
+                    if code_str and code_str not in ['Code', '']:
+                        symptom_codes.add(code_str.upper())
+        except Exception as e:
+            print(f"[WARN] Could not load Symptom Catalog for validation: {e}")
     
     try:
         # Extract the table from the output
@@ -824,6 +843,35 @@ def validate_output_cardinality(output_text: str) -> list[str]:
         if len(df) == 0:
             errors.append("No data rows found in table")
             return errors
+        
+        # G8: Check that Maintainable Items do not contain Symptom codes
+        # Check both exact matches and symptom-like patterns
+        for idx, row in df.iterrows():
+            mi = str(row['Maintainable Item']).strip()
+            if mi.lower() in ['see above', '']:
+                continue
+            
+            # Extract the first part (code) from the Maintainable Item
+            # Symptom codes are typically 2-4 letter acronyms before a dash (e.g., "VIB - Vibration", "AI - Abnormal")
+            mi_code = mi.split()[0].upper() if ' ' in mi else mi.upper()
+            # Remove trailing punctuation
+            mi_code = mi_code.rstrip(':-,.')
+            
+            # Check if this code matches any known symptom code
+            if symptom_codes and mi_code in symptom_codes:
+                errors.append(
+                    f"G8 VIOLATION: Row {idx+1}: Maintainable Item '{mi}' uses Symptom code '{mi_code}'. "
+                    f"Maintainable Items must be equipment/components (e.g., 'Bearing Failure', 'Rotor Failure'), "
+                    f"not symptom codes from the Symptom Catalog."
+                )
+            # Also check for symptom-like pattern: 2-4 uppercase letters followed by " - " and description
+            # This catches typos or incorrect symptom codes like "PTO - Power..." (PTO is a typo for PTF)
+            elif re.match(r'^[A-Z]{2,4}\s*-\s+', mi):
+                errors.append(
+                    f"G8 VIOLATION: Row {idx+1}: Maintainable Item '{mi}' uses a symptom-like code pattern. "
+                    f"Maintainable Items must be equipment/components (e.g., 'Bearing Failure', 'Rotor Failure'), "
+                    f"not symptom-style codes like '{mi_code} - ...'."
+                )
         
         # G1: Check symptoms per Maintainable Item (4-8)
         symptom_counts = df.groupby('Maintainable Item')['Symptom'].nunique()
@@ -1048,6 +1096,18 @@ The list below contains Maintainable Items derived from EMS Boundaries column, e
 - ❌ NEVER use phrases like "omitted for brevity", "similar to above", "follows the same pattern"
 - ✅ Every single row for every Maintainable Item MUST be explicitly written in the output table
 - ✅ If you have 13 Maintainable Items with 5 symptoms each × 2 mechanisms = 130+ rows minimum - write them ALL
+
+**NO SYMPTOM CODES IN MAINTAINABLE ITEM COLUMN:**
+- ❌ NEVER use Symptom codes as Maintainable Items
+- ❌ BAD: "PTF - Power/signal transmission failure" (this is a SYMPTOM, not equipment)
+- ❌ BAD: "VIB - Vibration" (this is a SYMPTOM, not equipment)
+- ❌ BAD: "NOI - Noise" (this is a SYMPTOM, not equipment)
+- ❌ BAD: "PTO - Power..." (typo/incorrect code - still looks like a symptom)
+- ✅ GOOD: "Bearing Failure" (this is physical equipment)
+- ✅ GOOD: "Rotor Failure" (this is physical equipment)
+- ✅ GOOD: "Windings Failure" (this is physical equipment)
+- Maintainable Items are PHYSICAL COMPONENTS/EQUIPMENT from the Maintainable Item Catalog
+- Symptoms are OBSERVABLE CONDITIONS from the Symptom Catalog
 
 **CARDINALITY REQUIREMENTS** - Your output WILL BE AUTOMATICALLY VALIDATED:
 1. Each Maintainable Item MUST have EXACTLY 4-8 DISTINCT Symptoms (NO EXCEPTIONS)
