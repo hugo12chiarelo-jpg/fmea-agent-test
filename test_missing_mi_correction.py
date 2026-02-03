@@ -2,8 +2,10 @@
 """
 Test script to verify missing MI correction prompt generation.
 
-This script verifies that the build_missing_mi_correction_prompt() function
-correctly generates correction prompts for missing mandatory Maintainable Items.
+NOTE: This test is now deprecated as the missing MI correction loop has been
+removed in favor of allowing intelligent filtering by the AI. The function
+build_missing_mi_correction_prompt() still exists but is no longer used
+in the main workflow. This test is kept for reference.
 """
 
 import sys
@@ -21,7 +23,8 @@ def test_single_missing_mi():
     # Verify prompt has critical requirements
     assert "Accessories" in prompt, "Missing MI not in prompt"
     assert "4-8 DISTINCT Symptoms" in prompt, "Symptom requirement missing"
-    assert "2-5 DISTINCT Failure Mechanisms" in prompt, "Mechanism requirement missing"
+    # Updated to match current spec (2-5 instead of 1-5)
+    assert "MULTIPLE (2-5) DISTINCT Failure Mechanisms" in prompt, "Mechanism requirement missing"
     assert "NO DUPLICATION" in prompt, "Duplication rule missing"
     assert "INCLUDE ALL MAINTAINABLE ITEMS" in prompt or "All existing MIs" in prompt, "Preservation instruction missing"
     
@@ -81,7 +84,8 @@ def test_empty_list():
 
 def main():
     """Run all tests."""
-    print("Testing missing MI correction prompt generation...\n")
+    print("Testing missing MI correction prompt generation...")
+    print("NOTE: This function is deprecated but kept for reference.\n")
     
     try:
         test_single_missing_mi()
@@ -94,6 +98,8 @@ def main():
         print("="*60)
         print("\nThe build_missing_mi_correction_prompt() function correctly")
         print("generates correction prompts for missing mandatory MIs.")
+        print("\nNOTE: This function is no longer used in the main workflow")
+        print("as the system now allows intelligent filtering of MIs.")
         
     except AssertionError as e:
         print(f"\n✗ Test failed: {e}")
