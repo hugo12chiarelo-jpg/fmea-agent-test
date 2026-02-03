@@ -168,6 +168,126 @@ def filter_ems_for_item_class(ems_path: Path, item_class: str, max_rows: int = 2
     return dff.to_csv(index=False) + note
 
 
+def apply_item_class_specific_rules(mi_list: list[str], item_class: str) -> list[str]:
+    """
+    Apply item-class-specific business rules to filter and adjust the MI list.
+    
+    Args:
+        mi_list: Initial list of Maintainable Items
+        item_class: The Item Class being analyzed
+        
+    Returns:
+        Filtered and adjusted MI list
+    """
+    item_class_lower = item_class.lower().strip()
+    
+    # Rules for "Motor, Electric"
+    if "motor" in item_class_lower and "electric" in item_class_lower:
+        # Filter out invalid items for Electric Motor
+        invalid_items = {
+            "motor",  # Motor Failure is not a valid MI for electric motor itself
+            "shaft",  # Shaft Failure can be disregarded per requirements
+            "system",  # Too generic
+            "stem",  # Too generic
+            "gear",  # Use Gearbox instead
+        }
+        
+        # Preferred naming for duplicates (map shorter/incorrect names to preferred names)
+        preferred_names = {
+            "cooling": "Cooling system",
+            "heater": "Heaters",
+            "instrument": "Monitoring",  # Instrumentation → Monitoring
+            "control system": "Control system",  # Normalize casing
+        }
+        
+        # Filter and normalize
+        filtered = []
+        seen_lower = set()
+        
+        for mi in mi_list:
+            mi_lower = mi.lower().strip()
+            
+            # Skip if it's in the invalid set
+            if mi_lower in invalid_items:
+                continue
+            
+            # Skip very generic or short terms
+            if len(mi) < 3:
+                continue
+            
+            # Apply preferred naming
+            if mi_lower in preferred_names:
+                preferred = preferred_names[mi_lower]
+                preferred_lower = preferred.lower().strip()
+                if preferred_lower not in seen_lower:
+                    filtered.append(preferred)
+                    seen_lower.add(preferred_lower)
+                continue
+            
+            # Check for duplicates (e.g., "Heaters" when we already have "Heater" → prefer "Heaters")
+            # If current item is singular and we have plural, skip
+            # If current item is plural and we have singular, replace
+            plural = mi_lower + 's' if not mi_lower.endswith('s') else mi_lower
+            singular = mi_lower[:-1] if mi_lower.endswith('s') and len(mi_lower) > 4 else mi_lower
+            
+            # Skip if we've already seen a variant
+            if plural in seen_lower or singular in seen_lower:
+                # Prefer plural form
+                if plural == mi_lower:
+                    # Current is plural, remove singular if present
+                    filtered = [f for f in filtered if f.lower().strip() != singular]
+                    seen_lower.discard(singular)
+                    filtered.append(mi)
+                    seen_lower.add(mi_lower)
+                # else: skip (singular, we already have plural or exact)
+                continue
+            
+            # Add if not seen
+            if mi_lower not in seen_lower:
+                filtered.append(mi)
+                seen_lower.add(mi_lower)
+        
+        # Ensure critical items are present with proper naming
+        critical_items = {
+            "Bearing",  # Can be NDE Bearing, DE Bearing, or just Bearing
+            "Rotor",
+            "Stator", 
+            "Windings",
+            "Coupling",
+            "Gearbox",
+            "Brushes",
+            "Cooling system",
+            "Enclosure",
+            "Control system",
+            "Junction box",
+            "Heaters",
+            "Monitoring",
+        }
+        
+        # Add any missing critical items
+        existing_lower = {mi.lower().strip() for mi in filtered}
+        for critical in critical_items:
+            critical_lower = critical.lower().strip()
+            # Check if any variation already exists
+            found = critical_lower in existing_lower
+            if not found:
+                filtered.append(critical)
+        
+        # Final deduplication (case-insensitive, keep first occurrence)
+        final = []
+        seen = set()
+        for mi in filtered:
+            mi_lower = mi.lower().strip()
+            if mi_lower not in seen:
+                final.append(mi)
+                seen.add(mi_lower)
+        
+        return sorted(final)
+    
+    # Default: return as-is for other item classes
+    return mi_list
+
+
 def build_mi_list_from_ems_and_catalog(ems_path: Path, item_class: str, mi_catalog_path: Path) -> list[str]:
     """
     Build a comprehensive list of Maintainable Items from EMS boundaries and MI catalog.
@@ -176,7 +296,8 @@ def build_mi_list_from_ems_and_catalog(ems_path: Path, item_class: str, mi_catal
     1. Parses the EMS Boundaries column to identify included/excluded items
     2. Filters out items marked with "Exclude", "optional", "if applicable"
     3. Maps boundary terms to standard Maintainable Item Catalog terminology
-    4. Returns ALL technically relevant items from boundaries
+    4. Applies item-class-specific business rules
+    5. Returns ALL technically relevant items from boundaries
     
     Args:
         ems_path: Path to EMS.csv file
@@ -349,7 +470,57 @@ def build_mi_list_from_ems_and_catalog(ems_path: Path, item_class: str, mi_catal
     # Sort for consistency
     final_included = sorted(set(final_included))
     
+    # Apply item-class-specific business rules
+    final_included = apply_item_class_specific_rules(final_included, item_class)
+    
     return final_included
+
+
+def build_item_class_specific_guidance(item_class: str) -> str:
+    """
+    Build item-class-specific guidance for the AI.
+    
+    Args:
+        item_class: The Item Class being analyzed
+        
+    Returns:
+        Guidance text to be added to the prompt
+    """
+    item_class_lower = item_class.lower().strip()
+    
+    # Guidance for "Motor, Electric"
+    if "motor" in item_class_lower and "electric" in item_class_lower:
+        return """
+## ITEM-CLASS-SPECIFIC GUIDANCE: Motor, Electric
+
+**IMPORTANT CLARIFICATIONS FOR ELECTRIC MOTOR:**
+
+1. **Symptom-Specific Rules:**
+   - "LOO - Low Output" is NOT a valid symptom for Rotor or Bearing (NDE/DE)
+   - Do NOT assign "LOO - Low Output" to: Rotor Failure, Bearing Failure, NDE Bearing Failure, DE Bearing Failure
+   
+2. **Failure Mechanism Requirements:**
+   - For Stator Failure: MUST include "4.1 - Short Circuiting" and "1.5 - Looseness" as mechanisms
+     * Assign these to appropriate symptoms (e.g., "4.1 - Short Circuiting" → symptoms like "NOO - No output", "OHE - Overheating")
+     * Assign "1.5 - Looseness" → symptoms like "VIB - Vibration", "NOI - Noise"
+   
+   - For Windings Failure + Symptom "NOO - No output": MUST include "4.1 - Short circuiting" as a mechanism
+   
+3. **Naming Rules:**
+   - All Maintainable Item names MUST end with " Failure" (e.g., "Bearing Failure", "Rotor Failure")
+   - Use "Control System Failure" (not "Control Unit Failure")
+   - Use "Cooling System Failure" (not "Cooler Failure")
+   - Use "Junction Box Failure" (not "Junction Boxes Failure")
+
+4. **Completeness Requirement:**
+   - Generate the COMPLETE FMEA table for ALL Maintainable Items listed
+   - Do NOT use placeholders like "[The rest of the table...]" or "[See above]"
+   - Do NOT reference "previous completion" or "unchanged sections"
+   - Every Maintainable Item must have its full set of rows in the output table
+"""
+    
+    # Default: no specific guidance
+    return ""
 
 
 def pick_manual_text(item_class: str) -> Path | None:
@@ -374,32 +545,62 @@ def build_missing_mi_correction_prompt(missing_mi: list[str]) -> str:
     Returns:
         Formatted correction prompt
     """
-    missing_summary = "\n".join([f"  - {mi}" for mi in missing_mi])
+    missing_summary = "\n".join([f"  - {mi} Failure" for mi in missing_mi])
     return f"""
-The output you provided is MISSING mandatory Maintainable Items that MUST be included:
+⚠️ CRITICAL ERROR: The FMEA table you provided is INCOMPLETE and INVALID.
+
+**MISSING MANDATORY MAINTAINABLE ITEMS** (have ZERO rows in the table):
 
 {missing_summary}
 
-Please revise the ENTIRE FMEA table to include these missing Maintainable Items.
+**ROOT CAUSE**: You used placeholder text like "(Additional rows... omitted for brevity)" instead of generating ACTUAL TABLE ROWS.
 
-CRITICAL REQUIREMENTS:
-1. Add a complete FMEA section for EACH missing Maintainable Item listed above
-2. Each Maintainable Item MUST have EXACTLY 4-8 DISTINCT Symptoms
-   - Select appropriate symptoms from the Symptom Catalog
-   - Consider technical failures relevant to each item
-   
-3. Each (Maintainable Item, Symptom) pair MUST have MULTIPLE (2-5) DISTINCT Failure Mechanisms
-   - Complex/critical items should have 2-5 mechanisms per symptom
-   - Think: "What are the DIFFERENT physical causes that could produce this symptom?"
-   - Generate separate rows for each mechanism
-   
-4. NO DUPLICATION: Symptom and Failure Mechanism on same row MUST use DIFFERENT terms
-   - Symptom = what you OBSERVE (effect)
-   - Mechanism = what CAUSES it (root cause) - must be different from the symptom
+**THIS IS UNACCEPTABLE**. Each Maintainable Item MUST have its complete set of rows explicitly written in the table.
 
-5. Keep ALL existing Maintainable Items in the output - only ADD the missing ones
+**REQUIRED CORRECTIVE ACTION**:
 
-Return the COMPLETE corrected output with the FULL table including the newly added Maintainable Items.
+Regenerate the COMPLETE FMEA table from scratch with EVERY SINGLE ROW written out explicitly:
+
+1. **INCLUDE ALL MAINTAINABLE ITEMS**:
+   - All existing MIs you already generated (keep them)
+   - ALL missing MIs listed above (add them with complete rows)
+
+2. **FOR EACH MAINTAINABLE ITEM**:
+   - Generate 4-8 DISTINCT Symptoms
+   - For EACH Symptom, generate 2-5 DISTINCT Failure Mechanisms
+   - Write a separate table row for EACH mechanism
+   - Example: "Rotor Failure" with 5 symptoms × 3 mechanisms each = 15 rows minimum
+
+3. **ABSOLUTELY FORBIDDEN**:
+   - ❌ NO placeholder text like "(Additional rows...)", "[The rest...]", "[See above]"
+   - ❌ NO ellipsis (...) or truncation
+   - ❌ NO references like "unchanged sections", "similar to above", "previously shown"
+   - ❌ NO summarizing or shortcutting - write every single row explicitly
+
+4. **NAMING CONVENTION**:
+   - All Maintainable Items MUST end with " Failure" suffix
+   - Examples: "Bearing Failure", "Rotor Failure", "Stator Failure", "Windings Failure"
+
+5. **QUALITY RULES** (will be validated):
+   - Each MI MUST have EXACTLY 4-8 distinct symptoms
+   - Each (MI, Symptom) pair MUST have 2-5 distinct mechanisms
+   - NO DUPLICATION: Symptom and Mechanism on same row must use DIFFERENT terms
+   - Symptom = observable effect, Mechanism = root cause
+
+**OUTPUT FORMAT**: 
+Return ONLY the complete markdown FMEA table with the following structure:
+- Table header row
+- Separator row
+- Data rows for EVERY Maintainable Item (no exceptions, no placeholders)
+- Optional summary at the end
+
+**VERIFICATION BEFORE SUBMITTING**:
+Before you finalize, count:
+- How many distinct Maintainable Items have rows? (Must be ALL of them)
+- Does any MI have < 4 or > 8 symptoms? (Fix if yes)
+- Do you see any placeholder text? (Remove and write actual rows)
+
+Return the COMPLETE, EXPLICIT, FULLY-EXPANDED FMEA table now.
 """
 
 
@@ -447,16 +648,156 @@ Include ALL rows with the expanded mechanisms.
 """
 
 
+def validate_mi_in_table(output_text: str, mandatory_mi: list[str]) -> list[str]:
+    """
+    Validate that all mandatory MIs appear in the actual FMEA table (not just in text).
+    Also detects if AI is using placeholders instead of generating actual rows.
+    
+    Args:
+        output_text: The AI-generated output
+        mandatory_mi: List of mandatory Maintainable Item names (without " Failure" suffix)
+        
+    Returns:
+        List of missing MI names (empty if all are present in table)
+    """
+    missing: list[str] = []
+    
+    # First, detect placeholder text patterns that indicate incomplete output
+    placeholder_patterns = [
+        'additional rows',
+        'omitted for brevity',
+        'follow,',
+        'see above',
+        'unchanged',
+        'rest of the table',
+        'similar to above',
+        'previously shown',
+        'as shown above',
+        '...',  # ellipsis often indicates truncation
+    ]
+    
+    output_lower = output_text.lower()
+    found_placeholders = []
+    for pattern in placeholder_patterns:
+        if pattern in output_lower:
+            found_placeholders.append(pattern)
+    
+    if found_placeholders:
+        print(f"[VALIDATION] ⚠️  Detected placeholder text patterns: {found_placeholders}")
+        print("[VALIDATION] This indicates the AI generated an incomplete table instead of full rows for all MIs")
+    
+    try:
+        # Extract the table from the output
+        lines = output_text.split('\n')
+        table_lines = []
+        in_table = False
+        
+        for line in lines:
+            if line.strip().startswith('|') and 'Item Class' in line:
+                in_table = True
+            if in_table:
+                if line.strip().startswith('|'):
+                    table_lines.append(line)
+                elif line.strip() == '':
+                    continue  # Skip empty lines within table
+                else:
+                    # Non-table content - check if it's a placeholder
+                    if any(p in line.lower() for p in placeholder_patterns):
+                        # Found placeholder after table - this means incomplete table
+                        print(f"[VALIDATION] Found placeholder after table: {line.strip()[:100]}")
+                    # End of table
+                    break
+        
+        if len(table_lines) < 3:
+            # No valid table found, all MIs are missing
+            return list(mandatory_mi)
+        
+        # Parse actual Maintainable Items from the table column (column 4)
+        # This is more precise than searching in the entire line
+        actual_mis_in_table = set()
+        for line in table_lines[2:]:  # Skip header and separator
+            if not line.strip().startswith('|'):
+                continue
+            parts = line.split('|')
+            if len(parts) > 3:
+                mi_cell = parts[3].strip()  # Maintainable Item is typically column 4
+                if mi_cell and mi_cell.lower() not in ['maintainable item', 'see above', '']:
+                    # Normalize: remove " Failure" suffix for comparison
+                    mi_normalized = mi_cell.lower().replace(' failure', '').strip()
+                    actual_mis_in_table.add(mi_normalized)
+        
+        # Count rows per MI for diagnostic output
+        mi_row_counts = {}
+        for mi_name in mandatory_mi:
+            if not mi_name:
+                continue
+            
+            mi_lower = mi_name.lower().strip()
+            mi_with_failure = (mi_lower + " failure").lower()
+            
+            # Count how many actual table rows contain this MI in the MI column
+            row_count = 0
+            for line in table_lines[2:]:  # Skip header and separator
+                if not line.strip().startswith('|'):
+                    continue
+                parts = line.split('|')
+                if len(parts) > 3:
+                    mi_cell = parts[3].strip().lower()
+                    if mi_lower in mi_cell or mi_with_failure in mi_cell:
+                        row_count += 1
+            
+            mi_row_counts[mi_name] = row_count
+            
+            # Check if this MI is actually in the table
+            if mi_lower not in actual_mis_in_table:
+                missing.append(mi_name)
+        
+        # Print diagnostic info
+        if mi_row_counts:
+            print(f"[VALIDATION] Row counts per MI:")
+            for mi, count in sorted(mi_row_counts.items()):
+                status = "✗ MISSING" if mi in missing else "✓"
+                print(f"  {status} {mi}: {count} rows")
+    
+    except Exception as e:
+        # If parsing fails, fall back to simple text search
+        print(f"[DEBUG] Table parsing failed: {e}. Falling back to simple check.")
+        for mi_name in mandatory_mi:
+            if mi_name and (mi_name.lower() not in output_text.lower()):
+                missing.append(mi_name)
+    
+    return missing
+
+
 def validate_output_cardinality(output_text: str) -> list[str]:
     """
     Validate that the output meets cardinality requirements:
     - Each Maintainable Item has 4-8 distinct Symptoms
     - Each (MI, Symptom) pair has 2-5 distinct Failure Mechanisms
     - No duplication between Symptom and Failure Mechanism on the same row
+    - Maintainable Items do not contain Symptom codes
     
     Returns a list of error messages (empty if valid).
     """
     errors = []
+    
+    # Load Symptom Catalog to check for symptom codes
+    symptom_codes = set()
+    symptom_catalog_path = Path("inputs/Catalogs/Symptom Catalog.csv")
+    if symptom_catalog_path.exists():
+        try:
+            # Symptom Catalog uses semicolon as separator
+            symptom_df = pd.read_csv(symptom_catalog_path, sep=';', encoding='utf-8', encoding_errors='ignore')
+            # Extract symptom codes from first column (Code)
+            if 'Code' in symptom_df.columns or len(symptom_df.columns) > 0:
+                code_col = 'Code' if 'Code' in symptom_df.columns else symptom_df.columns[0]
+                # Clean up BOM and extract codes
+                for code in symptom_df[code_col].dropna():
+                    code_str = str(code).strip().replace('\ufeff', '')
+                    if code_str and code_str not in ['Code', '']:
+                        symptom_codes.add(code_str.upper())
+        except Exception as e:
+            print(f"[WARN] Could not load Symptom Catalog for validation: {e}")
     
     try:
         # Extract the table from the output
@@ -502,6 +843,35 @@ def validate_output_cardinality(output_text: str) -> list[str]:
         if len(df) == 0:
             errors.append("No data rows found in table")
             return errors
+        
+        # G8: Check that Maintainable Items do not contain Symptom codes
+        # Check both exact matches and symptom-like patterns
+        for idx, row in df.iterrows():
+            mi = str(row['Maintainable Item']).strip()
+            if mi.lower() in ['see above', '']:
+                continue
+            
+            # Extract the first part (code) from the Maintainable Item
+            # Symptom codes are typically 2-4 letter acronyms before a dash (e.g., "VIB - Vibration", "AI - Abnormal")
+            mi_code = mi.split()[0].upper() if ' ' in mi else mi.upper()
+            # Remove trailing punctuation
+            mi_code = mi_code.rstrip(':-,.')
+            
+            # Check if this code matches any known symptom code
+            if symptom_codes and mi_code in symptom_codes:
+                errors.append(
+                    f"G8 VIOLATION: Row {idx+1}: Maintainable Item '{mi}' uses Symptom code '{mi_code}'. "
+                    f"Maintainable Items must be equipment/components (e.g., 'Bearing Failure', 'Rotor Failure'), "
+                    f"not symptom codes from the Symptom Catalog."
+                )
+            # Also check for symptom-like pattern: 2-4 uppercase letters followed by " - " and description
+            # This catches typos or incorrect symptom codes like "PTO - Power..." (PTO is a typo for PTF)
+            elif re.match(r'^[A-Z]{2,4}\s*-\s+', mi):
+                errors.append(
+                    f"G8 VIOLATION: Row {idx+1}: Maintainable Item '{mi}' uses a symptom-like code pattern. "
+                    f"Maintainable Items must be equipment/components (e.g., 'Bearing Failure', 'Rotor Failure'), "
+                    f"not symptom-style codes like '{mi_code} - ...'."
+                )
         
         # G1: Check symptoms per Maintainable Item (4-8)
         symptom_counts = df.groupby('Maintainable Item')['Symptom'].nunique()
@@ -665,6 +1035,9 @@ def main():
         parts.append(f"### FILE: {manual_txt.as_posix()} (TRUNCATED)\n{read_text_file(manual_txt, max_chars=120_000)}")
 
     minimal_inputs = "\n\n".join(parts)
+    
+    # Build item-class-specific guidance
+    item_class_guidance = build_item_class_specific_guidance(item_class)
 
     user_prompt = f"""
 ## INSTRUCTION (from {instruction_file.as_posix()})
@@ -681,6 +1054,7 @@ def main():
 
 ## INPUT DOCUMENTS (MINIMAL PACK)
 {minimal_inputs}
+{item_class_guidance}
 
 ## MANDATORY MAINTAINABLE ITEM LIST (BASE FROM EMS BOUNDARIES)
 The list below contains Maintainable Items derived from EMS Boundaries column, excluding items marked as "Exclude", "optional", or "if applicable".
@@ -727,6 +1101,25 @@ The list below contains Maintainable Items derived from EMS Boundaries column, e
 - **OUTPUT VALIDATION SECTION**: At the end of the FMEA, include a "SUGGESTED ADDITIONAL MAINTAINABLE ITEMS" table with justification for each (*)-marked item
 
 ## CRITICAL REMINDERS BEFORE YOU START:
+
+**NO PLACEHOLDERS OR TRUNCATION ALLOWED:**
+- ❌ NEVER write "(Additional rows...)", "[The rest of the table...]", "[See above]", "[unchanged]", or "..."
+- ❌ NEVER use phrases like "omitted for brevity", "similar to above", "follows the same pattern"
+- ✅ Every single row for every Maintainable Item MUST be explicitly written in the output table
+- ✅ If you have 13 Maintainable Items with 5 symptoms each × 2 mechanisms = 130+ rows minimum - write them ALL
+
+**NO SYMPTOM CODES IN MAINTAINABLE ITEM COLUMN:**
+- ❌ NEVER use Symptom codes as Maintainable Items
+- ❌ BAD: "PTF - Power/signal transmission failure" (this is a SYMPTOM, not equipment)
+- ❌ BAD: "VIB - Vibration" (this is a SYMPTOM, not equipment)
+- ❌ BAD: "NOI - Noise" (this is a SYMPTOM, not equipment)
+- ❌ BAD: "PTO - Power..." (typo/incorrect code - still looks like a symptom)
+- ✅ GOOD: "Bearing Failure" (this is physical equipment)
+- ✅ GOOD: "Rotor Failure" (this is physical equipment)
+- ✅ GOOD: "Windings Failure" (this is physical equipment)
+- Maintainable Items are PHYSICAL COMPONENTS/EQUIPMENT from the Maintainable Item Catalog
+- Symptoms are OBSERVABLE CONDITIONS from the Symptom Catalog
+
 **CARDINALITY REQUIREMENTS** - Your output WILL BE AUTOMATICALLY VALIDATED:
 1. Each Maintainable Item MUST have EXACTLY 4-8 DISTINCT Symptoms (NO EXCEPTIONS)
    - Count symptoms per MI before finalizing
