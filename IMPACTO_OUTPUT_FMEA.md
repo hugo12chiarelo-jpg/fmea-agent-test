@@ -12,9 +12,23 @@ As mudanças implementadas afetam **DIRETAMENTE** a lista de Maintainable Items 
 
 ## Princípios de Filtragem (Genéricos para Qualquer Equipamento)
 
-### Framework de Decisão
+### Critério Fundamental (Pergunta-Chave)
 
-Para QUALQUER Item Class, a IA agora aplica 4 testes de independência:
+**PERGUNTA PRIMÁRIA para determinar se algo é Maintainable Item:**
+
+> **"Este componente falhar poderia causar a falha do sistema por completo?"**
+
+- ✅ **SIM** → É Maintainable Item (deve estar no FMEA)
+- ❌ **NÃO** → Provavelmente não é Maintainable Item independente
+
+Este é o critério **mais importante** e deve ser avaliado PRIMEIRO. Se a resposta for NÃO, o componente pode ser:
+- Sub-componente de um MI maior
+- Parte redundante ou não-crítica
+- Coberto pela análise de falha de outro componente
+
+### Framework de Decisão (Testes Complementares)
+
+Após confirmar que a falha causaria impacto no sistema, aplique os 4 testes de independência:
 
 #### 1. **Teste de Independência**
 - ❓ Pergunta: "Este componente pode ser inspecionado/mantido/substituído sem desmontar o equipamento pai?"
@@ -31,10 +45,10 @@ Para QUALQUER Item Class, a IA agora aplica 4 testes de independência:
 - ✅ SIM → Candidato a MI
 - ❌ NÃO → Manutenção coberta por componente pai
 
-#### 4. **Teste de Impacto Funcional**
+#### 4. **Teste de Impacto Funcional** (já validado na pergunta-chave)
 - ❓ Pergunta: "A falha deste componente causa diretamente falha funcional do equipamento?"
-- ✅ SIM → Candidato a MI
-- ❌ NÃO → Pode ser sub-componente
+- ✅ SIM → Confirmado como MI (pergunta-chave já respondeu isso)
+- ❌ NÃO → Não é MI independente
 
 ### Princípio de Hierarquia
 

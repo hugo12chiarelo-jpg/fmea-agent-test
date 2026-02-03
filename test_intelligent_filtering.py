@@ -33,7 +33,8 @@ def test_spec_contains_intelligent_filtering():
         ("Independence test", "Independence test criterion"),
         ("Symptom distinctiveness test", "Symptom distinctiveness test"),
         ("Maintenance action test", "Maintenance action test"),
-        ("Functional impact test", "Functional impact test"),
+        ("PRIMARY CRITERION", "Primary criterion present"),
+        ("Critical system failure", "Critical system failure test"),
         ("ISO 14224", "ISO 14224 reference"),
         ("Generic filtering principle", "Generic filtering principle"),
     ]

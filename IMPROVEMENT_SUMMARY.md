@@ -85,13 +85,22 @@ Modified the missing MI validation from strict error to informational logging to
 
 ## Key Principles (Generic and Adaptable)
 
-### 1. Decision Framework (Works for ANY Equipment)
+### 1. Primary Criterion (Most Critical)
 
-Four tests applied to each boundary item:
-1. **Independence test**: Can it be maintained separately?
-2. **Symptom distinctiveness test**: Does it have unique failure symptoms?
-3. **Maintenance action test**: Are there specific maintenance tasks?
-4. **Functional impact test**: Does failure impact equipment function?
+**KEY QUESTION**: "Could this component's failure cause complete system failure?"
+
+This is the **fundamental question** that must be asked FIRST for every component:
+- ✅ If YES → Component is a Maintainable Item candidate
+- ❌ If NO → Component is likely excluded (sub-component, non-critical, or covered by another MI)
+
+### 2. Decision Framework (Complementary Tests)
+
+After confirming the component passes the primary criterion, apply these tests:
+
+1. **Primary: Critical system failure test** (already validated above)
+2. **Independence test**: Can it be maintained separately?
+3. **Symptom distinctiveness test**: Does it have unique failure symptoms?
+4. **Maintenance action test**: Are there specific maintenance tasks?
 
 ### 2. Hierarchical Analysis (Generic Approach)
 

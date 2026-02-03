@@ -704,9 +704,16 @@ The list below contains Maintainable Items derived from EMS Boundaries column, e
 
 **Additional Maintainable Items - YOUR RESPONSIBILITY:**
 - **APPLY ENGINEERING INTELLIGENCE**: Not all items mentioned in boundaries should become Maintainable Items
-  * **Use decision framework**: For each boundary item, evaluate independence, symptom distinctiveness, maintenance action applicability, and functional impact
+  * **PRIMARY CRITERION (MOST IMPORTANT)**: Ask first "Could this component's failure cause complete system failure?"
+    - If NO → Exclude from Maintainable Items (likely sub-component or non-critical)
+    - If YES → Continue with additional evaluation tests below
+  * **Use decision framework IN ORDER**: 
+    1. Primary: Critical system failure test (most important)
+    2. Independence test
+    3. Symptom distinctiveness test
+    4. Maintenance action test
   * **Filter hierarchically**: Exclude sub-components covered by parent items (use parent-child relationship analysis)
-  * **Only include components** that are independently maintainable AND have distinct failure symptoms
+  * **Only include components** that pass the primary criterion AND are independently maintainable AND have distinct failure symptoms
   * **Generic principle**: If component A's maintenance/symptoms are fully covered by component B's FMEA, exclude component A
 - **CONSULT ISO 14224 Table B.15**: Proactively suggest standard maintainable items for this Item Class type
   * **Evaluate generic system categories**: Power transmission, lubrication, cooling, sealing, bearing, monitoring/control, power supply, structural, fluid handling

@@ -57,22 +57,29 @@ MAINTAINABLE ITEM RULES
    - All other items mentioned → INCLUDE
 3. Identify ALL components, systems, and equipment mentioned in the included boundaries text (do not limit to main items only).
 4. **APPLY ENGINEERING INTELLIGENCE - Filter boundary items using maintainability criteria:**
-   - **Definition of INDEPENDENTLY MAINTAINABLE**: A component qualifies as a maintainable item if it meets ALL of these criteria:
+   - **PRIMARY CRITERION (Critical System Failure Test)**: 
+     * **Key question**: "Could this component's failure cause complete system failure?"
+     * If YES → Component is a candidate for Maintainable Item
+     * If NO → Component is likely a sub-component, redundant, or covered by another MI
+     * This test is the MOST IMPORTANT and should be evaluated FIRST
+   - **Definition of INDEPENDENTLY MAINTAINABLE**: After passing the primary criterion, a component qualifies as a maintainable item if it meets ALL of these criteria:
      * Can be inspected, repaired, or replaced as a separate unit
      * Has distinct, observable failure symptoms that differ from other components
      * Is subject to planned or corrective maintenance activities
-     * Failure would impact equipment function or performance
+     * Failure would impact equipment function or performance (already confirmed by primary criterion)
    - **Exclusion criteria** - Do NOT include items that are:
      * Sub-components physically or functionally covered by a parent maintainable item
      * Integral parts that cannot be serviced independently (e.g., permanently assembled components)
      * Not subject to independent maintenance actions
      * Cannot be independently observed or monitored for failure symptoms
-   - **Decision framework**: For each boundary item, evaluate:
+     * Components whose failure does NOT cause system failure (failed primary criterion)
+   - **Decision framework**: For each boundary item, evaluate IN THIS ORDER:
+     0. **PRIMARY: Critical system failure test**: Could this component's failure cause complete system failure?
      1. **Independence test**: Can this component be inspected/maintained/replaced without disassembling parent equipment?
      2. **Symptom distinctiveness test**: Does this component exhibit unique failure symptoms that differ from related components?
      3. **Maintenance action test**: Are there specific maintenance tasks (predictive, preventive, corrective) for this component alone?
-     4. **Functional impact test**: Does failure of this component directly cause equipment functional failure?
    - **Hierarchical component analysis**: When boundaries list multiple related components:
+     * Apply the primary criterion first: which components' failures would cause system failure?
      * Identify parent-child relationships (e.g., shaft vs axle, rotor assembly vs field components)
      * Select the highest-level component that is independently maintainable
      * Exclude sub-components that are covered by the parent's maintenance regime
