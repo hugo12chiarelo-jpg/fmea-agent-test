@@ -792,7 +792,7 @@ def determine_equipment_complexity(item_class: str) -> str:
         'gearbox', 'speed increaser', 'speed reducer', 'transmission',
         'drive', 'mechanical drive', 'variable speed drive',
         'pressure vessel', 'reactor', 'column', 'distillation', 'absorption',
-        'blower', 'fan' # large fans/blowers with complex internals
+        'blower', 'fan'  # Process fans/blowers (note: small cooling fans may be misclassified as complex)
     ]
     
     # Simple equipment keywords (simpler construction)
@@ -802,7 +802,7 @@ def determine_equipment_complexity(item_class: str) -> str:
         'lamp', 'light', 'lighting', 'fixture',
         'actuator', 'solenoid',
         'breaker', 'switch', 'relay',
-        'tank', 'vessel' # simple tanks/vessels without complex internals
+        'tank'  # simple tanks without complex internals (pressure vessels checked first in complex)
     ]
     
     # Check for complex equipment first (takes priority)
