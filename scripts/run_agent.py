@@ -1032,6 +1032,8 @@ def _is_complex_equipment(item_class: str) -> bool:
             return True
     
     # Default to complex equipment if uncertain (safer to require more MIs)
+    # Log a warning so users are aware of the fallback
+    print(f"[WARN] Could not classify Item Class '{item_class}' - defaulting to COMPLEX equipment (requires 12 MIs minimum)")
     return True
 
 

@@ -356,14 +356,14 @@ def test_g9_validation_simple():
 
 
 if __name__ == "__main__":
-    all_passed = True
+    all_tests_passed = []
     
     try:
-        all_passed &= test_complex_equipment_classification()
-        all_passed &= test_g9_validation_complex()
-        all_passed &= test_g9_validation_simple()
+        all_tests_passed.append(test_complex_equipment_classification())
+        all_tests_passed.append(test_g9_validation_complex())
+        all_tests_passed.append(test_g9_validation_simple())
         
-        if all_passed:
+        if all(all_tests_passed):
             print("\n" + "="*50)
             print("✓ ALL G9 VALIDATION TESTS PASSED")
             print("="*50)
