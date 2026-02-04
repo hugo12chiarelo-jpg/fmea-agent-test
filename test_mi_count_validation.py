@@ -54,8 +54,9 @@ def test_simple_equipment_classification():
 
 def test_g0a_fails_insufficient_complex_mis():
     """Test that G0a detects insufficient MIs for complex equipment (< 12)"""
-    # Create FMEA output with exactly 8 MIs for Motor (complex, needs 12)
-    # Note: This verifies the validation correctly identifies 8 < 12 as insufficient
+    # NEGATIVE TEST: Intentionally create output with only 8 MIs (insufficient)
+    # Motor is COMPLEX and requires minimum 12 MIs, so 8 should trigger G0a error
+    # This test verifies the validation correctly rejects outputs with too few MIs
     output_insufficient_complex = """
 | Item Class | Function | Maintainable Item | Symptom | Failure Mechanism |
 |------------|----------|-------------------|---------|-------------------|
