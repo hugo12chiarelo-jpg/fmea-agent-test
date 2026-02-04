@@ -66,6 +66,47 @@ MAINTAINABLE ITEM RULES
 - Symptoms are OBSERVABLE CONDITIONS that indicate a failure
 - NEVER use entries from the Symptom Catalog as Maintainable Items
 
+**EQUIPMENT COMPLEXITY AND MINIMUM MAINTAINABLE ITEM COUNT:**
+
+Equipment complexity determines the minimum number of Maintainable Items required:
+
+**COMPLEX EQUIPMENT (Minimum 12 Maintainable Items):**
+Equipment with high constructive complexity that typically involves multiple interacting systems, rotating machinery, or process-critical components:
+- **Rotating equipment**: Electric motors, generators, turbines, gas turbines, steam turbines
+- **Pumps**: Centrifugal pumps, reciprocating pumps, gear pumps, screw pumps, multistage pumps
+- **Compressors**: Centrifugal compressors, reciprocating compressors, screw compressors, axial compressors
+- **Process equipment**: Separators (gas-liquid, oil-water), heat exchangers, pressure vessels, reactors, columns
+- **Gearboxes**: Speed increasers, reducers, transmission systems
+- **Mechanical drives**: Complex drive systems, variable speed drives with multiple components
+
+**Characteristics of complex equipment:**
+- Multiple interdependent subsystems (power transmission, lubrication, cooling, sealing, monitoring)
+- Rotating or reciprocating components requiring precise alignment and balance
+- Critical process or production equipment where failure has significant operational impact
+- Large installed base with extensive boundary descriptions in EMS
+
+**SIMPLE EQUIPMENT (Minimum 5 Maintainable Items):**
+Equipment with simpler construction, fewer subsystems, or limited mechanical complexity:
+- **Instrumentation**: Transmitters, sensors, indicators, gauges, detectors, analyzers (standalone)
+- **Simple valves**: Manual valves, check valves, relief valves (without complex actuation systems)
+- **Lighting**: Lamps, light fixtures, lighting systems
+- **Static equipment**: Simple vessels, tanks (without complex internals), piping segments
+- **Simple electrical**: Breakers, switches, simple control panels (standalone)
+- **Simple actuation**: Basic actuators, simple solenoids
+
+**Characteristics of simple equipment:**
+- Few or no rotating parts
+- Limited subsystems or auxiliary equipment
+- Straightforward maintenance regime
+- Smaller boundary scope in EMS
+
+**CRITICAL REQUIREMENT**: 
+- For COMPLEX equipment: Generate AT LEAST 12 distinct Maintainable Items
+- For SIMPLE equipment: Generate AT LEAST 5 distinct Maintainable Items
+- These are MINIMUM requirements. More Maintainable Items should be added if technically justified by boundaries, catalog, manual, or engineering analysis.
+- The same quality structure applies: Boundaries → Catalog → Manual → AI intelligence
+- Use the existing questions in the code to determine correct Maintainable Items - these are validated and practical.
+
 **Process:**
 1. Read the "Boundaries" column from EMS file for the specified Item Class.
 2. **Parse boundaries to identify included vs excluded items:**
@@ -244,6 +285,13 @@ QUALITY GATES (MUST PASS BEFORE EXPORT)
 
 **G0**: Maintainable Items MUST be derived from EMS Boundaries column AND use terminology from Maintainable Item Catalog. Items not explicitly in boundaries must be marked with "(*)" and engineering justification must be provided.
 
+**G0a**: **MINIMUM MAINTAINABLE ITEM COUNT**: The total number of DISTINCT Maintainable Items MUST meet equipment complexity requirements:
+   - **Complex equipment** (motors, generators, pumps, compressors, separators, heat exchangers, turbines, gearboxes, etc.): **Minimum 12 Maintainable Items**
+   - **Simple equipment** (instrumentation, simple valves, lamps, basic actuators, simple sensors, etc.): **Minimum 5 Maintainable Items**
+   - **MANDATORY VERIFICATION**: Count total distinct Maintainable Items BEFORE finalizing output
+   - If count is below minimum: STOP and add more Maintainable Items from boundaries, catalog, manual, or ISO 14224-compliant suggestions
+   - Use the engineering questions established in the code to identify correct additional Maintainable Items
+
 **G1**: **CARDINALITY - Symptoms per Maintainable Item**: Each Maintainable Item MUST have exactly 4–8 DISTINCT Symptoms. No more, no less.
    - **MANDATORY VERIFICATION**: Count the number of unique symptoms for each Maintainable Item
    - **BEFORE GENERATING OUTPUT**: Plan symptoms for each MI to ensure 4-8 range
@@ -277,6 +325,7 @@ QUALITY GATES (MUST PASS BEFORE EXPORT)
    - They MUST be conceptually distinct
 
 **VERIFICATION CHECKLIST** before finalizing output:
+- [ ] **Count total DISTINCT Maintainable Items → Must be ≥12 for complex equipment OR ≥5 for simple equipment**
 - [ ] Count unique Symptoms per Maintainable Item → Must be 4-8 for each (NO EXCEPTIONS)
 - [ ] Count unique Failure Mechanisms per (Maintainable Item, Symptom) pair → Must be 2-5 for each pair
 - [ ] Verify no "Other" or "Unknown" entries exist
