@@ -337,7 +337,9 @@ def build_mi_list_from_ems_and_catalog(ems_path: Path, item_class: str, mi_catal
             f"No EMS rows matched Item Class='{item_class}' (tried both 'Item Class' and 'Item Class Name'). Sample EMS Item Class values: {sample}"
         )
 
-    boundary_text = "\n".join(rows[boundary_col].astype(str).tolist())
+    # Convert to strings robustly - handle NaN, floats, and other types
+    boundary_values = rows[boundary_col].fillna('').astype(str).tolist()
+    boundary_text = "\n".join(boundary_values)
 
     # Read MI catalog - it's a simple single-column file
     try:
