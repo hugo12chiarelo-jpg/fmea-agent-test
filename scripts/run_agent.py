@@ -822,6 +822,66 @@ def determine_equipment_complexity(item_class: str) -> str:
     return "COMPLEX"
 
 
+def convert_markdown_table_to_csv(output_text: str) -> str:
+    """
+    Convert a Markdown table to CSV format.
+    
+    Args:
+        output_text: The text containing a Markdown table
+        
+    Returns:
+        CSV formatted string, or original text if no table found
+    """
+    try:
+        # Extract the table from the output
+        lines = output_text.split('\n')
+        table_lines = []
+        in_table = False
+        
+        for line in lines:
+            # Skip markdown code block markers
+            if line.strip().startswith('```'):
+                continue
+            if line.strip().startswith('|') and 'Item Class' in line:
+                in_table = True
+            if in_table:
+                if line.strip().startswith('|'):
+                    table_lines.append(line)
+                elif line.strip() == '' or line.strip().startswith('---'):
+                    # Continue through empty lines or separators within table
+                    continue
+                else:
+                    # End of table
+                    break
+        
+        if len(table_lines) < 3:
+            # No valid table found, return original text
+            return output_text
+        
+        # Parse the Markdown table
+        table_text = '\n'.join(table_lines)
+        df = pd.read_csv(StringIO(table_text), sep='|', skipinitialspace=True)
+        
+        # Remove empty first and last columns (artifacts of | delimiters)
+        df = df.iloc[:, 1:-1]
+        
+        # Clean column names
+        df.columns = df.columns.str.strip()
+        
+        # Remove separator rows (rows with only dashes)
+        df = df[~df.iloc[:, 0].astype(str).str.strip().str.match(r'^-+$')]
+        
+        # Convert to CSV
+        csv_output = df.to_csv(index=False, lineterminator='\n')
+        
+        return csv_output
+        
+    except Exception as e:
+        print(f"[WARN] Could not convert Markdown table to CSV: {e}")
+        print("[WARN] Returning original Markdown format")
+        return output_text
+
+
 def validate_output_cardinality(output_text: str, item_class: str = "") -> list[str]:
     """
     Validate that the output meets cardinality requirements:
@@ -1401,8 +1461,12 @@ Return ONLY the final deliverables requested in the instruction.
     out_dir = Path("outputs")
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    output_name = "EMS upgrade output.md"
-    (out_dir / output_name).write_text(output_text, encoding="utf-8")
+    # Convert Markdown table to CSV format
+    print("\n[OUTPUT] Converting Markdown table to CSV format...")
+    csv_output = convert_markdown_table_to_csv(output_text)
+    
+    output_name = "EMS upgrade output.csv"
+    (out_dir / output_name).write_text(csv_output, encoding="utf-8")
 
     print(f"OK: Generated outputs/{output_name}")
 
