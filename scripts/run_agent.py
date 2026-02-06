@@ -392,7 +392,8 @@ def build_mi_list_from_ems_and_catalog(ems_path: Path, item_class: str, mi_catal
             (len(line_lower) > 10 and 'exclude ' in line_lower[:15]) or
             'optional' in line_lower or
             'if applicable' in line_lower or
-            'if any' in line_lower
+            'if any' in line_lower or
+            'if fitted' in line_lower
         )
         
         # Match catalog items against this line

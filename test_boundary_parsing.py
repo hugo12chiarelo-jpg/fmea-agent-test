@@ -36,10 +36,12 @@ def parse_boundaries(boundary_text):
         # Check if line contains exclusion keywords
         is_excluded = (
             line_lower.startswith('exclude ') or
+            line_lower.startswith('excludes ') or
             'exclude ' in line_lower[:20] or
             'optional' in line_lower or
             'if applicable' in line_lower or
-            'if any' in line_lower
+            'if any' in line_lower or
+            'if fitted' in line_lower
         )
         
         if is_excluded:
