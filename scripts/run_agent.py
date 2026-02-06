@@ -847,15 +847,15 @@ def convert_markdown_table_to_csv(output_text: str) -> str:
             if in_table:
                 if line.strip().startswith('|'):
                     table_lines.append(line)
-                elif line.strip() == '' or line.strip().startswith('---'):
-                    # Continue through empty lines or separators within table
+                elif line.strip() == '':
+                    # Continue through empty lines within table
                     continue
                 else:
                     # End of table
                     break
         
-        if len(table_lines) < 3:
-            # No valid table found, return original text
+        if len(table_lines) < 2:
+            # No valid table found (need at least header + 1 data row)
             return output_text
         
         # Parse the Markdown table
@@ -868,8 +868,14 @@ def convert_markdown_table_to_csv(output_text: str) -> str:
         # Clean column names
         df.columns = df.columns.str.strip()
         
-        # Remove separator rows (rows with only dashes)
-        df = df[~df.iloc[:, 0].astype(str).str.strip().str.match(r'^-+$')]
+        # Remove separator rows (rows where all cells contain only dashes)
+        # Separator rows have patterns like "-------" in cells
+        mask = df.apply(lambda row: row.astype(str).str.strip().str.match(r'^-+$').all(), axis=1)
+        df = df[~mask]
+        
+        if len(df) == 0:
+            # No data rows found after removing separators
+            return output_text
         
         # Convert to CSV
         csv_output = df.to_csv(index=False, lineterminator='\n')

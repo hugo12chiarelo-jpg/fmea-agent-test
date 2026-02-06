@@ -48,6 +48,20 @@ def test_with_separator_row():
     
     print("✓ Separator row removal test passed")
 
+def test_without_separator_row():
+    """Test that tables without separator rows are handled correctly"""
+    markdown_input = """| Item Class | Function |
+| Motor, Electric | Convert energy |"""
+    
+    csv_output = convert_markdown_table_to_csv(markdown_input)
+    
+    # Verify it's valid CSV with at least the header and one data row
+    df = pd.read_csv(StringIO(csv_output))
+    assert df.shape[0] == 1, f"Expected 1 data row, got {df.shape[0]}"
+    assert df.shape[1] == 2, f"Expected 2 columns, got {df.shape[1]}"
+    
+    print("✓ Table without separator row test passed")
+
 def test_empty_columns_removed():
     """Test that empty first and last columns are removed"""
     markdown_input = """| Item Class | Function |
@@ -78,8 +92,11 @@ def test_with_quotes_in_data():
     df = pd.read_csv(StringIO(csv_output))
     assert df.shape[0] == 2, f"Expected 2 rows, got {df.shape[0]}"
     
-    # Verify data with commas is preserved
-    assert 'electrical' in df['Description'].iloc[0], "Data with commas not preserved correctly"
+    # Verify data with commas is preserved exactly
+    assert df['Description'].iloc[0].strip() == 'Convert electrical, mechanical energy', \
+        f"Data with commas not preserved. Got: '{df['Description'].iloc[0]}'"
+    assert df['Description'].iloc[1].strip() == 'Increase fluid pressure, flow rate', \
+        f"Data with commas not preserved. Got: '{df['Description'].iloc[1]}'"
     
     print("✓ Data with commas test passed")
 
@@ -101,6 +118,7 @@ if __name__ == "__main__":
     tests = [
         test_basic_conversion,
         test_with_separator_row,
+        test_without_separator_row,
         test_empty_columns_removed,
         test_with_quotes_in_data,
         test_invalid_input
