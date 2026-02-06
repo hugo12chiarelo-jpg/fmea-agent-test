@@ -13,7 +13,10 @@ The FMEA must reflect the technical characteristics of each Maintainable Item, w
    - ❌ NEVER use "PTF - Power/signal transmission failure" as a Maintainable Item (this is a SYMPTOM)
    - ❌ NEVER use "VIB - Vibration", "NOI - Noise", "OHE - Overheating" as Maintainable Items (these are SYMPTOMS)
    - ✅ ALWAYS use equipment names like "Bearing Failure", "Rotor Failure", "Windings Failure"
-5. **VERIFICATION BEFORE OUTPUT**: Count symptoms per MI and mechanisms per (MI, Symptom) pair BEFORE finalizing output.
+5. **MINIMUM MAINTAINABLE ITEM COUNT**: Total distinct Maintainable Items must meet minimum thresholds:
+   - Complex equipment (motors, generators, pumps, compressors, separators, heat exchangers, turbines): MINIMUM 12 MIs
+   - Simple equipment (instrumentation, simple valves, lamps): MINIMUM 5 MIs
+6. **VERIFICATION BEFORE OUTPUT**: Count symptoms per MI and mechanisms per (MI, Symptom) pair BEFORE finalizing output.
 
 NON-NEGOTIABLE SOURCES AND PRIORITY
 
@@ -52,6 +55,21 @@ Maintainable Item list must follow what is included in EMS boundary and exclude 
 
 MAINTAINABLE ITEM RULES
 **CRITICAL**: Maintainable Items MUST be derived from the "Boundaries" column of the EMS file AND transformed using the terminology from "Maintainable Item Catalog.csv".
+
+**EQUIPMENT COMPLEXITY CLASSIFICATION** (for minimum MI count requirements):
+- **COMPLEX EQUIPMENT** (minimum 12 Maintainable Items required):
+  * Rotating machinery: Electric motors, generators, gas turbines, steam turbines
+  * Pumps: Centrifugal pumps, reciprocating pumps, screw pumps
+  * Compressors: Centrifugal compressors, reciprocating compressors, screw compressors
+  * Separation equipment: Separators, cyclones, filters (process critical)
+  * Heat exchangers: Shell-and-tube, plate, air-cooled heat exchangers
+  * Other complex mechanical equipment with significant constructive complexity
+- **SIMPLE EQUIPMENT** (minimum 5 Maintainable Items required):
+  * Instrumentation: Transmitters, sensors, indicators, analyzers
+  * Simple valves: Manual valves, check valves, relief valves (non-complex control valves)
+  * Lighting: Lamps, light fixtures
+  * Simple mechanical components: Couplings, filters (non-process critical), strainers
+  * Other equipment with low constructive complexity
 
 **IMPORTANT - DO NOT USE SYMPTOM CODES AS MAINTAINABLE ITEMS:**
 - ❌ BAD: "PTF - Power/signal transmission failure" (this is a SYMPTOM code from the catalog)
@@ -324,6 +342,23 @@ QUALITY GATES (MUST PASS BEFORE EXPORT)
    - The Symptom describes what you OBSERVE; the Mechanism describes the PHYSICAL CAUSE
    - They MUST be conceptually distinct
 
+**G9**: **MINIMUM MAINTAINABLE ITEM COUNT**: The total number of distinct Maintainable Items MUST meet minimum thresholds based on equipment complexity:
+   - **COMPLEX EQUIPMENT** (motors, generators, pumps, compressors, separators, heat exchangers, turbines, etc.): MINIMUM 12 distinct Maintainable Items
+     * Examples: "Motor, Electric", "Pump, Centrifugal", "Compressor, Centrifugal", "Heat Exchanger", "Separator", "Generator"
+     * These equipment types have high constructive complexity with many critical subsystems
+   - **SIMPLE EQUIPMENT** (instrumentation, simple valves, lamps, simple mechanical components): MINIMUM 5 distinct Maintainable Items
+     * Examples: "Transmitter", "Sensor", "Valve, Manual", "Lamp", "Coupling", "Filter (non-critical)"
+     * These equipment types have lower constructive complexity
+   - **MANDATORY VERIFICATION**: Count the total number of unique Maintainable Items in the output
+   - **BEFORE GENERATING OUTPUT**: Review the Item Class and determine its complexity level, then ensure sufficient MIs are generated
+   - If the Item Class is complex but you have fewer than 12 MIs: ADD more relevant maintainable items using boundaries, catalog, manual, and ISO 14224
+   - If the Item Class is simple but you have fewer than 5 MIs: ADD more relevant maintainable items
+   - **QUALITY REMINDER**: Maintain the same quality standards for Maintainable Item derivation:
+     1. Start with EMS Boundary items
+     2. Check Maintainable Item Catalog for relevant components
+     3. Check Manual for additional relevant components
+     4. Apply engineering intelligence to identify missing critical components from ISO 14224
+
 **VERIFICATION CHECKLIST** before finalizing output:
 - [ ] **Count total DISTINCT Maintainable Items → Must be ≥12 for complex equipment OR ≥5 for simple equipment**
 - [ ] Count unique Symptoms per Maintainable Item → Must be 4-8 for each (NO EXCEPTIONS)
@@ -332,6 +367,7 @@ QUALITY GATES (MUST PASS BEFORE EXPORT)
 - [ ] Verify all Maintainable Items end with "Failure"
 - [ ] Verify physical plausibility of all Symptom-Maintainable Item combinations
 - [ ] **Verify NO DUPLICATION: Check each row to ensure Symptom ≠ Mechanism (different terms/concepts)**
+- [ ] **Verify MINIMUM MI COUNT (G9): Complex equipment ≥12 MIs, Simple equipment ≥5 MIs**
 - [ ] Verify total row count is reasonable: minimum 4 rows per MI, typical 10-20 rows per complex MI
 
 ENGINEERING LOGIC VALIDATION (ELR) — VALIDATION FILTER

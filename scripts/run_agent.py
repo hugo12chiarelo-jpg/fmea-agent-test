@@ -825,15 +825,11 @@ def determine_equipment_complexity(item_class: str) -> str:
 def validate_output_cardinality(output_text: str, item_class: str = "") -> list[str]:
     """
     Validate that the output meets cardinality requirements:
-    - Minimum Maintainable Item count based on equipment complexity (G0a)
-    - Each Maintainable Item has 4-8 distinct Symptoms (G1)
-    - Each (MI, Symptom) pair has 2-5 distinct Failure Mechanisms (G2)
-    - No duplication between Symptom and Failure Mechanism on the same row (G7)
-    - Maintainable Items do not contain Symptom codes (G8)
-    
-    Args:
-        output_text: The FMEA output text to validate
-        item_class: The Item Class being analyzed (used for complexity determination)
+    - Each Maintainable Item has 4-8 distinct Symptoms
+    - Each (MI, Symptom) pair has 2-5 distinct Failure Mechanisms
+    - No duplication between Symptom and Failure Mechanism on the same row
+    - Maintainable Items do not contain Symptom codes
+    - Total MI count meets minimum based on equipment complexity (G9)
     
     Returns a list of error messages (empty if valid).
     """
@@ -901,6 +897,9 @@ def validate_output_cardinality(output_text: str, item_class: str = "") -> list[
         if len(df) == 0:
             errors.append("No data rows found in table")
             return errors
+        
+        # Extract Item Class for G9 validation
+        item_class = df['Item Class'].iloc[0].strip() if len(df) > 0 else ""
         
         # G8: Check that Maintainable Items do not contain Symptom codes
         # Check both exact matches and symptom-like patterns
@@ -1030,11 +1029,87 @@ def validate_output_cardinality(output_text: str, item_class: str = "") -> list[
             # Check if main symptom term appears in mechanism (avoid false positives on short terms)
             if len(symptom_term) > MIN_TERM_LENGTH and symptom_term in mechanism_term:
                 errors.append(f"G7 VIOLATION: Row {idx+1} (MI: '{mi}'): Term '{symptom_term}' appears in both Symptom '{symptom}' and Mechanism '{mechanism}'")
+        
+        # G9: Check minimum Maintainable Item count based on equipment complexity
+        unique_mis = df['Maintainable Item'].nunique()
+        
+        # Determine equipment complexity based on Item Class
+        is_complex = _is_complex_equipment(item_class)
+        min_mi_count = 12 if is_complex else 5
+        equipment_type = "COMPLEX" if is_complex else "SIMPLE"
+        
+        if unique_mis < min_mi_count:
+            errors.append(
+                f"G9 VIOLATION: Item Class '{item_class}' is classified as {equipment_type} equipment. "
+                f"Found only {unique_mis} distinct Maintainable Item(s), but need at least {min_mi_count}. "
+                f"Add more relevant maintainable items using EMS boundaries, Maintainable Item Catalog, Manual, and ISO 14224."
+            )
     
     except Exception as e:
         errors.append(f"Validation error: {str(e)}")
     
     return errors
+
+
+def _is_complex_equipment(item_class: str) -> bool:
+    """
+    Determine if an Item Class represents complex equipment based on its name.
+    
+    Complex equipment includes:
+    - Rotating machinery: motors, generators, turbines
+    - Pumps: centrifugal, reciprocating, screw pumps
+    - Compressors: centrifugal, reciprocating, screw compressors
+    - Separation equipment: separators, cyclones
+    - Heat exchangers: shell-and-tube, plate, air-cooled
+    
+    Simple equipment includes:
+    - Instrumentation: transmitters, sensors, indicators, analyzers
+    - Simple valves: manual, check, relief valves
+    - Lighting: lamps, fixtures
+    - Simple mechanical: couplings, filters, strainers
+    
+    Returns True for complex equipment, False for simple equipment.
+    """
+    item_class_lower = item_class.lower()
+    
+    # Complex equipment keywords
+    complex_keywords = [
+        # Rotating machinery
+        'motor', 'generator', 'turbine',
+        # Pumps
+        'pump', 'centrifugal', 'reciprocating',
+        # Compressors
+        'compressor', 'screw',
+        # Separation
+        'separator', 'cyclone',
+        # Heat exchangers
+        'heat exchanger', 'exchanger', 'cooler', 'condenser',
+        # Other complex equipment
+        'engine', 'drive', 'gearbox', 'blower', 'fan (large)'
+    ]
+    
+    # Simple equipment keywords (more specific to avoid false positives)
+    simple_keywords = [
+        'transmitter', 'sensor', 'indicator', 'analyzer', 'instrument',
+        'valve, manual', 'valve, check', 'valve, relief', 'simple valve',
+        'lamp', 'light', 'fixture',
+        'coupling (simple)', 'filter (simple)', 'strainer'
+    ]
+    
+    # Check for simple equipment first (more specific)
+    for keyword in simple_keywords:
+        if keyword in item_class_lower:
+            return False
+    
+    # Check for complex equipment
+    for keyword in complex_keywords:
+        if keyword in item_class_lower:
+            return True
+    
+    # Default to complex equipment if uncertain (safer to require more MIs)
+    # Log a warning so users are aware of the fallback
+    print(f"[WARN] Could not classify Item Class '{item_class}' - defaulting to COMPLEX equipment (requires 12 MIs minimum)")
+    return True
 
 
 def main():
