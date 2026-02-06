@@ -826,6 +826,9 @@ def convert_markdown_table_to_csv(output_text: str) -> str:
     """
     Convert a Markdown table to CSV format.
     
+    This function is specifically designed for FMEA output tables that have
+    'Item Class' as the first column header.
+    
     Args:
         output_text: The text containing a Markdown table
         
@@ -842,6 +845,7 @@ def convert_markdown_table_to_csv(output_text: str) -> str:
             # Skip markdown code block markers
             if line.strip().startswith('```'):
                 continue
+            # Look for FMEA table header (starts with 'Item Class')
             if line.strip().startswith('|') and 'Item Class' in line:
                 in_table = True
             if in_table:

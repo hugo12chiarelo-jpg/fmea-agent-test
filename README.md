@@ -7,7 +7,7 @@ The FMEA agent generates output in **CSV format** for easy import into spreadshe
 
 - **Output file**: `outputs/EMS upgrade output.csv`
 - **Format**: Standard CSV with comma separators
-- **Columns**: 11 columns including Item Class, Function, Maintainable Item, Symptom, Failure Mechanism, etc.
+- **Columns**: Multiple columns including Item Class, Function, Maintainable Item, Maintainable Item Function, Symptom, Failure Mechanism, Failure Effect, Treatment Actions, Reporting Question ID, and Treatment Action Type
 - **Encoding**: UTF-8
 
 The CSV file can be opened in Excel, Google Sheets, or any CSV-compatible application.
