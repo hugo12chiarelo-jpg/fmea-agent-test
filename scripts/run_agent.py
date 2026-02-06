@@ -337,7 +337,9 @@ def build_mi_list_from_ems_and_catalog(ems_path: Path, item_class: str, mi_catal
             f"No EMS rows matched Item Class='{item_class}' (tried both 'Item Class' and 'Item Class Name'). Sample EMS Item Class values: {sample}"
         )
 
-    boundary_text = "\n".join(rows[boundary_col].astype(str).tolist())
+    # Convert to strings robustly - handle NaN, floats, and other types
+    boundary_values = rows[boundary_col].fillna('').astype(str).tolist()
+    boundary_text = "\n".join(boundary_values)
 
     # Read MI catalog - it's a simple single-column file
     try:
@@ -769,7 +771,58 @@ def validate_mi_in_table(output_text: str, mandatory_mi: list[str]) -> list[str]
     return missing
 
 
-def validate_output_cardinality(output_text: str) -> list[str]:
+def determine_equipment_complexity(item_class: str) -> str:
+    """
+    Determine if equipment is COMPLEX or SIMPLE based on Item Class.
+    
+    COMPLEX equipment (minimum 12 MIs): Motors, generators, pumps, compressors, 
+    separators, heat exchangers, turbines, gearboxes, and other rotating/process equipment.
+    
+    SIMPLE equipment (minimum 5 MIs): Instrumentation, simple valves, lamps, 
+    basic actuators, simple sensors, and other standalone equipment.
+    
+    Returns: "COMPLEX" or "SIMPLE"
+    """
+    item_class_lower = item_class.lower().strip()
+    
+    # Complex equipment keywords (high constructive complexity)
+    complex_keywords = [
+        'motor', 'generator', 'turbine', 'gas turbine', 'steam turbine',
+        'pump', 'centrifugal pump', 'reciprocating pump', 'gear pump', 'screw pump',
+        'compressor', 'centrifugal compressor', 'reciprocating compressor', 'screw compressor', 'axial compressor',
+        'separator', 'heat exchanger', 'heater', 'cooler', 'condenser',
+        'gearbox', 'speed increaser', 'speed reducer', 'transmission',
+        'drive', 'mechanical drive', 'variable speed drive',
+        'pressure vessel', 'reactor', 'column', 'distillation', 'absorption',
+        'blower', 'fan'  # Process fans/blowers (note: small cooling fans may be misclassified as complex)
+    ]
+    
+    # Simple equipment keywords (simpler construction)
+    simple_keywords = [
+        'valve', 'check valve', 'relief valve', 'manual valve', 'gate valve', 'ball valve',
+        'instrument', 'transmitter', 'sensor', 'gauge', 'indicator', 'detector', 'analyzer',
+        'lamp', 'light', 'lighting', 'fixture',
+        'actuator', 'solenoid',
+        'breaker', 'switch', 'relay',
+        'tank'  # simple tanks without complex internals (pressure vessels checked first in complex)
+    ]
+    
+    # Check for complex equipment first (takes priority)
+    for keyword in complex_keywords:
+        if keyword in item_class_lower:
+            return "COMPLEX"
+    
+    # Check for simple equipment
+    for keyword in simple_keywords:
+        if keyword in item_class_lower:
+            return "SIMPLE"
+    
+    # Default: If unclear, assume COMPLEX to be conservative (require more MIs)
+    # This ensures comprehensive FMEA coverage for unknown equipment types
+    return "COMPLEX"
+
+
+def validate_output_cardinality(output_text: str, item_class: str = "") -> list[str]:
     """
     Validate that the output meets cardinality requirements:
     - Each Maintainable Item has 4-8 distinct Symptoms
@@ -875,6 +928,28 @@ def validate_output_cardinality(output_text: str) -> list[str]:
                     f"G8 VIOLATION: Row {idx+1}: Maintainable Item '{mi}' uses a symptom-like code pattern. "
                     f"Maintainable Items must be equipment/components (e.g., 'Bearing Failure', 'Rotor Failure'), "
                     f"not symptom-style codes like '{mi_code} - ...'."
+                )
+        
+        # G0a: Check minimum Maintainable Item count based on equipment complexity
+        if item_class:
+            complexity = determine_equipment_complexity(item_class)
+            min_mi_count = 12 if complexity == "COMPLEX" else 5
+            
+            # Count unique Maintainable Items (excluding 'see above' and empty)
+            unique_mis = set()
+            for mi in df['Maintainable Item']:
+                mi_clean = str(mi).strip()
+                if mi_clean and mi_clean.lower() not in ['see above', '']:
+                    unique_mis.add(mi_clean)
+            
+            actual_mi_count = len(unique_mis)
+            
+            if actual_mi_count < min_mi_count:
+                errors.append(
+                    f"G0a VIOLATION: Equipment classified as {complexity} requires minimum {min_mi_count} Maintainable Items. "
+                    f"Found only {actual_mi_count} Maintainable Items. "
+                    f"Add more Maintainable Items from boundaries, catalog, manual, or ISO 14224-compliant suggestions. "
+                    f"Use the engineering questions in the code to identify correct additional Maintainable Items."
                 )
         
         # G1: Check symptoms per Maintainable Item (4-8)
@@ -1274,7 +1349,7 @@ Return ONLY the final deliverables requested in the instruction.
 
     # --- Quality gate: validate cardinality rules with automatic correction ---
     print("\n[VALIDATION] Checking cardinality and duplication rules...")
-    validation_errors = validate_output_cardinality(output_text)
+    validation_errors = validate_output_cardinality(output_text, item_class)
     
     cardinality_correction_attempt = 0
     while validation_errors and cardinality_correction_attempt < max_correction_attempts:
@@ -1313,7 +1388,7 @@ Return ONLY the final deliverables requested in the instruction.
         conversation_history.append({"role": "assistant", "content": output_text})
         
         # Validate the corrected output
-        validation_errors = validate_output_cardinality(output_text)
+        validation_errors = validate_output_cardinality(output_text, item_class)
     
     if validation_errors:
         print(f"\n[VALIDATION] ❌ Output still has {len(validation_errors)} validation error(s) after {cardinality_correction_attempt} correction attempt(s):")

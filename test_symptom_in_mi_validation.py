@@ -54,7 +54,7 @@ def test_g8_detects_exact_symptom_code():
 | Motor, Electric | Convert energy | PTF - Power / signal transmission failure | NOO - No output | 4.3 No power/voltage | System fails | Check power supply | PM00048A | Failure-Finding |
 """
     
-    errors = validate_output_cardinality(output_with_symptom_code)
+    errors = validate_output_cardinality(output_with_symptom_code, "Motor, Electric")
     g8_errors = [e for e in errors if 'G8 VIOLATION' in e]
     
     assert len(g8_errors) > 0, "G8 should detect exact symptom code PTF in MI column"
@@ -75,7 +75,7 @@ def test_g8_detects_symptom_like_pattern():
 | Motor, Electric | Convert energy | PTO - Power / signal transmission failure | NOO - No output | 4.3 No power/voltage | System fails | Check power supply | PM00048A | Failure-Finding |
 """
     
-    errors = validate_output_cardinality(output_with_symptom_pattern)
+    errors = validate_output_cardinality(output_with_symptom_pattern, "Motor, Electric")
     g8_errors = [e for e in errors if 'G8 VIOLATION' in e]
     
     assert len(g8_errors) > 0, "G8 should detect symptom-like pattern (PTO - ...) in MI column"
@@ -100,7 +100,7 @@ def test_g8_allows_valid_maintainable_items():
 | Motor, Electric | Convert energy | Rotor Failure | FWR - Failure while running | 1.2 Wear | System fails | Check alignment | PM00048A | Failure-Finding |
 """
     
-    errors = validate_output_cardinality(output_with_valid_mi)
+    errors = validate_output_cardinality(output_with_valid_mi, "Motor, Electric")
     g8_errors = [e for e in errors if 'G8 VIOLATION' in e]
     
     assert len(g8_errors) == 0, "G8 should not flag valid Maintainable Item names"
@@ -121,7 +121,7 @@ def test_g8_detects_other_symptom_codes():
 | Motor, Electric | Convert energy | NOI - Noise | OHE - Overheating | 4.2 Open circuit | System fails | Check power supply | PM00048A | Failure-Finding |
 """
     
-    errors = validate_output_cardinality(output_with_various_symptoms)
+    errors = validate_output_cardinality(output_with_various_symptoms, "Motor, Electric")
     g8_errors = [e for e in errors if 'G8 VIOLATION' in e]
     
     assert len(g8_errors) >= 2, "G8 should detect VIB and NOI symptom codes in MI column"
