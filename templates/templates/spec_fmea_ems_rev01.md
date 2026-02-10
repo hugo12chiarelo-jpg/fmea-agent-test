@@ -413,6 +413,7 @@ Sealing systems (Dry Gas Seal, Seal Gas Panel): Valid: ELP, PDE, SPO, CSF Avoid:
 
 Electrical/drive train (Motor, Generator, Starter): Valid: FTS, FRO, FWR, PDE Avoid: ELP, PLU Replace: → FRO or FTS
 
+**CRITICAL ELU SYMPTOM GUIDANCE (External Leakage - Utility Medium):**
 **CRITICAL LEAKAGE SYMPTOMS GUIDANCE (ISO 14224 Tables B.6-B.13):**
 
 The distinction between ELU and ELP is based on the FUNCTION of the fluid, not just the fluid type.
