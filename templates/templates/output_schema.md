@@ -63,7 +63,8 @@ No column may be removed, renamed, reordered, or merged.
    - For each symptom, think: "What are the DIFFERENT physical causes that could produce this symptom?"
    - Examples showing MULTIPLE mechanisms per symptom:
      * "Shaft Failure" + "VIB - Vibration" → 4 mechanisms: Fatigue, Misalignment, Unbalance, Wear (4 separate rows)
-     * "Bearing Failure" + "VIB - Vibration" → 3 mechanisms: Wear, Misalignment, Fatigue (3 separate rows)
+     * "NDE Bearing Failure" + "VIB - Vibration" → 3 mechanisms: Wear, Misalignment, Fatigue (3 separate rows)
+     * "DE Bearing Failure" + "VIB - Vibration" → 3 mechanisms: Wear, Misalignment, Fatigue (3 separate rows)
      * "Impeller Failure" + "PDE - Parameter deviation" → 2 mechanisms: Erosion, Corrosion (2 separate rows)
      * "Filter Failure" + "PLU - Plugged" → 2 mechanisms: Blockage, Contamination (2 separate rows)
 
@@ -97,9 +98,10 @@ No column may be removed, renamed, reordered, or merged.
 - Each Maintainable Item MUST have 4–8 DISTINCT Symptoms (many symptoms per item)
 - The exact number within this range depends on the **technical complexity** of the Maintainable Item:
   * **High complexity/critical items** (e.g., Impeller, Shaft, Turbine Rotor): 6-8 symptoms
-  * **Moderate complexity** (e.g., Bearing, Coupling, Seal): 5-6 symptoms
+  * **Moderate complexity** (e.g., NDE Bearing, DE Bearing, Coupling, Seal): 5-6 symptoms
   * **Lower complexity** (e.g., Filter, Sensor, Simple valve): 4-5 symptoms
 - DO NOT create only 1 or 2 symptoms per Maintainable Item
+- **BEARING NAMING**: Never use generic "Bearing Failure" - always specify "NDE Bearing Failure" (Non-Drive End) and "DE Bearing Failure" (Drive End) as separate items
 
 ### Rule 2: (Maintainable Item, Symptom) → Failure Mechanisms (MULTIPLE: 2-5 per symptom)
 - **CRITICAL**: For EACH Symptom associated with a Maintainable Item, generate MULTIPLE (2–5) DISTINCT Failure Mechanisms
@@ -111,7 +113,7 @@ No column may be removed, renamed, reordered, or merged.
   * **Criticality** of the equipment
 - Examples showing MULTIPLE mechanisms:
   * **Critical symptom on critical item**: 3-5 mechanisms (e.g., "Shaft Failure" + "VIB - Vibration" → 4 mechanisms: Fatigue, Misalignment, Unbalance, Wear)
-  * **Moderate importance**: 2-3 mechanisms (e.g., "Bearing Failure" + "NOI - Noise" → 3 mechanisms: Wear, Misalignment, Cavitation)
+  * **Moderate importance**: 2-3 mechanisms (e.g., "NDE Bearing Failure" + "NOI - Noise" → 3 mechanisms: Wear, Misalignment, Cavitation)
   * **Simple symptom on simple item**: 1-2 mechanisms (e.g., "Filter Failure" + "PLU - Plugged" → 2 mechanisms: Blockage, Contamination)
 - Each mechanism gets its OWN output row (same MI + Symptom can appear on multiple rows with different mechanisms)
 
