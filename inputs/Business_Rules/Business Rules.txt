@@ -196,6 +196,71 @@ VIB	Vibration
 VLO	Very low output
 WCL	Well-to-control-line communication
 
+CRITICAL GUIDANCE: ELU vs ELP SYMPTOM SELECTION (ISO 14224)
+
+The distinction between ELU (External leakage - utility medium) and ELP (External leakage - process medium) is critical and must be based on the FUNCTION of the fluid, not just the fluid type.
+
+**Decision Criteria:**
+
+A) ELP - External Leakage - Process Medium
+   - Use when: The fluid IS THE PRODUCT or is part of the MAIN OPERATIONAL PROCESS
+   - Fluid examples: Crude oil being pumped, natural gas being compressed, injection water for wells, process water, produced fluids
+   - Equipment examples: Process pumps, compressors, process valves, process piping, separators, pressure vessels, heat exchangers (process side)
+   - Function: Equipment is DESIGNED TO CONTAIN, TRANSPORT, OR PROCESS this fluid as its primary purpose
+   - ISO 14224 Reference: Tables B.6 to B.13 show ELP for equipment with containment/process function
+
+B) ELU - External Leakage - Utility Medium
+   - Use when: The fluid SUPPORTS the equipment operation but IS NOT the main process fluid
+   - Fluid examples: Lubricating oil, cooling water, service air, hydraulic oil, seal support fluids
+   - Equipment examples: Lubrication systems, cooling circuits, hydraulic actuators, pneumatic systems (service air)
+   - Function: Equipment uses these fluids to ENABLE operation (lubrication, cooling, control) but NOT as the process medium
+   - ISO 14224 Reference: Tables B.6 to B.13 show ELU for auxiliary/support systems
+
+C) When ELU/ELP DO NOT APPLY
+   - Equipment without any fluid circuits: Junction boxes, terminal boxes, cable glands, dry electrical enclosures
+   - Purely electrical/electronic equipment with no lubricating, cooling, or process fluids
+   - Logic/control systems without hydraulic or pneumatic actuation
+
+**Examples:**
+
+✅ CORRECT Applications:
+1. Centrifugal Pump (crude oil service):
+   - Symptom: ELP - External leakage - process medium (crude oil is the PROCESS fluid being pumped)
+   - Symptom: ELU - External leakage - utility medium (lube oil leak from bearing housing - SUPPORTS pump operation)
+
+2. Electric Motor:
+   - Symptom: ELU - External leakage - utility medium (cooling water from heat exchanger, lube oil from bearings)
+   - NOT ELP: Motor does not contain process fluids
+
+3. Gas Compressor:
+   - Symptom: ELP - External leakage - process medium (natural gas leak from seal - gas is PROCESS medium)
+   - Symptom: ELU - External leakage - utility medium (lube oil leak, seal oil leak - SUPPORT fluids)
+
+4. Control Valve (on process line):
+   - Symptom: ELP - External leakage - process medium (process fluid leak from packing/body)
+   - Symptom: ELU - External leakage - utility medium (instrument air leak from actuator - SUPPORT fluid)
+
+❌ INCORRECT Applications:
+1. Junction Box:
+   - NOT ELU: No fluids present - junction box only isolates electrical connections
+   - NOT ELP: No process fluids
+   - Valid symptoms: STD (Structural deficiency), PTF (Power transmission failure), etc.
+
+2. Cable Termination Box:
+   - NOT ELU: No utility fluids
+   - NOT ELP: No process fluids
+   - Valid symptoms: Electrical failures only
+
+3. Instrument Transmitter (pressure/temperature):
+   - ONLY ELU if it has pneumatic supply (service air leak)
+   - NOT ELP unless mounted on process piping and body integrity fails
+
+**Key Decision Question:**
+"What is the PRIMARY FUNCTION of this fluid in relation to the equipment?"
+- If answer is "To be contained/transported/processed by the equipment" → ELP
+- If answer is "To support the equipment operation (cool/lubricate/actuate)" → ELU
+- If answer is "There is no fluid" → Neither ELU nor ELP applies
+
 9.	CAUSE
 
 The Causes are defined following the ISO 14224 Failure Mechanisms Table B.2 and it’s connected to the Maintainable Item.
