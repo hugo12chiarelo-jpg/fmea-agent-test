@@ -150,6 +150,39 @@ def test_radial_bearing_accepted():
     return True
 
 
+def test_axial_bearing_accepted():
+    """Test that 'Axial Bearing Failure' is accepted (specific type)."""
+    print("\n=== Testing Axial Bearing Acceptance ===")
+    
+    # Mock output with Axial Bearing (should pass G11)
+    output_with_axial_bearing = """
+| Item Class | Maintainable Item | Symptom | Failure Mechanism |
+|------------|-------------------|---------|-------------------|
+| Turbine | Axial Bearing Failure | VIB - Vibration | 2.4 Wear |
+| Turbine | Axial Bearing Failure | VIB - Vibration | 2.6 Fatigue |
+| Turbine | Axial Bearing Failure | NOI - Noise | 2.4 Wear |
+| Turbine | Axial Bearing Failure | NOI - Noise | 1.5 Looseness |
+| Turbine | Axial Bearing Failure | OHE - Overheating | 1.4 Deformation |
+| Turbine | Axial Bearing Failure | OHE - Overheating | 2.6 Fatigue |
+| Turbine | Rotor Failure | VIB - Vibration | 2.6 Fatigue |
+| Turbine | Rotor Failure | VIB - Vibration | 1.2 Misalignment |
+| Turbine | Rotor Failure | NOI - Noise | 2.1 Cavitation |
+| Turbine | Rotor Failure | NOI - Noise | 4.1 Short circuit |
+| Turbine | Rotor Failure | OHE - Overheating | 2.7 Overheating |
+| Turbine | Rotor Failure | OHE - Overheating | 2.6 Fatigue |
+"""
+    
+    errors = validate_output_cardinality(output_with_axial_bearing)
+    g11_violations = [e for e in errors if "G11 VIOLATION" in e]
+    
+    if len(g11_violations) > 0:
+        print(f"✗ FAILED: Unexpected G11 violation for Axial Bearing: {g11_violations}")
+        return False
+    
+    print("✓ No G11 violation for Axial Bearing Failure (specific type)")
+    return True
+
+
 if __name__ == "__main__":
     all_tests_passed = []
     
@@ -158,6 +191,7 @@ if __name__ == "__main__":
         all_tests_passed.append(test_nde_de_bearing_accepted())
         all_tests_passed.append(test_thrust_bearing_accepted())
         all_tests_passed.append(test_radial_bearing_accepted())
+        all_tests_passed.append(test_axial_bearing_accepted())
         
         if all(all_tests_passed):
             print("\n" + "="*50)

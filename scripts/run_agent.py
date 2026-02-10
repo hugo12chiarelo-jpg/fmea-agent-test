@@ -1295,27 +1295,43 @@ def validate_output_cardinality(output_text: str, item_class: str = "") -> list[
                 f"This section is critical for ensuring comprehensive FMEA coverage."
             )
         
-        # G11: Check for generic "Bearing Failure" - must be split into NDE and DE
+        # G11: Check for generic "Bearing Failure" - must be split into NDE and DE or specify type
         # Get unique maintainable items from the dataframe
         unique_mis = df['Maintainable Item'].unique()
         for mi in unique_mis:
             mi_lower = str(mi).lower().strip()
-            # Check if this is a generic bearing failure without NDE/DE specification
-            # Allow: "NDE Bearing Failure", "DE Bearing Failure", "Thrust Bearing Failure", "Radial bearing"
+            # Check if this is a generic bearing failure without NDE/DE or type specification
+            # Allow: "NDE Bearing Failure", "DE Bearing Failure", "Thrust Bearing", "Radial bearing", "Axial Bearing"
             # Block: "Bearing Failure", "Bearing", "bearing failure"
             if 'bearing' in mi_lower:
-                # Check if it lacks directional or type specification
-                has_direction = any(keyword in mi_lower for keyword in ['nde', 'de', 'thrust', 'radial', 'axial'])
-                is_generic = mi_lower in ['bearing', 'bearing failure', 'bearings', 'bearings failure']
+                # List of exact generic terms that are not allowed
+                generic_terms = ['bearing', 'bearing failure', 'bearings', 'bearings failure']
                 
-                if is_generic or (not has_direction and 'failure' in mi_lower):
+                # Check if it's exactly a generic term
+                if mi_lower in generic_terms:
                     errors.append(
                         f"G11 VIOLATION: Maintainable Item '{mi}' is too generic. "
                         f"Bearing failures must be separated by location/type: "
                         f"Use 'NDE Bearing Failure' (Non-Drive End) and 'DE Bearing Failure' (Drive End) "
-                        f"for rotating equipment, or specify bearing type (e.g., 'Thrust Bearing', 'Radial bearing'). "
+                        f"for rotating equipment radial bearings, or specify bearing type "
+                        f"(e.g., 'Thrust Bearing Failure', 'Axial Bearing Failure', 'Radial bearing'). "
                         f"Generic 'Bearing Failure' is not allowed."
                     )
+                    continue
+                
+                # For items with 'failure' in the name, ensure they have direction/type specification
+                if 'failure' in mi_lower:
+                    has_specification = any(keyword in mi_lower for keyword in 
+                                          ['nde', 'de', 'thrust', 'radial', 'axial', 'roller', 'ball'])
+                    if not has_specification:
+                        errors.append(
+                            f"G11 VIOLATION: Maintainable Item '{mi}' lacks location/type specification. "
+                            f"Bearing failures must be separated by location/type: "
+                            f"Use 'NDE Bearing Failure' (Non-Drive End) and 'DE Bearing Failure' (Drive End) "
+                            f"for rotating equipment radial bearings, or specify bearing type "
+                            f"(e.g., 'Thrust Bearing Failure', 'Axial Bearing Failure', 'Radial bearing'). "
+                            f"Generic 'Bearing Failure' is not allowed."
+                        )
     
     except Exception as e:
         errors.append(f"Validation error: {str(e)}")
@@ -1339,7 +1355,10 @@ def _is_complex_equipment(item_class: str) -> bool:
     - Instrumentation: transmitters, sensors, indicators, analyzers
     - Simple valves: manual, check, relief valves
     - Lighting: lamps, fixtures
-    - Simple mechanical: filters, strainers, membranes
+    - Simple mechanical: filters, strainers, membranes, simple couplings
+    
+    Note: Some keywords like 'coupling (simple)' use parentheses for specificity
+    to distinguish from complex coupling types in drive systems.
     
     Returns True for complex equipment, False for simple equipment.
     """
