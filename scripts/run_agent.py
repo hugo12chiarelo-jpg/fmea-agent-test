@@ -1063,6 +1063,9 @@ def validate_output_cardinality(output_text: str, item_class: str = "") -> list[
                     if mi_clean and mi_clean.lower() not in ['see above', '']:
                         unique_mis.add(mi_clean)
                 
+                # Minimum keyword length for exclusion matching - avoids false positives on common words
+                MIN_EXCLUSION_KEYWORD_LENGTH = 3
+                
                 # Check each MI against exclusions
                 for mi in unique_mis:
                     mi_lower = mi.lower()
@@ -1071,7 +1074,7 @@ def validate_output_cardinality(output_text: str, item_class: str = "") -> list[
                         # Examples: "monitoring" in exclusion, MI is "Monitoring Failure"
                         exclusion_keywords = exclusion.split()
                         for keyword in exclusion_keywords:
-                            if len(keyword) > 3 and keyword in mi_lower:
+                            if len(keyword) > MIN_EXCLUSION_KEYWORD_LENGTH and keyword in mi_lower:
                                 errors.append(
                                     f"G8a VIOLATION: Maintainable Item '{mi}' violates EMS exclusion rule. "
                                     f"EMS boundaries state: 'Excludes {exclusion}'. "
@@ -1175,7 +1178,8 @@ def validate_output_cardinality(output_text: str, item_class: str = "") -> list[
 
         
         # G7: Check for duplication between Symptom and Failure Mechanism
-        # Minimum term length to check for duplication (avoids false positives on short terms)
+        # MIN_TERM_LENGTH reduced from 5 to 4 to catch more duplications while avoiding false positives
+        # This threshold was chosen to catch terms like "leak" (4 chars) while avoiding short words like "air" (3 chars)
         MIN_TERM_LENGTH = 4
         
         # Define critical terms that should NEVER be duplicated between Symptom and Mechanism

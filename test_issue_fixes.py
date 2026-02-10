@@ -205,6 +205,57 @@ def test_boundary_exclusion_examples():
     return has_monitoring_example and has_exclusion_guidance
 
 
+def test_dataframe_conversion():
+    """Test that convert_markdown_table_to_dataframe works correctly"""
+    print("\n=== Test 8: DataFrame Conversion Function ===")
+    
+    # Test with valid table
+    valid_table = """
+| Item Class | Function | Maintainable Item | Symptom | Failure Mechanism |
+| --- | --- | --- | --- | --- |
+| Motor | Test | Bearing Failure | VIB - Vibration | 2.4 Wear |
+| Motor | Test | Bearing Failure | NOI - Noise | 2.6 Fatigue |
+"""
+    
+    df = convert_markdown_table_to_dataframe(valid_table)
+    
+    if df is not None and len(df) == 2 and 'Item Class' in df.columns:
+        print("✓ PASS: DataFrame conversion works for valid tables")
+    else:
+        print("✗ FAIL: DataFrame conversion failed for valid table")
+        return False
+    
+    # Test with malformed table (missing header)
+    malformed_table = """
+Some random text
+| Motor | Test | Bearing | VIB | Wear |
+"""
+    
+    df_malformed = convert_markdown_table_to_dataframe(malformed_table)
+    
+    if df_malformed is None:
+        print("✓ PASS: DataFrame conversion correctly handles malformed tables")
+    else:
+        print("✗ FAIL: DataFrame conversion should return None for malformed tables")
+        return False
+    
+    # Test with empty table
+    empty_table = """
+| Item Class | Function |
+| --- | --- |
+"""
+    
+    df_empty = convert_markdown_table_to_dataframe(empty_table)
+    
+    if df_empty is None:
+        print("✓ PASS: DataFrame conversion correctly handles empty tables")
+    else:
+        print("✗ FAIL: DataFrame conversion should return None for empty tables")
+        return False
+    
+    return True
+
+
 def main():
     print("=" * 70)
     print("FMEA Agent Issue Fixes - Test Suite")
@@ -218,6 +269,7 @@ def main():
         "ELU Guidance": test_elu_guidance_in_spec(),
         "Suggested MIs Section": test_suggested_mis_section_in_spec(),
         "Boundary Exclusion Examples": test_boundary_exclusion_examples(),
+        "DataFrame Conversion": test_dataframe_conversion(),
     }
     
     print("\n" + "=" * 70)
