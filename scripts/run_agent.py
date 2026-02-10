@@ -618,12 +618,51 @@ def build_correction_prompt(validation_errors: list[str]) -> str:
         Formatted correction prompt
     """
     error_summary = "\n".join([f"  - {err}" for err in validation_errors])
+    
+    # Check if there are G9 or G10 violations
+    has_g9_violation = any("G9 VIOLATION" in err for err in validation_errors)
+    has_g10_violation = any("G10 VIOLATION" in err for err in validation_errors)
+    
+    correction_instructions = []
+    
+    if has_g9_violation:
+        correction_instructions.append("""
+**G9 VIOLATION - MINIMUM MAINTAINABLE ITEM COUNT**:
+You have not met the minimum number of Maintainable Items required for this equipment type.
+TO FIX:
+- Review EMS boundaries for components/systems you may have missed
+- Check the Maintainable Item Catalog for relevant items
+- Consult ISO 14224 Table B.15 for standard maintainable items for this equipment class
+- Consider ALL relevant systems: power transmission, lubrication, cooling, sealing, control, monitoring, structural, etc.
+- Add more Maintainable Items (each with 4-8 symptoms and 2-5 mechanisms per symptom)
+- Mark any items not explicitly in EMS boundaries with "(*)
+""")
+    
+    if has_g10_violation:
+        correction_instructions.append("""
+**G10 VIOLATION - MISSING SUGGESTED ADDITIONAL MAINTAINABLE ITEMS SECTION**:
+You MUST include a "SUGGESTED ADDITIONAL MAINTAINABLE ITEMS (for Engineering Review)" section at the end.
+TO FIX:
+- Add a section titled "SUGGESTED ADDITIONAL MAINTAINABLE ITEMS (for Engineering Review)" after the main table
+- List ALL Maintainable Items marked with "(*)" from the main table
+- For EACH suggested item, provide:
+  * Engineering justification (ISO 14224 reference, reliability basis, failure risk)
+  * Expected Symptoms (3-5 typical symptoms)
+  * Expected Failure Mechanisms (2-4 typical mechanisms)
+  * Function of the Maintainable Item
+  * Suggested Treatment Actions (2-3 examples)
+- Also suggest additional relevant Maintainable Items not in main table but worth considering
+""")
+    
+    additional_rules = "\n".join(correction_instructions) if correction_instructions else ""
+    
     return f"""
 The output you provided has validation errors that MUST be fixed:
 
 {error_summary}
 
-Please revise the ENTIRE FMEA table to fix these violations while keeping the same structure and format.
+Please revise the ENTIRE FMEA to fix these violations while keeping the same structure and format.
+{additional_rules}
 
 CRITICAL RULES TO FOLLOW:
 1. Each Maintainable Item MUST have EXACTLY 4-8 DISTINCT Symptoms
@@ -648,6 +687,7 @@ CRITICAL RULES TO FOLLOW:
 
 Return the COMPLETE corrected output with the FULL table (not just the fixes).
 Include ALL rows with the expanded mechanisms.
+If you added new Maintainable Items or have items marked with "(*)", ensure the SUGGESTED ADDITIONAL MAINTAINABLE ITEMS section is included.
 """
 
 
@@ -1111,27 +1151,7 @@ def validate_output_cardinality(output_text: str, item_class: str = "") -> list[
                     f"not symptom-style codes like '{mi_code} - ...'."
                 )
         
-        # G0a: Check minimum Maintainable Item count based on equipment complexity
-        if item_class:
-            complexity = determine_equipment_complexity(item_class)
-            min_mi_count = 12 if complexity == "COMPLEX" else 5
-            
-            # Count unique Maintainable Items (excluding 'see above' and empty)
-            unique_mis = set()
-            for mi in df['Maintainable Item']:
-                mi_clean = str(mi).strip()
-                if mi_clean and mi_clean.lower() not in ['see above', '']:
-                    unique_mis.add(mi_clean)
-            
-            actual_mi_count = len(unique_mis)
-            
-            if actual_mi_count < min_mi_count:
-                errors.append(
-                    f"G0a VIOLATION: Equipment classified as {complexity} requires minimum {min_mi_count} Maintainable Items. "
-                    f"Found only {actual_mi_count} Maintainable Items. "
-                    f"Add more Maintainable Items from boundaries, catalog, manual, or ISO 14224-compliant suggestions. "
-                    f"Use the engineering questions in the code to identify correct additional Maintainable Items."
-                )
+
         
         # G1: Check symptoms per Maintainable Item (4-8)
         symptom_counts = df.groupby('Maintainable Item')['Symptom'].nunique()
@@ -1251,6 +1271,29 @@ def validate_output_cardinality(output_text: str, item_class: str = "") -> list[
                 f"Found only {unique_mis} distinct Maintainable Item(s), but need at least {min_mi_count}. "
                 f"Add more relevant maintainable items using EMS boundaries, Maintainable Item Catalog, Manual, and ISO 14224."
             )
+        
+        # G10: Check for SUGGESTED ADDITIONAL MAINTAINABLE ITEMS section
+        # This section should provide recommendations for extra MIs that can be included
+        suggested_section_present = False
+        suggested_section_patterns = [
+            r'SUGGESTED ADDITIONAL MAINTAINABLE ITEMS',
+            r'ADDITIONAL MAINTAINABLE ITEMS.*for Engineering Review',
+            r'RECOMMENDED ADDITIONAL MAINTAINABLE ITEMS'
+        ]
+        
+        for pattern in suggested_section_patterns:
+            if re.search(pattern, output_text, re.IGNORECASE):
+                suggested_section_present = True
+                break
+        
+        if not suggested_section_present:
+            errors.append(
+                f"G10 VIOLATION: Missing 'SUGGESTED ADDITIONAL MAINTAINABLE ITEMS' section. "
+                f"The output must include a section recommending extra Maintainable Items "
+                f"(marked with '*') that can be added beyond the base list, with their expected "
+                f"Symptoms, Failure Mechanisms, and engineering justification. "
+                f"This section is critical for ensuring comprehensive FMEA coverage."
+            )
     
     except Exception as e:
         errors.append(f"Validation error: {str(e)}")
@@ -1298,7 +1341,8 @@ def _is_complex_equipment(item_class: str) -> bool:
     # Simple equipment keywords (more specific to avoid false positives)
     simple_keywords = [
         'transmitter', 'sensor', 'indicator', 'analyzer', 'instrument',
-        'valve, manual', 'valve, check', 'valve, relief', 'simple valve',
+        'check valve', 'relief valve', 'manual valve', 'simple valve',
+        'valve, manual', 'valve, check', 'valve, relief',  # Keep comma versions for backward compat
         'lamp', 'light', 'fixture',
         'coupling (simple)', 'filter (simple)', 'strainer'
     ]
@@ -1463,6 +1507,29 @@ The list below contains Maintainable Items derived from EMS Boundaries column, e
 - **OUTPUT VALIDATION SECTION**: At the end of the FMEA, include a "SUGGESTED ADDITIONAL MAINTAINABLE ITEMS" table with justification for each (*)-marked item
 
 ## CRITICAL REMINDERS BEFORE YOU START:
+
+**MINIMUM MAINTAINABLE ITEM COUNT (G9) - MANDATORY:**
+- **COMPLEX EQUIPMENT** (motors, pumps, compressors, separators, heat exchangers, turbines, etc.): **MINIMUM 12 distinct Maintainable Items REQUIRED**
+- **SIMPLE EQUIPMENT** (instrumentation, simple valves, lamps, basic actuators, etc.): **MINIMUM 5 distinct Maintainable Items REQUIRED**
+- ⚠️  **BEFORE FINALIZING OUTPUT**: Count your distinct Maintainable Items
+- ⚠️  **IF BELOW MINIMUM**: Add more relevant MIs from:
+  * EMS boundaries (items not yet covered)
+  * Maintainable Item Catalog (relevant components for this equipment type)
+  * Equipment Manual (systems/components that can fail)
+  * ISO 14224 Table B.15 (standard maintainable items for equipment class)
+- ✅ **ALWAYS include**: Power transmission, control systems, lubrication, cooling, sealing, structural, monitoring systems as applicable
+
+**SUGGESTED ADDITIONAL MAINTAINABLE ITEMS SECTION (G10) - MANDATORY:**
+- ✅ **MUST INCLUDE** at the end of your output: A section titled "SUGGESTED ADDITIONAL MAINTAINABLE ITEMS (for Engineering Review)"
+- ✅ **MUST LIST** all Maintainable Items marked with "(*)" from the main table
+- ✅ **MUST PROVIDE** for each suggested item:
+  * Engineering justification (ISO 14224 reference, reliability basis, failure risk)
+  * Expected Symptoms (3-5 typical symptoms)
+  * Expected Failure Mechanisms (2-4 typical mechanisms)
+  * Function of the Maintainable Item
+  * Suggested Treatment Actions (2-3 examples)
+- ✅ **MUST ALSO SUGGEST** additional relevant Maintainable Items not in main table but worth considering
+- ⚠️  **THIS SECTION IS MANDATORY** - Output will be rejected without it
 
 **NO PLACEHOLDERS OR TRUNCATION ALLOWED:**
 - ❌ NEVER write "(Additional rows...)", "[The rest of the table...]", "[See above]", "[unchanged]", or "..."
