@@ -908,6 +908,70 @@ def convert_markdown_table_to_csv(output_text: str) -> str:
     return output_text
 
 
+def extract_ems_exclusions(ems_path: Path, item_class: str) -> list[str]:
+    """
+    Extract exclusion phrases from EMS boundaries for a given Item Class.
+    
+    Args:
+        ems_path: Path to EMS.csv file
+        item_class: Target Item Class to filter
+        
+    Returns:
+        List of excluded terms/phrases from EMS boundaries
+    """
+    try:
+        # Read EMS
+        try:
+            ems = pd.read_csv(ems_path, sep=None, engine="python")
+        except Exception:
+            ems = pd.read_csv(ems_path, sep=";", engine="python", on_bad_lines="skip")
+        
+        # Normalize headers
+        ems.columns = [str(c).replace("\ufeff", "").strip() for c in ems.columns]
+        
+        if "Item Class" not in ems.columns:
+            return []
+        
+        # Find boundary column
+        boundary_col = None
+        for c in ems.columns:
+            if str(c).strip().lower() in {"boundaries", "boundary"}:
+                boundary_col = c
+                break
+        if boundary_col is None:
+            return []
+        
+        # Match rows for this item class
+        rows = match_item_class_rows(ems, item_class)
+        if rows.empty:
+            return []
+        
+        # Get boundary text
+        boundary_values = rows[boundary_col].fillna('').astype(str).tolist()
+        boundary_text = "\n".join(boundary_values)
+        
+        # Extract exclusion phrases
+        exclusions = []
+        boundary_lines = boundary_text.split('\n')
+        
+        for line in boundary_lines:
+            line_stripped = line.strip()
+            line_lower = line_stripped.lower()
+            
+            # Check if line contains exclusion keywords
+            if (line_lower.startswith('exclude ') or 
+                line_lower.startswith('excludes ') or
+                (len(line_lower) > 10 and 'exclude ' in line_lower[:20])):
+                # Extract what is being excluded
+                # Remove "Excludes" prefix
+                exclusion_text = re.sub(r'^excludes?\s+', '', line_lower, flags=re.IGNORECASE)
+                exclusions.append(exclusion_text.strip())
+        
+        return exclusions
+    except Exception as e:
+        print(f"[WARN] Could not extract EMS exclusions: {e}")
+        return []
+
 
 def validate_output_cardinality(output_text: str, item_class: str = "") -> list[str]:
     """
@@ -987,6 +1051,33 @@ def validate_output_cardinality(output_text: str, item_class: str = "") -> list[
         
         # Extract Item Class for G9 validation
         item_class = df['Item Class'].iloc[0].strip() if len(df) > 0 else ""
+        
+        # G8a: Check for excluded items from EMS boundaries
+        ems_path = Path("inputs/EMS/EMS.csv")
+        if item_class and ems_path.exists():
+            ems_exclusions = extract_ems_exclusions(ems_path, item_class)
+            if ems_exclusions:
+                unique_mis = set()
+                for mi in df['Maintainable Item']:
+                    mi_clean = str(mi).strip()
+                    if mi_clean and mi_clean.lower() not in ['see above', '']:
+                        unique_mis.add(mi_clean)
+                
+                # Check each MI against exclusions
+                for mi in unique_mis:
+                    mi_lower = mi.lower()
+                    for exclusion in ems_exclusions:
+                        # Check if MI contains any excluded terms
+                        # Examples: "monitoring" in exclusion, MI is "Monitoring Failure"
+                        exclusion_keywords = exclusion.split()
+                        for keyword in exclusion_keywords:
+                            if len(keyword) > 3 and keyword in mi_lower:
+                                errors.append(
+                                    f"G8a VIOLATION: Maintainable Item '{mi}' violates EMS exclusion rule. "
+                                    f"EMS boundaries state: 'Excludes {exclusion}'. "
+                                    f"This item should NOT be included in the FMEA."
+                                )
+                                break  # Only report once per MI
         
         # G8: Check that Maintainable Items do not contain Symptom codes
         # Check both exact matches and symptom-like patterns
@@ -1124,7 +1215,6 @@ def validate_output_cardinality(output_text: str, item_class: str = "") -> list[
             for critical_term in CRITICAL_DUPLICATE_TERMS:
                 # Check if the critical term appears as a word in both symptom and mechanism
                 # Use word boundary matching to avoid false positives (e.g., "wear" in "wearable")
-                import re
                 symptom_has_term = re.search(r'\b' + critical_term + r'\b', symptom_lower)
                 mechanism_has_term = re.search(r'\b' + critical_term + r'\b', mechanism_lower)
                 
