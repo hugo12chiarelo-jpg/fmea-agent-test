@@ -50,6 +50,10 @@ Interpret EMS boundaries as defining what is included in the Item Class maintena
 2. Everything else mentioned in boundaries IS included unless explicitly excluded
 3. Read the full boundaries text carefully to identify ALL included components, systems, and equipment
 4. Do NOT limit to only "main" or "most probable" items - include ALL technically relevant items from boundaries
+5. **EXCLUSION EXAMPLES**:
+   - "Excludes Monitoring and control systems" → DO NOT include "Monitoring Failure", "Monitoring System Failure", "Control System Failure"
+   - "Excludes associated switchgear/MCC/control panel" → DO NOT include switchgear, MCC, or control panel related items
+   - If boundary says "Excludes X", then X and related systems MUST NOT appear in Maintainable Items
 
 Maintainable Item list must follow what is included in EMS boundary and exclude what is excluded.
 
@@ -388,6 +392,59 @@ Instrumentation/control (Transmitters, Sensors, PLC): Valid: AIR, CSF, SHH, SLL,
 Sealing systems (Dry Gas Seal, Seal Gas Panel): Valid: ELP, PDE, SPO, CSF Avoid: NOO, LOO Replace: NOO → ELP; LOO → PDE
 
 Electrical/drive train (Motor, Generator, Starter): Valid: FTS, FRO, FWR, PDE Avoid: ELP, PLU Replace: → FRO or FTS
+
+**CRITICAL ELU SYMPTOM GUIDANCE (External Leakage - Utility Medium):**
+
+**Definition**: ELU (External leakage - utility medium) is a SYMPTOM that appears when utility fluids (air, water, lubrication oil, cooling fluid, hydraulic oil) leak externally from a system or component.
+
+**Key Concepts**:
+- ELU is a SYMPTOM (observable condition: fluid is leaking outside)
+- The FAILURE MECHANISM must describe the ROOT CAUSE (not just "Leakage")
+- ISO 14224 distinction: Symptom = what you observe; Mechanism = why it happens
+
+**CORRECT Examples**:
+- ✅ Symptom: "ELU - External leakage - utility medium" → Mechanism: "2.2 Corrosion" (corrosion caused hole)
+- ✅ Symptom: "ELU - External leakage - utility medium" → Mechanism: "2.4 Wear" (wear on sealing surface)
+- ✅ Symptom: "ELU - External leakage - utility medium" → Mechanism: "2.6 Fatigue" (fatigue crack)
+- ✅ Symptom: "ELU - External leakage - utility medium" → Mechanism: "1.4 Deformation" (gasket deformation)
+
+**INCORRECT Examples (DO NOT USE)**:
+- ❌ Symptom: "ELU - External leakage - utility medium" → Mechanism: "1.1 Leakage" (FORBIDDEN - duplicates concept)
+- ❌ Symptom: "ELU - External leakage - utility medium" → Mechanism: "External leakage" (FORBIDDEN - repeats symptom)
+- ❌ Symptom: "VIB - Vibration" → Mechanism: "1.2 Vibration" (FORBIDDEN - duplicates concept)
+- ❌ Symptom: "NOI - Noise" → Mechanism: "Noise" (FORBIDDEN - duplicates concept)
+
+**Application Examples**:
+- Instrument with service air supply has air leak → Symptom: ELU, Mechanism: 2.4 Wear (worn fitting)
+- Cooling water hose rupture → Symptom: ELU, Mechanism: 2.6 Fatigue (hose fatigue)
+- Lube oil leak at seal → Symptom: ELU, Mechanism: 2.4 Wear (seal wear)
+
+**MANDATORY VERIFICATION**: Before assigning any Failure Mechanism to a Symptom, verify they represent DIFFERENT concepts.
+
+SUGGESTED ADDITIONAL MAINTAINABLE ITEMS SECTION
+
+At the END of the FMEA output, after all main table rows, include a separate section titled:
+
+**SUGGESTED ADDITIONAL MAINTAINABLE ITEMS (for Engineering Review)**
+
+This section must include:
+1. ALL Maintainable Items marked with "(*)" in the main table
+2. Additional relevant Maintainable Items NOT included in the main table but worth considering
+3. For EACH suggested item, provide:
+   - Maintainable Item name (ending with "Failure")
+   - Engineering justification (ISO 14224 reference, reliability basis, failure risk)
+   - Expected Symptoms (3-5 typical symptoms)
+   - Expected Failure Mechanisms (2-4 typical mechanisms for those symptoms)
+   - Function of the Maintainable Item
+   - Suggested Treatment Actions (2-3 examples)
+
+Format as a table with columns:
+| Maintainable Item | Justification | Function | Expected Symptoms | Expected Failure Mechanisms | Suggested Treatment Actions |
+
+**Example**:
+| Lubrication System Failure (*) | ISO 14224 standard MI for rotating equipment; critical for bearing health and motor reliability | Supply clean lubrication oil to reduce friction | LOO - Low oil pressure, PDE - Parameter deviation, PLU - Plugged/choked, ELU - External leakage | 5.3 Contamination, 2.4 Wear, 1.1 Leakage, 5.2 Fouling | Oil analysis [Y/N], Filter inspection [Y/N], Leak detection [Y/N] |
+
+**Purpose**: This section helps stakeholders understand AI-suggested items and make informed decisions about including them in the FMEA scope.
 
 FINAL EXECUTION RULE
 If the user requests "build FMEA for [Item Class]", assume they mean the complete version as per Business Rules, not a minimal version.

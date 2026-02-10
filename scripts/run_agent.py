@@ -823,9 +823,9 @@ def determine_equipment_complexity(item_class: str) -> str:
     return "COMPLEX"
 
 
-def convert_markdown_table_to_csv(output_text: str) -> str:
+def convert_markdown_table_to_dataframe(output_text: str) -> pd.DataFrame | None:
     """
-    Convert a Markdown table to CSV format.
+    Convert a Markdown table to pandas DataFrame.
     
     This function is specifically designed for FMEA output tables that have
     'Item Class' as the first column header.
@@ -834,7 +834,7 @@ def convert_markdown_table_to_csv(output_text: str) -> str:
         output_text: The text containing a Markdown table
         
     Returns:
-        CSV formatted string, or original text if no table found
+        DataFrame if successful, None if table not found or conversion failed
     """
     try:
         # Extract the table from the output
@@ -861,7 +861,7 @@ def convert_markdown_table_to_csv(output_text: str) -> str:
         
         if len(table_lines) < 2:
             # No valid table found (need at least header + 1 data row)
-            return output_text
+            return None
         
         # Parse the Markdown table
         table_text = '\n'.join(table_lines)
@@ -880,17 +880,33 @@ def convert_markdown_table_to_csv(output_text: str) -> str:
         
         if len(df) == 0:
             # No data rows found after removing separators
-            return output_text
+            return None
         
-        # Convert to CSV
-        csv_output = df.to_csv(index=False, lineterminator='\n')
-        
-        return csv_output
+        return df
         
     except Exception as e:
-        print(f"[WARN] Could not convert Markdown table to CSV: {e}")
-        print("[WARN] Returning original Markdown format")
-        return output_text
+        print(f"[WARN] Could not convert Markdown table to DataFrame: {e}")
+        return None
+
+
+def convert_markdown_table_to_csv(output_text: str) -> str:
+    """
+    Convert a Markdown table to CSV format.
+    
+    This function is specifically designed for FMEA output tables that have
+    'Item Class' as the first column header.
+    
+    Args:
+        output_text: The text containing a Markdown table
+        
+    Returns:
+        CSV formatted string, or original text if no table found
+    """
+    df = convert_markdown_table_to_dataframe(output_text)
+    if df is not None:
+        return df.to_csv(index=False, lineterminator='\n')
+    return output_text
+
 
 
 def validate_output_cardinality(output_text: str, item_class: str = "") -> list[str]:
@@ -1069,7 +1085,14 @@ def validate_output_cardinality(output_text: str, item_class: str = "") -> list[
         
         # G7: Check for duplication between Symptom and Failure Mechanism
         # Minimum term length to check for duplication (avoids false positives on short terms)
-        MIN_TERM_LENGTH = 5
+        MIN_TERM_LENGTH = 4
+        
+        # Define critical terms that should NEVER be duplicated between Symptom and Mechanism
+        CRITICAL_DUPLICATE_TERMS = {
+            'vibration', 'noise', 'leakage', 'leak', 'cavitation', 'erosion', 
+            'corrosion', 'wear', 'fatigue', 'overheating', 'heating', 'breakdown',
+            'deformation', 'contamination', 'fouling', 'plugged', 'choked'
+        }
         
         for idx, row in df.iterrows():
             symptom = str(row['Symptom']).strip()
@@ -1097,9 +1120,28 @@ def validate_output_cardinality(output_text: str, item_class: str = "") -> list[
             symptom_term = symptom.split('-')[-1].strip().lower() if '-' in symptom else symptom_lower
             mechanism_term = mechanism_lower
             
+            # Check for critical duplicate terms (exact word match)
+            for critical_term in CRITICAL_DUPLICATE_TERMS:
+                # Check if the critical term appears as a word in both symptom and mechanism
+                # Use word boundary matching to avoid false positives (e.g., "wear" in "wearable")
+                import re
+                symptom_has_term = re.search(r'\b' + critical_term + r'\b', symptom_lower)
+                mechanism_has_term = re.search(r'\b' + critical_term + r'\b', mechanism_lower)
+                
+                if symptom_has_term and mechanism_has_term:
+                    errors.append(
+                        f"G7 VIOLATION: Row {idx+1} (MI: '{mi}'): Critical term '{critical_term}' appears in both "
+                        f"Symptom '{symptom}' and Mechanism '{mechanism}'. "
+                        f"Symptom = observable condition, Mechanism = physical cause (must differ)."
+                    )
+                    break  # Only report first duplicate per row
+            
             # Check if main symptom term appears in mechanism (avoid false positives on short terms)
             if len(symptom_term) > MIN_TERM_LENGTH and symptom_term in mechanism_term:
-                errors.append(f"G7 VIOLATION: Row {idx+1} (MI: '{mi}'): Term '{symptom_term}' appears in both Symptom '{symptom}' and Mechanism '{mechanism}'")
+                # Skip if already reported above
+                already_reported = any(critical_term in symptom_term for critical_term in CRITICAL_DUPLICATE_TERMS)
+                if not already_reported:
+                    errors.append(f"G7 VIOLATION: Row {idx+1} (MI: '{mi}'): Term '{symptom_term}' appears in both Symptom '{symptom}' and Mechanism '{mechanism}'")
         
         # G9: Check minimum Maintainable Item count based on equipment complexity
         unique_mis = df['Maintainable Item'].nunique()
@@ -1472,14 +1514,21 @@ Return ONLY the final deliverables requested in the instruction.
     out_dir = Path("outputs")
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    # Convert Markdown table to CSV format
-    print("\n[OUTPUT] Converting Markdown table to CSV format...")
-    csv_output = convert_markdown_table_to_csv(output_text)
+    # Convert Markdown table to DataFrame
+    print("\n[OUTPUT] Converting Markdown table to DataFrame...")
+    df = convert_markdown_table_to_dataframe(output_text)
     
-    output_name = "EMS upgrade output.csv"
-    (out_dir / output_name).write_text(csv_output, encoding="utf-8")
-
-    print(f"OK: Generated outputs/{output_name}")
+    if df is not None:
+        # Save as XLSX (Excel format)
+        output_name = "EMS upgrade output.xlsx"
+        output_path = out_dir / output_name
+        df.to_excel(output_path, index=False, engine='openpyxl')
+        print(f"OK: Generated outputs/{output_name}")
+    else:
+        # Fallback: save raw output as text if conversion failed
+        output_name = "EMS upgrade output.txt"
+        (out_dir / output_name).write_text(output_text, encoding="utf-8")
+        print(f"WARNING: Could not convert to Excel. Saved raw output to outputs/{output_name}")
 
 
 if __name__ == "__main__":
