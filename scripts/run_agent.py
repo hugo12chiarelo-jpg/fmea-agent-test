@@ -1299,18 +1299,19 @@ def validate_output_cardinality(output_text: str, item_class: str = "") -> list[
         # Get unique maintainable items from the dataframe
         unique_mis = df['Maintainable Item'].unique()
         for mi in unique_mis:
-            mi_lower = str(mi).lower().strip()
+            mi_clean = str(mi).strip()
+            mi_lower = mi_clean.lower()
             # Check if this is a generic bearing failure without NDE/DE or type specification
             # Allow: "NDE Bearing Failure", "DE Bearing Failure", "Thrust Bearing", "Radial bearing", "Axial Bearing"
             # Block: "Bearing Failure", "Bearing", "bearing failure"
             if 'bearing' in mi_lower:
-                # List of exact generic terms that are not allowed
+                # List of exact generic terms that are not allowed (already stripped)
                 generic_terms = ['bearing', 'bearing failure', 'bearings', 'bearings failure']
                 
                 # Check if it's exactly a generic term
                 if mi_lower in generic_terms:
                     errors.append(
-                        f"G11 VIOLATION: Maintainable Item '{mi}' is too generic. "
+                        f"G11 VIOLATION: Maintainable Item '{mi_clean}' is too generic. "
                         f"Bearing failures must be separated by location/type: "
                         f"Use 'NDE Bearing Failure' (Non-Drive End) and 'DE Bearing Failure' (Drive End) "
                         f"for rotating equipment radial bearings, or specify bearing type "
@@ -1321,11 +1322,20 @@ def validate_output_cardinality(output_text: str, item_class: str = "") -> list[
                 
                 # For items with 'failure' in the name, ensure they have direction/type specification
                 if 'failure' in mi_lower:
-                    has_specification = any(keyword in mi_lower for keyword in 
-                                          ['nde', 'de', 'thrust', 'radial', 'axial', 'roller', 'ball'])
+                    # Use word boundary checks to avoid false positives
+                    # Check for specific bearing type keywords with word boundaries
+                    has_specification = (
+                        re.search(r'\bnde\b', mi_lower) or  # Non-Drive End
+                        re.search(r'\bde\b', mi_lower) or   # Drive End (word boundary to avoid 'degradation', 'model', etc.)
+                        'thrust' in mi_lower or              # Thrust bearing
+                        'radial' in mi_lower or              # Radial bearing
+                        'axial' in mi_lower or               # Axial bearing
+                        'roller' in mi_lower or              # Roller bearing
+                        'ball' in mi_lower                   # Ball bearing
+                    )
                     if not has_specification:
                         errors.append(
-                            f"G11 VIOLATION: Maintainable Item '{mi}' lacks location/type specification. "
+                            f"G11 VIOLATION: Maintainable Item '{mi_clean}' lacks location/type specification. "
                             f"Bearing failures must be separated by location/type: "
                             f"Use 'NDE Bearing Failure' (Non-Drive End) and 'DE Bearing Failure' (Drive End) "
                             f"for rotating equipment radial bearings, or specify bearing type "

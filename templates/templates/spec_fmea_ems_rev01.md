@@ -221,8 +221,8 @@ If the AI suggests maintainable items not explicit in EMS boundary, output a sep
 **IMPORTANT BEARING NAMING RULES:**
 - Generic "Bearing Failure" is NOT allowed
 - For rotating equipment radial bearings: Always separate into "NDE Bearing Failure" (Non-Drive End) and "DE Bearing Failure" (Drive End)
-- Specific bearing types are allowed: "Thrust Bearing Failure", "Axial Bearing Failure", or catalog names like "Radial bearing"
-- "Thrust Bearing" can be used as-is or classified as NDE if location is known
+- Specific bearing types must be clearly identified: "Thrust Bearing Failure", "Axial Bearing Failure", or catalog names like "Radial bearing"
+- Thrust and Axial bearings serve different functions than radial bearings (NDE/DE) and should not be mixed
 - Each bearing location/type is a separate Maintainable Item with its own symptoms and mechanisms
 
 SYMPTOM RULES
