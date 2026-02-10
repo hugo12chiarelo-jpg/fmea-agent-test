@@ -485,7 +485,7 @@ The distinction between ELU and ELP is based on the FUNCTION of the fluid, not j
 **INCORRECT Examples (DO NOT USE)**:
 - ❌ Symptom: "ELU - External leakage - utility medium" → Mechanism: "1.1 Leakage" (FORBIDDEN - duplicates concept)
 - ❌ Symptom: "ELU - External leakage - utility medium" → Mechanism: "External leakage" (FORBIDDEN - repeats symptom)
-- ❌ Junction Box Failure → Symptom: "ELU - External leakage - utility medium" (FORBIDDEN - junction box has no fluids)
+- ❌ Maintainable Item: "Junction Box Failure" → Symptom: "ELU - External leakage - utility medium" (FORBIDDEN - junction box has no fluids)
 
 **Application Examples**:
 - Electric Motor with lube oil leak from bearing → Symptom: ELU, Mechanism: 2.4 Wear (bearing seal wear)
