@@ -1326,7 +1326,7 @@ def validate_output_cardinality(output_text: str, item_class: str = "") -> list[
                     # Check for specific bearing type keywords with word boundaries
                     has_specification = (
                         re.search(r'\bnde\b', mi_lower) or  # Non-Drive End
-                        re.search(r'\bde\b', mi_lower) or   # Drive End (word boundary to avoid 'degradation', 'model', etc.)
+                        re.search(r'\bde\b', mi_lower) or   # Drive End (word boundary to avoid 'decode', 'delete', 'ode', etc.)
                         'thrust' in mi_lower or              # Thrust bearing
                         'radial' in mi_lower or              # Radial bearing
                         'axial' in mi_lower or               # Axial bearing
