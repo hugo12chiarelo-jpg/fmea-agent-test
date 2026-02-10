@@ -307,13 +307,6 @@ QUALITY GATES (MUST PASS BEFORE EXPORT)
 
 **G0**: Maintainable Items MUST be derived from EMS Boundaries column AND use terminology from Maintainable Item Catalog. Items not explicitly in boundaries must be marked with "(*)" and engineering justification must be provided.
 
-**G0a**: **MINIMUM MAINTAINABLE ITEM COUNT**: The total number of DISTINCT Maintainable Items MUST meet equipment complexity requirements:
-   - **Complex equipment** (motors, generators, pumps, compressors, separators, heat exchangers, turbines, gearboxes, etc.): **Minimum 12 Maintainable Items**
-   - **Simple equipment** (instrumentation, simple valves, lamps, basic actuators, simple sensors, etc.): **Minimum 5 Maintainable Items**
-   - **MANDATORY VERIFICATION**: Count total distinct Maintainable Items BEFORE finalizing output
-   - If count is below minimum: STOP and add more Maintainable Items from boundaries, catalog, manual, or ISO 14224-compliant suggestions
-   - Use the engineering questions established in the code to identify correct additional Maintainable Items
-
 **G1**: **CARDINALITY - Symptoms per Maintainable Item**: Each Maintainable Item MUST have exactly 4–8 DISTINCT Symptoms. No more, no less.
    - **MANDATORY VERIFICATION**: Count the number of unique symptoms for each Maintainable Item
    - **BEFORE GENERATING OUTPUT**: Plan symptoms for each MI to ensure 4-8 range
@@ -363,15 +356,30 @@ QUALITY GATES (MUST PASS BEFORE EXPORT)
      3. Check Manual for additional relevant components
      4. Apply engineering intelligence to identify missing critical components from ISO 14224
 
+**G10**: **SUGGESTED ADDITIONAL MAINTAINABLE ITEMS SECTION**: The output MUST include a "SUGGESTED ADDITIONAL MAINTAINABLE ITEMS (for Engineering Review)" section at the end.
+   - **MANDATORY REQUIREMENT**: This section must be present in every FMEA output
+   - **PURPOSE**: Provides engineering recommendations for extra Maintainable Items that can be added to ensure comprehensive coverage
+   - **CONTENT REQUIREMENTS**:
+     * List ALL Maintainable Items marked with "(*)" from the main FMEA table
+     * For EACH suggested item, provide:
+       - Engineering justification (ISO 14224 reference, reliability basis, failure risk analysis)
+       - Expected Symptoms (3-5 typical symptoms)
+       - Expected Failure Mechanisms (2-4 typical mechanisms)
+       - Function of the Maintainable Item relative to the equipment
+       - Suggested Treatment Actions (2-3 examples)
+     * Include additional relevant Maintainable Items NOT in the main table but worth considering for future analysis
+   - **FORMAT**: Should be a separate section after the main FMEA table, clearly titled
+   - **VALIDATION**: Output will be rejected if this section is missing
+
 **VERIFICATION CHECKLIST** before finalizing output:
-- [ ] **Count total DISTINCT Maintainable Items → Must be ≥12 for complex equipment OR ≥5 for simple equipment**
+- [ ] **Count total DISTINCT Maintainable Items → Must be ≥12 for complex equipment OR ≥5 for simple equipment (G9)**
 - [ ] Count unique Symptoms per Maintainable Item → Must be 4-8 for each (NO EXCEPTIONS)
 - [ ] Count unique Failure Mechanisms per (Maintainable Item, Symptom) pair → Must be 2-5 for each pair
 - [ ] Verify no "Other" or "Unknown" entries exist
 - [ ] Verify all Maintainable Items end with "Failure"
 - [ ] Verify physical plausibility of all Symptom-Maintainable Item combinations
-- [ ] **Verify NO DUPLICATION: Check each row to ensure Symptom ≠ Mechanism (different terms/concepts)**
-- [ ] **Verify MINIMUM MI COUNT (G9): Complex equipment ≥12 MIs, Simple equipment ≥5 MIs**
+- [ ] **Verify NO DUPLICATION: Check each row to ensure Symptom ≠ Mechanism (different terms/concepts) (G7)**
+- [ ] **Verify "SUGGESTED ADDITIONAL MAINTAINABLE ITEMS" section is included with proper justifications (G10)**
 - [ ] Verify total row count is reasonable: minimum 4 rows per MI, typical 10-20 rows per complex MI
 
 ENGINEERING LOGIC VALIDATION (ELR) — VALIDATION FILTER

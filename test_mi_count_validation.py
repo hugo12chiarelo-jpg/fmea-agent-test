@@ -1,5 +1,5 @@
 """
-Test G0a validation: Minimum Maintainable Item count based on equipment complexity.
+Test G9 validation: Minimum Maintainable Item count based on equipment complexity.
 
 This test ensures that:
 - Complex equipment (motors, pumps, compressors, etc.) requires minimum 12 MIs
@@ -52,10 +52,10 @@ def test_simple_equipment_classification():
     print(f"✓ All {len(simple_equipment)} simple equipment types correctly classified")
 
 
-def test_g0a_fails_insufficient_complex_mis():
-    """Test that G0a detects insufficient MIs for complex equipment (< 12)"""
+def test_g9_fails_insufficient_complex_mis():
+    """Test that G9 detects insufficient MIs for complex equipment (< 12)"""
     # NEGATIVE TEST: Intentionally create output with only 8 MIs (insufficient)
-    # Motor is COMPLEX and requires minimum 12 MIs, so 8 should trigger G0a error
+    # Motor is COMPLEX and requires minimum 12 MIs, so 8 should trigger G9 error
     # This test verifies the validation correctly rejects outputs with too few MIs
     output_insufficient_complex = """
 | Item Class | Function | Maintainable Item | Symptom | Failure Mechanism |
@@ -104,17 +104,17 @@ def test_g0a_fails_insufficient_complex_mis():
 """
     
     errors = validate_output_cardinality(output_insufficient_complex, "Motor, Electric")
-    g0a_errors = [e for e in errors if 'G0a VIOLATION' in e]
+    g9_errors = [e for e in errors if 'G9 VIOLATION' in e]
     
-    assert len(g0a_errors) > 0, "G0a should detect insufficient MI count (8 < 12 for complex)"
-    assert "minimum 12" in g0a_errors[0], "Error message should mention minimum 12 MIs"
-    assert "Found only 8" in g0a_errors[0], "Error message should mention found 8 MIs"
+    assert len(g9_errors) > 0, "G9 should detect insufficient MI count (8 < 12 for complex)"
+    assert "minimum 12" in g9_errors[0] or "at least 12" in g9_errors[0], "Error message should mention minimum 12 MIs"
+    assert "Found only 8" in g9_errors[0] or "only 8" in g9_errors[0], "Error message should mention found 8 MIs"
     
-    print("✓ Test passed: G0a detects insufficient MIs for complex equipment (8 < 12)")
+    print("✓ Test passed: G9 detects insufficient MIs for complex equipment (8 < 12)")
 
 
-def test_g0a_passes_sufficient_complex_mis():
-    """Test that G0a passes when complex equipment has 12+ MIs"""
+def test_g9_passes_sufficient_complex_mis():
+    """Test that G9 passes when complex equipment has 12+ MIs"""
     # Create FMEA output with exactly 12 MIs for Motor (complex)
     output_sufficient_complex = """
 | Item Class | Function | Maintainable Item | Symptom | Failure Mechanism |
@@ -174,15 +174,15 @@ def test_g0a_passes_sufficient_complex_mis():
 """
     
     errors = validate_output_cardinality(output_sufficient_complex, "Motor, Electric")
-    g0a_errors = [e for e in errors if 'G0a VIOLATION' in e]
+    g9_errors = [e for e in errors if 'G9 VIOLATION' in e]
     
-    assert len(g0a_errors) == 0, "G0a should pass with 12 MIs for complex equipment"
+    assert len(g9_errors) == 0, "G9 should pass with 12 MIs for complex equipment"
     
-    print("✓ Test passed: G0a passes with 12 MIs for complex equipment")
+    print("✓ Test passed: G9 passes with 12 MIs for complex equipment")
 
 
-def test_g0a_fails_insufficient_simple_mis():
-    """Test that G0a detects insufficient MIs for simple equipment (< 5)"""
+def test_g9_fails_insufficient_simple_mis():
+    """Test that G9 detects insufficient MIs for simple equipment (< 5)"""
     # Create FMEA output with only 3 MIs for Check Valve (simple, needs 5)
     output_insufficient_simple = """
 | Item Class | Function | Maintainable Item | Symptom | Failure Mechanism |
@@ -202,17 +202,17 @@ def test_g0a_fails_insufficient_simple_mis():
 """
     
     errors = validate_output_cardinality(output_insufficient_simple, "Check Valve")
-    g0a_errors = [e for e in errors if 'G0a VIOLATION' in e]
+    g9_errors = [e for e in errors if 'G9 VIOLATION' in e]
     
-    assert len(g0a_errors) > 0, "G0a should detect insufficient MI count (3 < 5 for simple)"
-    assert "minimum 5" in g0a_errors[0], "Error message should mention minimum 5 MIs"
-    assert "Found only 3" in g0a_errors[0], "Error message should mention found 3 MIs"
+    assert len(g9_errors) > 0, "G9 should detect insufficient MI count (3 < 5 for simple)"
+    assert "minimum 5" in g9_errors[0] or "at least 5" in g9_errors[0], "Error message should mention minimum 5 MIs"
+    assert "Found only 3" in g9_errors[0] or "only 3" in g9_errors[0], "Error message should mention found 3 MIs"
     
-    print("✓ Test passed: G0a detects insufficient MIs for simple equipment (3 < 5)")
+    print("✓ Test passed: G9 detects insufficient MIs for simple equipment (3 < 5)")
 
 
-def test_g0a_passes_sufficient_simple_mis():
-    """Test that G0a passes when simple equipment has 5+ MIs"""
+def test_g9_passes_sufficient_simple_mis():
+    """Test that G9 passes when simple equipment has 5+ MIs"""
     # Create FMEA output with exactly 5 MIs for Check Valve (simple)
     output_sufficient_simple = """
 | Item Class | Function | Maintainable Item | Symptom | Failure Mechanism |
@@ -240,29 +240,29 @@ def test_g0a_passes_sufficient_simple_mis():
 """
     
     errors = validate_output_cardinality(output_sufficient_simple, "Check Valve")
-    g0a_errors = [e for e in errors if 'G0a VIOLATION' in e]
+    g9_errors = [e for e in errors if 'G9 VIOLATION' in e]
     
-    assert len(g0a_errors) == 0, "G0a should pass with 5 MIs for simple equipment"
+    assert len(g9_errors) == 0, "G9 should pass with 5 MIs for simple equipment"
     
-    print("✓ Test passed: G0a passes with 5 MIs for simple equipment")
+    print("✓ Test passed: G9 passes with 5 MIs for simple equipment")
 
 
 if __name__ == "__main__":
-    print("Running G0a (Minimum MI Count) validation tests...\n")
+    print("Running G9 (Minimum MI Count) validation tests...\n")
     
     try:
         test_complex_equipment_classification()
         test_simple_equipment_classification()
         print()
         
-        test_g0a_fails_insufficient_complex_mis()
-        test_g0a_passes_sufficient_complex_mis()
+        test_g9_fails_insufficient_complex_mis()
+        test_g9_passes_sufficient_complex_mis()
         print()
         
-        test_g0a_fails_insufficient_simple_mis()
-        test_g0a_passes_sufficient_simple_mis()
+        test_g9_fails_insufficient_simple_mis()
+        test_g9_passes_sufficient_simple_mis()
         
-        print("\n✅ All G0a validation tests passed!")
+        print("\n✅ All G9 validation tests passed!")
     except AssertionError as e:
         print(f"\n❌ Test failed: {e}")
         sys.exit(1)
