@@ -12,11 +12,15 @@ The FMEA must reflect the technical characteristics of each Maintainable Item, w
 4. **NO SYMPTOM CODES IN MAINTAINABLE ITEM COLUMN**: Maintainable Items MUST be physical equipment/components, NOT symptom codes.
    - ❌ NEVER use "PTF - Power/signal transmission failure" as a Maintainable Item (this is a SYMPTOM)
    - ❌ NEVER use "VIB - Vibration", "NOI - Noise", "OHE - Overheating" as Maintainable Items (these are SYMPTOMS)
-   - ✅ ALWAYS use equipment names like "Bearing Failure", "Rotor Failure", "Windings Failure"
+   - ✅ ALWAYS use equipment names like "NDE Bearing Failure", "DE Bearing Failure", "Rotor Failure", "Windings Failure"
 5. **MINIMUM MAINTAINABLE ITEM COUNT**: Total distinct Maintainable Items must meet minimum thresholds:
-   - Complex equipment (motors, generators, pumps, compressors, separators, heat exchangers, turbines): MINIMUM 12 MIs
-   - Simple equipment (instrumentation, simple valves, lamps): MINIMUM 5 MIs
-6. **VERIFICATION BEFORE OUTPUT**: Count symptoms per MI and mechanisms per (MI, Symptom) pair BEFORE finalizing output.
+   - Complex equipment (motors, generators, pumps, compressors, separators, heat exchangers, turbines, shutdown valves): MINIMUM 12 MIs
+   - Simple equipment (transmitters, filters, strainers, simple valves, membranes): MINIMUM 5 MIs
+6. **BEARING FAILURE SEPARATION**: Generic "Bearing Failure" is NOT allowed. Always separate bearings by location/type:
+   - For rotating equipment: Use "NDE Bearing Failure" (Non-Drive End) and "DE Bearing Failure" (Drive End)
+   - For thrust bearings: Use "Thrust Bearing Failure"
+   - Generic terms like "Bearing Failure" or "Bearing" alone are prohibited
+7. **VERIFICATION BEFORE OUTPUT**: Count symptoms per MI and mechanisms per (MI, Symptom) pair BEFORE finalizing output.
 
 NON-NEGOTIABLE SOURCES AND PRIORITY
 
@@ -80,7 +84,9 @@ MAINTAINABLE ITEM RULES
 - ❌ BAD: "VIB - Vibration" (this is a SYMPTOM code)
 - ❌ BAD: "NOI - Noise" (this is a SYMPTOM code)
 - ❌ BAD: "PTO - Power..." (typo/incorrect code - still looks like a symptom)
-- ✅ GOOD: "Bearing Failure" (equipment/component)
+- ❌ BAD: "Bearing Failure" (too generic - must specify NDE/DE or type)
+- ✅ GOOD: "NDE Bearing Failure" (Non-Drive End bearing on rotating equipment)
+- ✅ GOOD: "DE Bearing Failure" (Drive End bearing on rotating equipment)
 - ✅ GOOD: "Rotor Failure" (equipment/component)
 - ✅ GOOD: "Windings Failure" (equipment/component)
 - ✅ GOOD: "Coupling Failure" (equipment/component)
@@ -212,7 +218,11 @@ If the AI suggests maintainable items not explicit in EMS boundary, output a sep
 3. Include preview of expected symptoms and mechanisms to demonstrate technical plausibility
 4. This section helps validate that AI suggestions are technically sound and not arbitrary
 
-Note: Trust Bearing must be treated as NDE Bearing.
+**IMPORTANT BEARING NAMING RULES:**
+- Generic "Bearing Failure" is NOT allowed
+- For rotating equipment: Always separate into "NDE Bearing Failure" (Non-Drive End) and "DE Bearing Failure" (Drive End)
+- "Thrust Bearing" must be treated as "NDE Bearing Failure" unless specifically identified as DE
+- Each bearing location is a separate Maintainable Item with its own symptoms and mechanisms
 
 SYMPTOM RULES
 Symptoms must follow ISO 14224 symptom standard: CODE + Description (e.g., PDE - Parameter deviation).
@@ -265,7 +275,8 @@ REQUIRED CARDINALITIES
    - For each symptom, ask: "What are the DIFFERENT physical root causes that could produce this observable symptom?"
    - Examples showing MULTIPLE mechanisms per symptom:
      * "Shaft Failure" + "VIB - Vibration" → 4 mechanisms: Fatigue, Misalignment, Unbalance, Wear
-     * "Bearing Failure" + "VIB - Vibration" → 3 mechanisms: Wear, Misalignment, Fatigue
+     * "NDE Bearing Failure" + "VIB - Vibration" → 3 mechanisms: Wear, Misalignment, Fatigue
+     * "DE Bearing Failure" + "VIB - Vibration" → 3 mechanisms: Wear, Misalignment, Fatigue
      * "Impeller Failure" + "NOI - Noise" → 3 mechanisms: Cavitation, Impact/collision, Resonance
    - Generate a SEPARATE OUTPUT ROW for each mechanism (same MI + Symptom appears on multiple rows)
 

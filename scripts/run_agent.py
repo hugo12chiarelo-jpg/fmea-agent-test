@@ -1294,6 +1294,28 @@ def validate_output_cardinality(output_text: str, item_class: str = "") -> list[
                 f"Symptoms, Failure Mechanisms, and engineering justification. "
                 f"This section is critical for ensuring comprehensive FMEA coverage."
             )
+        
+        # G11: Check for generic "Bearing Failure" - must be split into NDE and DE
+        # Get unique maintainable items from the dataframe
+        unique_mis = df['Maintainable Item'].unique()
+        for mi in unique_mis:
+            mi_lower = str(mi).lower().strip()
+            # Check if this is a generic bearing failure without NDE/DE specification
+            # Allow: "NDE Bearing Failure", "DE Bearing Failure", "Thrust Bearing Failure", "Radial bearing"
+            # Block: "Bearing Failure", "Bearing", "bearing failure"
+            if 'bearing' in mi_lower:
+                # Check if it lacks directional or type specification
+                has_direction = any(keyword in mi_lower for keyword in ['nde', 'de', 'thrust', 'radial', 'axial'])
+                is_generic = mi_lower in ['bearing', 'bearing failure', 'bearings', 'bearings failure']
+                
+                if is_generic or (not has_direction and 'failure' in mi_lower):
+                    errors.append(
+                        f"G11 VIOLATION: Maintainable Item '{mi}' is too generic. "
+                        f"Bearing failures must be separated by location/type: "
+                        f"Use 'NDE Bearing Failure' (Non-Drive End) and 'DE Bearing Failure' (Drive End) "
+                        f"for rotating equipment, or specify bearing type (e.g., 'Thrust Bearing', 'Radial bearing'). "
+                        f"Generic 'Bearing Failure' is not allowed."
+                    )
     
     except Exception as e:
         errors.append(f"Validation error: {str(e)}")
@@ -1311,16 +1333,31 @@ def _is_complex_equipment(item_class: str) -> bool:
     - Compressors: centrifugal, reciprocating, screw compressors
     - Separation equipment: separators, cyclones
     - Heat exchangers: shell-and-tube, plate, air-cooled
+    - Critical valves: shutdown valves, safety valves
     
     Simple equipment includes:
     - Instrumentation: transmitters, sensors, indicators, analyzers
     - Simple valves: manual, check, relief valves
     - Lighting: lamps, fixtures
-    - Simple mechanical: couplings, filters, strainers
+    - Simple mechanical: filters, strainers, membranes
     
     Returns True for complex equipment, False for simple equipment.
     """
     item_class_lower = item_class.lower()
+    
+    # Simple equipment keywords (checked first to avoid false positives)
+    simple_keywords = [
+        'transmitter', 'sensor', 'indicator', 'analyzer', 'instrument',
+        'check valve', 'relief valve', 'manual valve', 'simple valve',
+        'valve, manual', 'valve, check', 'valve, relief',  # Keep comma versions for backward compat
+        'lamp', 'light', 'fixture',
+        'coupling (simple)', 'filter', 'strainer', 'membrane'
+    ]
+    
+    # Check for simple equipment first (more specific)
+    for keyword in simple_keywords:
+        if keyword in item_class_lower:
+            return False
     
     # Complex equipment keywords
     complex_keywords = [
@@ -1334,23 +1371,11 @@ def _is_complex_equipment(item_class: str) -> bool:
         'separator', 'cyclone',
         # Heat exchangers
         'heat exchanger', 'exchanger', 'cooler', 'condenser',
+        # Critical valves
+        'shutdown valve', 'valve, shutdown', 'emergency shutdown', 'esd', 'esdv',
         # Other complex equipment
         'engine', 'drive', 'gearbox', 'blower', 'fan (large)'
     ]
-    
-    # Simple equipment keywords (more specific to avoid false positives)
-    simple_keywords = [
-        'transmitter', 'sensor', 'indicator', 'analyzer', 'instrument',
-        'check valve', 'relief valve', 'manual valve', 'simple valve',
-        'valve, manual', 'valve, check', 'valve, relief',  # Keep comma versions for backward compat
-        'lamp', 'light', 'fixture',
-        'coupling (simple)', 'filter (simple)', 'strainer'
-    ]
-    
-    # Check for simple equipment first (more specific)
-    for keyword in simple_keywords:
-        if keyword in item_class_lower:
-            return False
     
     # Check for complex equipment
     for keyword in complex_keywords:
