@@ -414,32 +414,109 @@ Sealing systems (Dry Gas Seal, Seal Gas Panel): Valid: ELP, PDE, SPO, CSF Avoid:
 Electrical/drive train (Motor, Generator, Starter): Valid: FTS, FRO, FWR, PDE Avoid: ELP, PLU Replace: → FRO or FTS
 
 **CRITICAL ELU SYMPTOM GUIDANCE (External Leakage - Utility Medium):**
+**CRITICAL LEAKAGE SYMPTOMS GUIDANCE (ISO 14224 Tables B.6-B.13):**
 
-**Definition**: ELU (External leakage - utility medium) is a SYMPTOM that appears when utility fluids (air, water, lubrication oil, cooling fluid, hydraulic oil) leak externally from a system or component.
+The distinction between ELU and ELP is based on the FUNCTION of the fluid, not just the fluid type.
 
-**Key Concepts**:
-- ELU is a SYMPTOM (observable condition: fluid is leaking outside)
-- The FAILURE MECHANISM must describe the ROOT CAUSE (not just "Leakage")
-- ISO 14224 distinction: Symptom = what you observe; Mechanism = why it happens
+**A) ELP - External Leakage - Process Medium:**
+
+**Definition**: ELP (External leakage - process medium) is a SYMPTOM that appears when the MAIN PROCESS FLUID that the equipment is designed to contain, transport, or process leaks externally. This includes production fluids (crude oil, natural gas, process water, injection water, produced fluids).
+
+**When to Apply ELP**:
+- Equipment has CONTAINMENT FUNCTION for process fluids (ISO 14224 tables B.6-B.13)
+- The leaked fluid IS THE PRODUCT or is part of the PRIMARY OPERATIONAL PROCESS
+- Equipment designed to contain/transport/process this fluid as its main purpose
+
+**Valid Applications**:
+- ✅ Process Pumps: Crude oil, water, or gas leak from mechanical seal or casing
+- ✅ Compressors: Process gas leak from seal, shaft seal, or casing
+- ✅ Process Valves: Process fluid leak from packing, body, or bonnet
+- ✅ Heat Exchangers: Process fluid leak from tube-to-tubesheet joint (process side)
+- ✅ Pressure Vessels/Separators: Process fluid leak from shell, nozzle, or flange
+- ✅ Process Piping: Leak from piping, flanges carrying process fluids
+
+**Invalid Applications**:
+- ❌ Electric Motors: No process fluids contained (use ELU for lube/cooling only)
+- ❌ Junction Boxes: No fluids present
+- ❌ Instrument Transmitters: Not designed to contain process fluids (unless body integrity fails)
 
 **CORRECT Examples**:
-- ✅ Symptom: "ELU - External leakage - utility medium" → Mechanism: "2.2 Corrosion" (corrosion caused hole)
-- ✅ Symptom: "ELU - External leakage - utility medium" → Mechanism: "2.4 Wear" (wear on sealing surface)
-- ✅ Symptom: "ELU - External leakage - utility medium" → Mechanism: "2.6 Fatigue" (fatigue crack)
-- ✅ Symptom: "ELU - External leakage - utility medium" → Mechanism: "1.4 Deformation" (gasket deformation)
+- ✅ Symptom: "ELP - External leakage - process medium" → Mechanism: "2.2 Corrosion" (corrosion caused hole in process piping)
+- ✅ Symptom: "ELP - External leakage - process medium" → Mechanism: "2.4 Wear" (wear on pump mechanical seal face)
+- ✅ Symptom: "ELP - External leakage - process medium" → Mechanism: "2.6 Fatigue" (fatigue crack in process flange)
+- ✅ Symptom: "ELP - External leakage - process medium" → Mechanism: "1.4 Deformation" (gasket deformation on process connection)
+
+**INCORRECT Examples (DO NOT USE)**:
+- ❌ Symptom: "ELP - External leakage - process medium" → Mechanism: "1.1 Leakage" (FORBIDDEN - duplicates concept)
+- ❌ Symptom: "ELP - External leakage - process medium" → Mechanism: "External leakage" (FORBIDDEN - repeats symptom)
+
+**B) ELU - External Leakage - Utility Medium:**
+
+**Definition**: ELU (External leakage - utility medium) is a SYMPTOM that appears when AUXILIARY/UTILITY FLUIDS that SUPPORT equipment operation (but are NOT the main process) leak externally. This includes lubricating oil, cooling water, service air, hydraulic oil, seal support fluids.
+
+**When to Apply ELU**:
+- Equipment has SUPPORT/UTILITY fluid systems (ISO 14224 tables B.6-B.13)
+- The leaked fluid ENABLES operation (lubrication, cooling, control) but IS NOT the process medium
+- Fluid function is AUXILIARY to the equipment's main purpose
+
+**Valid Applications**:
+- ✅ Lubrication Systems: Lube oil leak from bearing housing, oil reservoir, or lube pump
+- ✅ Cooling Systems: Cooling water leak from heat exchanger (cooling side), water jacket, or hoses
+- ✅ Hydraulic Systems: Hydraulic oil leak from actuator, hydraulic pump, or control valve
+- ✅ Pneumatic Systems: Service air leak from instrument supply, air lines, or fittings
+- ✅ Seal Support Systems: Seal flush water leak, seal oil leak from seal support system
+
+**Invalid Applications**:
+- ❌ Junction Boxes: No utility fluids present (electrical isolation only)
+- ❌ Terminal Boxes: No utility fluids present (electrical connections only)
+- ❌ Cable Glands: No utility fluids present (cable entry/sealing only)
+- ❌ Dry Electrical Enclosures: No fluids of any type
+
+**Key Question**: "Does this equipment have utility fluid circuits that support its operation?"
+- If YES → ELU may apply (if leak occurs)
+- If NO → ELU does NOT apply (use electrical, mechanical, or other symptoms)
+
+**CORRECT Examples**:
+- ✅ Symptom: "ELU - External leakage - utility medium" → Mechanism: "2.2 Corrosion" (corrosion in cooling water line)
+- ✅ Symptom: "ELU - External leakage - utility medium" → Mechanism: "2.4 Wear" (wear on bearing seal allowing lube oil leak)
+- ✅ Symptom: "ELU - External leakage - utility medium" → Mechanism: "2.6 Fatigue" (fatigue crack in hydraulic hose)
+- ✅ Symptom: "ELU - External leakage - utility medium" → Mechanism: "1.4 Deformation" (gasket deformation in lube oil connection)
 
 **INCORRECT Examples (DO NOT USE)**:
 - ❌ Symptom: "ELU - External leakage - utility medium" → Mechanism: "1.1 Leakage" (FORBIDDEN - duplicates concept)
 - ❌ Symptom: "ELU - External leakage - utility medium" → Mechanism: "External leakage" (FORBIDDEN - repeats symptom)
+- ❌ Maintainable Item: "Junction Box Failure" → Symptom: "ELU - External leakage - utility medium" (FORBIDDEN - junction box has no fluids)
+
+**Application Examples**:
+- Electric Motor with lube oil leak from bearing → Symptom: ELU, Mechanism: 2.4 Wear (bearing seal wear)
+- Cooling water hose rupture on heat exchanger → Symptom: ELU, Mechanism: 2.6 Fatigue (hose fatigue)
+- Service air leak from instrument supply → Symptom: ELU, Mechanism: 2.4 Wear (worn fitting)
+- Hydraulic actuator oil leak → Symptom: ELU, Mechanism: 2.2 Corrosion (corroded seal housing)
+
+**C) COMMON TO BOTH ELP AND ELU:**
+
+**Key ISO 14224 Concepts**:
+- ELP and ELU are SYMPTOMS (observable conditions: fluid is leaking outside)
+- The FAILURE MECHANISM must describe the ROOT CAUSE (not just "Leakage")
+- ISO 14224 distinction: Symptom = what you observe; Mechanism = why it happens
+
+**FORBIDDEN Symptom-Mechanism Pairs**:
+- ❌ ANY Leakage Symptom (ELP/ELU/ELF) → Mechanism: "1.1 Leakage" (duplicates concept - use physical cause instead)
 - ❌ Symptom: "VIB - Vibration" → Mechanism: "1.2 Vibration" (FORBIDDEN - duplicates concept)
 - ❌ Symptom: "NOI - Noise" → Mechanism: "Noise" (FORBIDDEN - duplicates concept)
 
-**Application Examples**:
-- Instrument with service air supply has air leak → Symptom: ELU, Mechanism: 2.4 Wear (worn fitting)
-- Cooling water hose rupture → Symptom: ELU, Mechanism: 2.6 Fatigue (hose fatigue)
-- Lube oil leak at seal → Symptom: ELU, Mechanism: 2.4 Wear (seal wear)
-
 **MANDATORY VERIFICATION**: Before assigning any Failure Mechanism to a Symptom, verify they represent DIFFERENT concepts.
+
+**Decision Logic for ELP vs ELU**:
+1. Ask: "What is the PRIMARY FUNCTION of this fluid?"
+   - If "To be contained/transported/processed by the equipment" → ELP
+   - If "To support the equipment operation (cool/lubricate/actuate)" → ELU
+   - If "There is no fluid" → Neither applies
+
+2. Ask: "Is this equipment designed to contain/process this fluid as its main purpose?"
+   - If YES → ELP
+   - If NO, but has auxiliary fluids → ELU
+   - If NO fluids at all → Neither applies
 
 SUGGESTED ADDITIONAL MAINTAINABLE ITEMS SECTION
 
