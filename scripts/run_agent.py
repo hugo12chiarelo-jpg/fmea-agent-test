@@ -526,6 +526,87 @@ def build_item_class_specific_guidance(item_class: str) -> str:
     return ""
 
 
+def pick_ems_file() -> Path | None:
+    """
+    Find the EMS CSV file in inputs/EMS/ directory.
+
+    Tries ``inputs/EMS/EMS.csv`` first (the standard name).  If that file does
+    not exist, falls back to the first ``*.csv`` found in the directory so that
+    files named differently (e.g. ``DRDE - EMS.csv``) are still discovered.
+
+    Returns None when the directory is missing or contains no CSV files.
+    """
+    ems_dir = Path("inputs/EMS")
+    if not ems_dir.exists():
+        return None
+
+    standard = ems_dir / "EMS.csv"
+    if standard.exists():
+        return standard
+
+    try:
+        csvs = sorted([f for f in ems_dir.iterdir() if f.is_file() and f.suffix.lower() == ".csv"])
+    except OSError:
+        return None
+    return csvs[0] if csvs else None
+
+
+def mark_mi_not_in_catalog(df: pd.DataFrame, mi_catalog_path: Path) -> pd.DataFrame:
+    """
+    Append ``*`` to Maintainable Item names whose pre-"Failure" description
+    does not match any entry in the Maintainable Item Catalog.
+
+    Example: if "DE Bearing" is not in the catalog, "DE Bearing Failure"
+    becomes "DE Bearing Failure *".
+
+    Args:
+        df: DataFrame containing a ``Maintainable Item`` column.
+        mi_catalog_path: Path to ``Maintainable Item Catalog.csv``.
+
+    Returns:
+        A copy of ``df`` with the ``Maintainable Item`` column updated.
+    """
+    if "Maintainable Item" not in df.columns or not mi_catalog_path.exists():
+        return df
+
+    try:
+        with open(mi_catalog_path, "r", encoding="utf-8-sig") as f:
+            lines = [line.strip() for line in f]
+        catalog_items_lower = {
+            line.lower()
+            for line in lines
+            if line and line.lower() not in ("maintainable item", "maintainable_item")
+        }
+    except Exception as e:
+        print(f"[WARN] Could not load catalog for '*' marking: {e}")
+        return df
+
+    def _mark(mi_name: str) -> str:
+        mi_clean = str(mi_name).strip()
+        if not mi_clean or mi_clean.lower() in ("see above", ""):
+            return mi_name
+
+        # Already marked – do not double-mark
+        if mi_clean.endswith(" *"):
+            return mi_clean
+
+        # Extract description before " Failure" (case-insensitive, last occurrence)
+        mi_lower = mi_clean.lower()
+        if " failure" in mi_lower:
+            idx = mi_lower.rfind(" failure")
+            description = mi_clean[:idx].strip()
+        else:
+            description = mi_clean
+
+        if description.lower() not in catalog_items_lower:
+            return mi_clean + " *"
+        return mi_clean
+
+    df = df.copy()
+    df["Maintainable Item"] = df["Maintainable Item"].apply(_mark)
+    return df
+
+
 def pick_manual_text(item_class: str) -> Path | None:
     manual_dir = Path("inputs/Manual")
     if not manual_dir.exists():
@@ -1093,8 +1174,8 @@ def validate_output_cardinality(output_text: str, item_class: str = "") -> list[
         item_class = df['Item Class'].iloc[0].strip() if len(df) > 0 else ""
         
         # G8a: Check for excluded items from EMS boundaries
-        ems_path = Path("inputs/EMS/EMS.csv")
-        if item_class and ems_path.exists():
+        ems_path = pick_ems_file()
+        if item_class and ems_path is not None:
             ems_exclusions = extract_ems_exclusions(ems_path, item_class)
             if ems_exclusions:
                 unique_mis = set()
@@ -1437,9 +1518,9 @@ def main():
 
     # --- Fallback: if instruction didn't specify Item Class, pick first available from EMS ---
     if item_class == "UNKNOWN_ITEM_CLASS":
-        ems_csv_fallback = Path("inputs/EMS/EMS.csv")
-        if not ems_csv_fallback.exists():
-            raise RuntimeError("[ERROR] Instruction missing Item Class and inputs/EMS/EMS.csv not found.")
+        ems_csv_fallback = pick_ems_file()
+        if ems_csv_fallback is None:
+            raise RuntimeError("[ERROR] Instruction missing Item Class and no EMS CSV found in inputs/EMS/.")
 
         try:
             df_ems = pd.read_csv(ems_csv_fallback, sep=None, engine="python")
@@ -1451,7 +1532,7 @@ def main():
 
         if "Item Class" not in df_ems.columns:
             raise RuntimeError(
-                f"[ERROR] Instruction missing Item Class and EMS.csv missing 'Item Class'. Found: {list(df_ems.columns)}"
+                f"[ERROR] Instruction missing Item Class and EMS file missing 'Item Class'. Found: {list(df_ems.columns)}"
             )
 
         candidates = df_ems["Item Class"].astype(str).str.strip()
@@ -1463,11 +1544,11 @@ def main():
         print(f"[WARN] Item Class not found in instruction. Using first EMS Item Class: {item_class}")
 
     # --- Build mandatory MI list (deterministic) ---
-    ems_csv = Path("inputs/EMS/EMS.csv")
+    ems_csv = pick_ems_file()
     mi_catalog = Path("inputs/Catalogs/Maintainable Item Catalog.csv")
 
     mandatory_mi: list[str] = []
-    if ems_csv.exists() and mi_catalog.exists():
+    if ems_csv is not None and mi_catalog.exists():
         mandatory_mi = build_mi_list_from_ems_and_catalog(ems_csv, item_class, mi_catalog)
 
     mandatory_mi_block = "\n".join([f"- {x}" for x in mandatory_mi]) if mandatory_mi else "[EMPTY - CHECK EMS Boundaries / Catalog]"
@@ -1479,7 +1560,7 @@ def main():
     if br_txt.exists():
         parts.append(f"### FILE: {br_txt.as_posix()}\n{read_text_file(br_txt, max_chars=120_000)}")
 
-    if ems_csv.exists():
+    if ems_csv is not None:
         parts.append(f"### FILE: {ems_csv.as_posix()} (FILTERED)\n{filter_ems_for_item_class(ems_csv, item_class, max_rows=400)}")
 
     mi = Path("inputs/Catalogs/Maintainable Item Catalog.csv")
@@ -1732,8 +1813,11 @@ Return ONLY the final deliverables requested in the instruction.
     # Convert Markdown table to DataFrame
     print("\n[OUTPUT] Converting Markdown table to DataFrame...")
     df = convert_markdown_table_to_dataframe(output_text)
-    
+
     if df is not None:
+        # Mark Maintainable Items not in catalog with '*'
+        df = mark_mi_not_in_catalog(df, mi_catalog)
+
         # Save as XLSX (Excel format)
         output_name = "EMS upgrade output.xlsx"
         output_path = out_dir / output_name
