@@ -19,6 +19,7 @@ The CSV file can be opened in Excel, Google Sheets, or any CSV-compatible applic
 - `DS_BASE_URL` (optional): DeepSeek OpenAI-compatible base URL (default: `https://api.deepseek.com`).
 - `API_KEY_LEVITY` (optional): Levity API key used to search manuals online.
 - `LEVITY_API_URL` (optional): Levity endpoint for manual search (default: `https://api.levity.ai/manual-search`).
+- `INPUT_TOKEN_COST_PER_MILLION` / `OUTPUT_TOKEN_COST_PER_MILLION` (optional): token pricing used for cost estimation logs.
 
 ## Instructions Input
 

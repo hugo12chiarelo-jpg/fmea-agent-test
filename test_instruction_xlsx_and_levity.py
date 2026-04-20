@@ -6,7 +6,7 @@ import pandas as pd
 
 sys.path.insert(0, 'scripts')
 
-from run_agent import load_instruction_entries, search_manual_with_levity
+from run_agent import load_instruction_entries, search_manual_with_levity, slugify_for_filename
 
 
 def test_load_instruction_entries_from_xlsx(tmp_path, monkeypatch):
@@ -89,3 +89,9 @@ def test_search_manual_with_levity_parses_results(monkeypatch):
     assert captured["url"] == "https://levity.example/search"
     assert captured["headers"]["Authorization"] == "Bearer levity-token"
     assert "Pump, Centrifugal" in captured["json"]["query"]
+
+
+def test_slugify_for_filename_edge_cases():
+    assert slugify_for_filename("Pump, Centrifugal") == "pump_centrifugal"
+    assert slugify_for_filename("  ") == "item_class"
+    assert slugify_for_filename("Mótör #1 / A") == "m_t_r_1_a"

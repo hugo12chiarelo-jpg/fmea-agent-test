@@ -818,6 +818,26 @@ def slugify_for_filename(value: str) -> str:
     return slug or "item_class"
 
 
+def estimate_usage_cost(input_tokens: int | None, output_tokens: int | None) -> float | None:
+    """
+    Estimate model cost using configurable token rates.
+    Set INPUT_TOKEN_COST_PER_MILLION and OUTPUT_TOKEN_COST_PER_MILLION in environment.
+    """
+    if input_tokens is None or output_tokens is None:
+        return None
+
+    try:
+        input_rate = float(os.getenv("INPUT_TOKEN_COST_PER_MILLION", "0"))
+        output_rate = float(os.getenv("OUTPUT_TOKEN_COST_PER_MILLION", "0"))
+    except ValueError:
+        return None
+
+    if input_rate < 0 or output_rate < 0:
+        return None
+
+    return (input_tokens / 1_000_000) * input_rate + (output_tokens / 1_000_000) * output_rate
+
+
 def build_missing_mi_correction_prompt(missing_mi: list[str]) -> str:
     """
     Build a prompt to request AI to add missing mandatory Maintainable Items.
@@ -1955,13 +1975,13 @@ Return ONLY the final deliverables requested in the instruction.
 
         print(f"Token usage -> input: {in_tokens}, output: {out_tokens}")
 
-        if in_tokens is not None and out_tokens is not None:
-            cost = (in_tokens / 1_000_000) * 0.80 + (out_tokens / 1_000_000) * 3.20
-            print(f"Estimated cost (gpt-4.1-mini Standard): ${cost:.4f}")
+        estimated_cost = estimate_usage_cost(in_tokens, out_tokens)
+        if estimated_cost is not None:
+            print(f"Estimated cost (configured rates): ${estimated_cost:.4f}")
 
         # --- Quality gate: ensure ALL mandatory MIs appear in output ---
         if not resp.choices:
-            raise RuntimeError("DeepSeek API returned no response choices")
+            raise RuntimeError("Model API returned no response choices")
         output_text = resp.choices[0].message.content or ""
 
         # Initialize conversation history for potential corrections
@@ -2013,9 +2033,9 @@ Return ONLY the final deliverables requested in the instruction.
 
             print(f"Token usage (correction) -> input: {in_tokens}, output: {out_tokens}")
 
-            if in_tokens is not None and out_tokens is not None:
-                cost = (in_tokens / 1_000_000) * 0.80 + (out_tokens / 1_000_000) * 3.20
-                print(f"Estimated cost (gpt-4.1-mini Standard): ${cost:.4f}")
+            estimated_cost = estimate_usage_cost(in_tokens, out_tokens)
+            if estimated_cost is not None:
+                print(f"Estimated cost (configured rates): ${estimated_cost:.4f}")
 
             if not correction_resp.choices:
                 print("[ERROR] AI correction failed - no response received")
