@@ -12,6 +12,27 @@ The FMEA agent generates output in **CSV format** for easy import into spreadshe
 
 The CSV file can be opened in Excel, Google Sheets, or any CSV-compatible application.
 
+## Runtime Configuration
+
+- `API_KEY_DS` (required): DeepSeek API key used by the generator model.
+- `DS_MODEL` (optional): DeepSeek model name (default: `deepseek-chat`).
+- `DS_BASE_URL` (optional): DeepSeek OpenAI-compatible base URL (default: `https://api.deepseek.com`).
+- `API_KEY_LEVITY` (optional): Levity API key used to search manuals online.
+- `LEVITY_API_URL` (optional): Levity endpoint for manual search (default: `https://api.levity.ai/manual-search`).
+
+## Instructions Input
+
+The agent now supports mass processing from `inputs/Instructions/*.xlsx`.
+
+Expected columns:
+- `Item Class` (required)
+- `Item Class Description` (optional)
+- `Scope` (optional)
+- `Vendor` (optional)
+- `Model` (optional)
+
+When an XLSX file is present, each row is processed as one FMEA run and outputs are saved per item class.
+
 ## Recent Fixes: Automatic Validation Error Correction
 
 The FMEA agent now automatically attempts to fix validation errors instead of stopping execution.

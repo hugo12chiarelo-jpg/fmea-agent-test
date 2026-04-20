@@ -3,6 +3,7 @@ import re
 from io import StringIO
 from pathlib import Path
 
+import httpx
 import pandas as pd
 from openai import OpenAI
 
@@ -58,6 +59,116 @@ def pick_instruction_file() -> Path:
         return fallback
 
     raise FileNotFoundError("No instruction file found in inputs/Instructions/")
+
+
+def pick_instruction_sheet() -> Path | None:
+    instr_dir = Path("inputs/Instructions")
+    if not instr_dir.exists():
+        return None
+
+    candidates = [
+        f
+        for f in instr_dir.iterdir()
+        if f.is_file()
+        and f.suffix.lower() in {".xlsx", ".xlsm", ".xls"}
+        and not f.name.lower().startswith("readme")
+    ]
+    if not candidates:
+        return None
+
+    candidates.sort(key=lambda x: x.stat().st_mtime, reverse=True)
+    return candidates[0]
+
+
+def load_instruction_entries() -> list[dict[str, str]]:
+    """
+    Load instruction entries from an XLSX file when available.
+    Falls back to the legacy text/markdown instruction format.
+    """
+    instruction_sheet = pick_instruction_sheet()
+    if instruction_sheet is not None:
+        try:
+            df = pd.read_excel(instruction_sheet)
+        except Exception as e:
+            raise RuntimeError(f"Could not read instruction sheet '{instruction_sheet}': {e}")
+
+        if df.empty:
+            raise RuntimeError(f"Instruction sheet '{instruction_sheet}' is empty")
+
+        df.columns = [str(c).replace("\ufeff", "").strip() for c in df.columns]
+        normalized = {str(c).strip().lower(): c for c in df.columns}
+
+        if "item class" not in normalized:
+            raise RuntimeError(
+                f"Instruction sheet '{instruction_sheet}' must contain column 'Item Class'. Found: {list(df.columns)}"
+            )
+
+        col_item_class = normalized["item class"]
+        col_item_class_desc = normalized.get("item class description")
+        col_scope = normalized.get("scope")
+        col_vendor = normalized.get("vendor")
+        col_model = normalized.get("model")
+
+        entries: list[dict[str, str]] = []
+        for _, row in df.iterrows():
+            item_class = str(row.get(col_item_class, "")).strip()
+            if item_class == "" or item_class.lower() == "nan":
+                continue
+
+            item_class_description = str(row.get(col_item_class_desc, "")).strip() if col_item_class_desc else ""
+            scope = str(row.get(col_scope, "")).strip() if col_scope else ""
+            vendor = str(row.get(col_vendor, "")).strip() if col_vendor else ""
+            model = str(row.get(col_model, "")).strip() if col_model else ""
+
+            if item_class_description.lower() == "nan":
+                item_class_description = ""
+            if scope.lower() == "nan":
+                scope = ""
+            if vendor.lower() == "nan":
+                vendor = ""
+            if model.lower() == "nan":
+                model = ""
+
+            instruction_text = "\n".join(
+                [
+                    f"Item Class: {item_class}",
+                    f"Item Class Description: {item_class_description}" if item_class_description else "Item Class Description:",
+                    f"Scope: {scope}" if scope else "Scope:",
+                    f"Vendor: {vendor}" if vendor else "Vendor:",
+                    f"Model: {model}" if model else "Model:",
+                ]
+            )
+
+            entries.append(
+                {
+                    "instruction_source": instruction_sheet.as_posix(),
+                    "instruction_text": instruction_text,
+                    "item_class": item_class,
+                    "item_class_description": item_class_description,
+                    "scope": scope,
+                    "vendor": vendor,
+                    "model": model,
+                }
+            )
+
+        if not entries:
+            raise RuntimeError(f"Instruction sheet '{instruction_sheet}' has no valid 'Item Class' rows")
+        return entries
+
+    instruction_file = pick_instruction_file()
+    instruction = instruction_file.read_text(encoding="utf-8", errors="ignore")
+    item_class = extract_item_class(instruction)
+    return [
+        {
+            "instruction_source": instruction_file.as_posix(),
+            "instruction_text": instruction,
+            "item_class": item_class,
+            "item_class_description": "",
+            "scope": "",
+            "vendor": "",
+            "model": "",
+        }
+    ]
 
 
 def extract_item_class(instruction_text: str) -> str:
@@ -617,6 +728,94 @@ def pick_manual_text(item_class: str) -> Path | None:
         return None
 
     return txts[0]
+
+
+def search_manual_with_levity(
+    api_key_levity: str | None,
+    item_class: str,
+    item_class_description: str = "",
+    scope: str = "",
+    vendor: str = "",
+    model: str = "",
+    max_chars: int = 120_000,
+) -> tuple[str | None, str | None]:
+    """
+    Search and retrieve maintenance manual text via Levity API.
+    """
+    if not api_key_levity:
+        return None, None
+
+    endpoint = os.getenv("LEVITY_API_URL", "https://api.levity.ai/manual-search")
+    query_parts = [item_class_description, scope, vendor, model, item_class]
+    query = " ".join([p.strip() for p in query_parts if p and p.strip()])
+    if not query:
+        query = item_class
+    query = f"{query} maintenance operation manual"
+
+    headers = {"Authorization": f"Bearer {api_key_levity}"}
+    payload = {
+        "query": query,
+        "item_class": item_class,
+        "item_class_description": item_class_description,
+        "scope": scope,
+        "vendor": vendor,
+        "model": model,
+    }
+
+    try:
+        response = httpx.post(endpoint, headers=headers, json=payload, timeout=40.0)
+    except Exception as e:
+        print(f"[WARN] Levity manual lookup request failed: {e}")
+        return None, None
+
+    if response.status_code >= 400:
+        print(f"[WARN] Levity manual lookup failed with status {response.status_code}: {response.text[:300]}")
+        return None, None
+
+    try:
+        data = response.json()
+    except Exception:
+        text = response.text.strip()
+        return (text[:max_chars], f"Levity ({endpoint})") if text else (None, None)
+
+    text_candidates: list[str] = []
+    source_candidates: list[str] = []
+
+    def add_candidate(value: str | None, source: str | None = None):
+        if not value:
+            return
+        value_clean = str(value).strip()
+        if value_clean:
+            text_candidates.append(value_clean)
+            if source:
+                source_candidates.append(str(source).strip())
+
+    if isinstance(data, dict):
+        for key in ("manual_text", "text", "content", "manual", "document"):
+            if key in data:
+                add_candidate(data.get(key), data.get("source") or data.get("url") or endpoint)
+
+        results = data.get("results")
+        if isinstance(results, list):
+            for result in results:
+                if not isinstance(result, dict):
+                    continue
+                for key in ("manual_text", "text", "content", "snippet", "extract"):
+                    if key in result:
+                        add_candidate(result.get(key), result.get("url") or result.get("source") or endpoint)
+                        break
+
+    if not text_candidates:
+        return None, None
+
+    combined_text = "\n\n".join(text_candidates)[:max_chars]
+    source_hint = source_candidates[0] if source_candidates else endpoint
+    return combined_text, source_hint
+
+
+def slugify_for_filename(value: str) -> str:
+    slug = re.sub(r"[^A-Za-z0-9]+", "_", value.strip()).strip("_").lower()
+    return slug or "item_class"
 
 
 def build_missing_mi_correction_prompt(missing_mi: list[str]) -> str:
@@ -1499,93 +1698,122 @@ def _is_complex_equipment(item_class: str) -> bool:
 
 
 def main():
-    api_key = os.getenv("OPENAI_API_KEY")
-    model = os.getenv("OPENAI_MODEL", "gpt-4.1-mini")
+    api_key = os.getenv("API_KEY_DS")
+    model = os.getenv("DS_MODEL", os.getenv("OPENAI_MODEL", "deepseek-chat"))
+    base_url = os.getenv("DS_BASE_URL", "https://api.deepseek.com")
+    levity_api_key = os.getenv("API_KEY_LEVITY")
     max_correction_attempts = int(os.getenv("MAX_CORRECTION_ATTEMPTS", "3"))
     if not api_key:
-        raise RuntimeError("Missing OPENAI_API_KEY secret")
+        raise RuntimeError("Missing API_KEY_DS secret")
 
-    client = OpenAI(api_key=api_key)
+    client = OpenAI(api_key=api_key, base_url=base_url)
 
     system_prompt = read_required("templates/system_prompt.md", "templates/templates/system_prompt.md")
     spec = read_required("templates/spec_fmea_ems_rev01.md", "templates/templates/spec_fmea_ems_rev01.md")
     schema = read_required("templates/output_schema.md", "templates/templates/output_schema.md")
 
-    instruction_file = pick_instruction_file()
-    instruction = instruction_file.read_text(encoding="utf-8", errors="ignore")
-
-    item_class = extract_item_class(instruction)
-
-    # --- Fallback: if instruction didn't specify Item Class, pick first available from EMS ---
-    if item_class == "UNKNOWN_ITEM_CLASS":
-        ems_csv_fallback = pick_ems_file()
-        if ems_csv_fallback is None:
-            raise RuntimeError("[ERROR] Instruction missing Item Class and no EMS CSV found in inputs/EMS/.")
-
-        try:
-            df_ems = pd.read_csv(ems_csv_fallback, sep=None, engine="python")
-        except Exception:
-            df_ems = pd.read_csv(ems_csv_fallback, sep=";", engine="python", on_bad_lines="skip")
-
-        # normalize headers
-        df_ems.columns = [str(c).replace("\ufeff", "").strip() for c in df_ems.columns]
-
-        if "Item Class" not in df_ems.columns:
-            raise RuntimeError(
-                f"[ERROR] Instruction missing Item Class and EMS file missing 'Item Class'. Found: {list(df_ems.columns)}"
-            )
-
-        candidates = df_ems["Item Class"].astype(str).str.strip()
-        candidates = candidates[candidates != ""]
-        if candidates.empty:
-            raise RuntimeError("[ERROR] Instruction missing Item Class and EMS has empty 'Item Class' values.")
-
-        item_class = candidates.iloc[0]
-        print(f"[WARN] Item Class not found in instruction. Using first EMS Item Class: {item_class}")
-
-    # --- Build mandatory MI list (deterministic) ---
+    instruction_entries = load_instruction_entries()
     ems_csv = pick_ems_file()
     mi_catalog = Path("inputs/Catalogs/Maintainable Item Catalog.csv")
+    out_dir = Path("outputs")
+    out_dir.mkdir(parents=True, exist_ok=True)
 
-    mandatory_mi: list[str] = []
-    if ems_csv is not None and mi_catalog.exists():
-        mandatory_mi = build_mi_list_from_ems_and_catalog(ems_csv, item_class, mi_catalog)
+    for idx, entry in enumerate(instruction_entries, start=1):
+        instruction_source = entry["instruction_source"]
+        instruction = entry["instruction_text"]
+        item_class = entry["item_class"]
+        item_class_description = entry["item_class_description"]
+        scope = entry["scope"]
+        vendor = entry["vendor"]
+        model_hint = entry["model"]
 
-    mandatory_mi_block = "\n".join([f"- {x}" for x in mandatory_mi]) if mandatory_mi else "[EMPTY - CHECK EMS Boundaries / Catalog]"
+        # --- Fallback: if instruction didn't specify Item Class, pick first available from EMS ---
+        if item_class == "UNKNOWN_ITEM_CLASS":
+            ems_csv_fallback = pick_ems_file()
+            if ems_csv_fallback is None:
+                raise RuntimeError("[ERROR] Instruction missing Item Class and no EMS CSV found in inputs/EMS/.")
 
-    # --- Minimal ingestion pack ---
-    parts: list[str] = []
+            try:
+                df_ems = pd.read_csv(ems_csv_fallback, sep=None, engine="python")
+            except Exception:
+                df_ems = pd.read_csv(ems_csv_fallback, sep=";", engine="python", on_bad_lines="skip")
 
-    br_txt = Path("inputs/Business_Rules/Business Rules.txt")
-    if br_txt.exists():
-        parts.append(f"### FILE: {br_txt.as_posix()}\n{read_text_file(br_txt, max_chars=120_000)}")
+            # normalize headers
+            df_ems.columns = [str(c).replace("\ufeff", "").strip() for c in df_ems.columns]
 
-    if ems_csv is not None:
-        parts.append(f"### FILE: {ems_csv.as_posix()} (FILTERED)\n{filter_ems_for_item_class(ems_csv, item_class, max_rows=400)}")
+            if "Item Class" not in df_ems.columns:
+                raise RuntimeError(
+                    f"[ERROR] Instruction missing Item Class and EMS file missing 'Item Class'. Found: {list(df_ems.columns)}"
+                )
 
-    mi = Path("inputs/Catalogs/Maintainable Item Catalog.csv")
-    if mi.exists():
-        parts.append(f"### FILE: {mi.as_posix()} (PREVIEW)\n{load_csv_preview(mi, max_rows=600)}")
+            candidates = df_ems["Item Class"].astype(str).str.strip()
+            candidates = candidates[candidates != ""]
+            if candidates.empty:
+                raise RuntimeError("[ERROR] Instruction missing Item Class and EMS has empty 'Item Class' values.")
 
-    sym = Path("inputs/Catalogs/Symptom Catalog.csv")
-    if sym.exists():
-        parts.append(f"### FILE: {sym.as_posix()} (PREVIEW)\n{load_csv_preview(sym, max_rows=600)}")
+            item_class = candidates.iloc[0]
+            print(f"[WARN] Item Class not found in instruction. Using first EMS Item Class: {item_class}")
 
-    manual_txt = pick_manual_text(item_class)
-    if manual_txt:
-        parts.append(f"### FILE: {manual_txt.as_posix()} (TRUNCATED)\n{read_text_file(manual_txt, max_chars=120_000)}")
+        print(f"\n[RUN] Processing item class {idx}/{len(instruction_entries)}: {item_class}")
 
-    minimal_inputs = "\n\n".join(parts)
-    
-    # Build item-class-specific guidance
-    item_class_guidance = build_item_class_specific_guidance(item_class)
+        # --- Build mandatory MI list (deterministic) ---
+        mandatory_mi: list[str] = []
+        if ems_csv is not None and mi_catalog.exists():
+            mandatory_mi = build_mi_list_from_ems_and_catalog(ems_csv, item_class, mi_catalog)
 
-    user_prompt = f"""
-## INSTRUCTION (from {instruction_file.as_posix()})
+        mandatory_mi_block = "\n".join([f"- {x}" for x in mandatory_mi]) if mandatory_mi else "[EMPTY - CHECK EMS Boundaries / Catalog]"
+
+        # --- Minimal ingestion pack ---
+        parts: list[str] = []
+
+        br_txt = Path("inputs/Business_Rules/Business Rules.txt")
+        if br_txt.exists():
+            parts.append(f"### FILE: {br_txt.as_posix()}\n{read_text_file(br_txt, max_chars=120_000)}")
+
+        if ems_csv is not None:
+            parts.append(f"### FILE: {ems_csv.as_posix()} (FILTERED)\n{filter_ems_for_item_class(ems_csv, item_class, max_rows=400)}")
+
+        mi = Path("inputs/Catalogs/Maintainable Item Catalog.csv")
+        if mi.exists():
+            parts.append(f"### FILE: {mi.as_posix()} (PREVIEW)\n{load_csv_preview(mi, max_rows=600)}")
+
+        sym = Path("inputs/Catalogs/Symptom Catalog.csv")
+        if sym.exists():
+            parts.append(f"### FILE: {sym.as_posix()} (PREVIEW)\n{load_csv_preview(sym, max_rows=600)}")
+
+        levity_manual_text, levity_source = search_manual_with_levity(
+            api_key_levity=levity_api_key,
+            item_class=item_class,
+            item_class_description=item_class_description,
+            scope=scope,
+            vendor=vendor,
+            model=model_hint,
+            max_chars=120_000,
+        )
+        if levity_manual_text:
+            parts.append(f"### FILE: LEVITY ONLINE MANUAL ({levity_source})\n{levity_manual_text}")
+        else:
+            manual_txt = pick_manual_text(item_class)
+            if manual_txt:
+                parts.append(f"### FILE: {manual_txt.as_posix()} (TRUNCATED)\n{read_text_file(manual_txt, max_chars=120_000)}")
+
+        minimal_inputs = "\n\n".join(parts)
+
+        # Build item-class-specific guidance
+        item_class_guidance = build_item_class_specific_guidance(item_class)
+
+        user_prompt = f"""
+## INSTRUCTION (from {instruction_source})
 {instruction}
 
 ## TARGET ITEM CLASS (parsed)
 {item_class}
+
+## ITEM CLASS CONTEXT (from instruction row)
+Item Class Description: {item_class_description or "[not provided]"}
+Scope: {scope or "[not provided]"}
+Vendor: {vendor or "[not provided]"}
+Model: {model_hint or "[not provided]"}
 
 ## SPECIFICATION (MANDATORY)
 {spec}
@@ -1713,121 +1941,123 @@ The list below contains Maintainable Items derived from EMS Boundaries column, e
 Return ONLY the final deliverables requested in the instruction.
 """
 
-    resp = client.chat.completions.create(
-        model=model,
-        messages=[
-            {"role": "system", "content": system_prompt + "\n\n### SPEC (MANDATORY)\n" + spec},
-            {"role": "user", "content": user_prompt},
-        ],
-    )
-
-    usage = getattr(resp, "usage", None)
-    in_tokens = getattr(usage, "prompt_tokens", None) if usage else None
-    out_tokens = getattr(usage, "completion_tokens", None) if usage else None
-
-    print(f"Token usage -> input: {in_tokens}, output: {out_tokens}")
-
-    if in_tokens is not None and out_tokens is not None:
-        cost = (in_tokens / 1_000_000) * 0.80 + (out_tokens / 1_000_000) * 3.20
-        print(f"Estimated cost (gpt-4.1-mini Standard): ${cost:.4f}")
-
-    # --- Quality gate: ensure ALL mandatory MIs appear in output ---
-    if not resp.choices:
-        raise RuntimeError("OpenAI API returned no response choices")
-    output_text = resp.choices[0].message.content or ""
-    
-    # Initialize conversation history for potential corrections
-    conversation_history = [
-        {"role": "system", "content": system_prompt + "\n\n### SPEC (MANDATORY)\n" + spec},
-        {"role": "user", "content": user_prompt},
-        {"role": "assistant", "content": output_text}
-    ]
-    
-    # Check for missing mandatory MIs - now informational since AI can filter intelligently
-    missing: list[str] = []
-    for mi_name in mandatory_mi:
-        if mi_name and (mi_name.lower() not in output_text.lower()):
-            missing.append(mi_name)
-
-    if mandatory_mi and missing:
-        print(f"\n[INFO] Model output has {len(missing)} items from base list that were filtered out:")
-        for mi in missing[:10]:  # Show up to 10 examples
-            print(f"  - {mi}")
-        print("\n[INFO] This is acceptable if AI applied engineering judgment to filter non-maintainable or redundant items.")
-        print("[INFO] The AI should have provided justification in the output for significant omissions.")
-
-    # --- Quality gate: validate cardinality rules with automatic correction ---
-    print("\n[VALIDATION] Checking cardinality and duplication rules...")
-    validation_errors = validate_output_cardinality(output_text, item_class)
-    
-    cardinality_correction_attempt = 0
-    while validation_errors and cardinality_correction_attempt < max_correction_attempts:
-        cardinality_correction_attempt += 1
-        print(f"\n[VALIDATION] ⚠️  Found {len(validation_errors)} validation error(s) (Attempt {cardinality_correction_attempt}/{max_correction_attempts}):")
-        for err in validation_errors:
-            print(f"  - {err}")
-        
-        print(f"\n[CORRECTION] Requesting AI to fix validation errors...")
-        
-        # Build correction prompt with specific errors
-        correction_prompt = build_correction_prompt(validation_errors)
-        conversation_history.append({"role": "user", "content": correction_prompt})
-        
-        # Request correction from AI
-        correction_resp = client.chat.completions.create(
+        resp = client.chat.completions.create(
             model=model,
-            messages=conversation_history,
+            messages=[
+                {"role": "system", "content": system_prompt + "\n\n### SPEC (MANDATORY)\n" + spec},
+                {"role": "user", "content": user_prompt},
+            ],
         )
-        
-        usage = getattr(correction_resp, "usage", None)
+
+        usage = getattr(resp, "usage", None)
         in_tokens = getattr(usage, "prompt_tokens", None) if usage else None
         out_tokens = getattr(usage, "completion_tokens", None) if usage else None
-        
-        print(f"Token usage (correction) -> input: {in_tokens}, output: {out_tokens}")
-        
+
+        print(f"Token usage -> input: {in_tokens}, output: {out_tokens}")
+
         if in_tokens is not None and out_tokens is not None:
             cost = (in_tokens / 1_000_000) * 0.80 + (out_tokens / 1_000_000) * 3.20
             print(f"Estimated cost (gpt-4.1-mini Standard): ${cost:.4f}")
-        
-        if not correction_resp.choices:
-            print("[ERROR] AI correction failed - no response received")
-            break
-        
-        output_text = correction_resp.choices[0].message.content or ""
-        conversation_history.append({"role": "assistant", "content": output_text})
-        
-        # Validate the corrected output
+
+        # --- Quality gate: ensure ALL mandatory MIs appear in output ---
+        if not resp.choices:
+            raise RuntimeError("DeepSeek API returned no response choices")
+        output_text = resp.choices[0].message.content or ""
+
+        # Initialize conversation history for potential corrections
+        conversation_history = [
+            {"role": "system", "content": system_prompt + "\n\n### SPEC (MANDATORY)\n" + spec},
+            {"role": "user", "content": user_prompt},
+            {"role": "assistant", "content": output_text}
+        ]
+
+        # Check for missing mandatory MIs - now informational since AI can filter intelligently
+        missing: list[str] = []
+        for mi_name in mandatory_mi:
+            if mi_name and (mi_name.lower() not in output_text.lower()):
+                missing.append(mi_name)
+
+        if mandatory_mi and missing:
+            print(f"\n[INFO] Model output has {len(missing)} items from base list that were filtered out:")
+            for mi_name in missing[:10]:  # Show up to 10 examples
+                print(f"  - {mi_name}")
+            print("\n[INFO] This is acceptable if AI applied engineering judgment to filter non-maintainable or redundant items.")
+            print("[INFO] The AI should have provided justification in the output for significant omissions.")
+
+        # --- Quality gate: validate cardinality rules with automatic correction ---
+        print("\n[VALIDATION] Checking cardinality and duplication rules...")
         validation_errors = validate_output_cardinality(output_text, item_class)
-    
-    if validation_errors:
-        print(f"\n[VALIDATION] ❌ Output still has {len(validation_errors)} validation error(s) after {cardinality_correction_attempt} correction attempt(s):")
-        for err in validation_errors:
-            print(f"  - {err}")
-        print("\n[WARNING] Saving output with validation errors. Please review manually.")
-    else:
-        print("[VALIDATION] ✓ All quality gates passed")
 
-    out_dir = Path("outputs")
-    out_dir.mkdir(parents=True, exist_ok=True)
+        cardinality_correction_attempt = 0
+        while validation_errors and cardinality_correction_attempt < max_correction_attempts:
+            cardinality_correction_attempt += 1
+            print(f"\n[VALIDATION] ⚠️  Found {len(validation_errors)} validation error(s) (Attempt {cardinality_correction_attempt}/{max_correction_attempts}):")
+            for err in validation_errors:
+                print(f"  - {err}")
 
-    # Convert Markdown table to DataFrame
-    print("\n[OUTPUT] Converting Markdown table to DataFrame...")
-    df = convert_markdown_table_to_dataframe(output_text)
+            print(f"\n[CORRECTION] Requesting AI to fix validation errors...")
 
-    if df is not None:
-        # Mark Maintainable Items not in catalog with '*'
-        df = mark_mi_not_in_catalog(df, mi_catalog)
+            # Build correction prompt with specific errors
+            correction_prompt = build_correction_prompt(validation_errors)
+            conversation_history.append({"role": "user", "content": correction_prompt})
 
-        # Save as XLSX (Excel format)
-        output_name = "EMS upgrade output.xlsx"
-        output_path = out_dir / output_name
-        df.to_excel(output_path, index=False, engine='openpyxl')
-        print(f"OK: Generated outputs/{output_name}")
-    else:
-        # Fallback: save raw output as text if conversion failed
-        output_name = "EMS upgrade output.txt"
-        (out_dir / output_name).write_text(output_text, encoding="utf-8")
-        print(f"WARNING: Could not convert to Excel. Saved raw output to outputs/{output_name}")
+            # Request correction from AI
+            correction_resp = client.chat.completions.create(
+                model=model,
+                messages=conversation_history,
+            )
+
+            usage = getattr(correction_resp, "usage", None)
+            in_tokens = getattr(usage, "prompt_tokens", None) if usage else None
+            out_tokens = getattr(usage, "completion_tokens", None) if usage else None
+
+            print(f"Token usage (correction) -> input: {in_tokens}, output: {out_tokens}")
+
+            if in_tokens is not None and out_tokens is not None:
+                cost = (in_tokens / 1_000_000) * 0.80 + (out_tokens / 1_000_000) * 3.20
+                print(f"Estimated cost (gpt-4.1-mini Standard): ${cost:.4f}")
+
+            if not correction_resp.choices:
+                print("[ERROR] AI correction failed - no response received")
+                break
+
+            output_text = correction_resp.choices[0].message.content or ""
+            conversation_history.append({"role": "assistant", "content": output_text})
+
+            # Validate the corrected output
+            validation_errors = validate_output_cardinality(output_text, item_class)
+
+        if validation_errors:
+            print(f"\n[VALIDATION] ❌ Output still has {len(validation_errors)} validation error(s) after {cardinality_correction_attempt} correction attempt(s):")
+            for err in validation_errors:
+                print(f"  - {err}")
+            print("\n[WARNING] Saving output with validation errors. Please review manually.")
+        else:
+            print("[VALIDATION] ✓ All quality gates passed")
+
+        # Convert Markdown table to DataFrame
+        print("\n[OUTPUT] Converting Markdown table to DataFrame...")
+        df = convert_markdown_table_to_dataframe(output_text)
+
+        if len(instruction_entries) == 1:
+            output_stem = "EMS upgrade output"
+        else:
+            output_stem = f"EMS upgrade output - {slugify_for_filename(item_class)}"
+
+        if df is not None:
+            # Mark Maintainable Items not in catalog with '*'
+            df = mark_mi_not_in_catalog(df, mi_catalog)
+
+            # Save as XLSX (Excel format)
+            output_name = f"{output_stem}.xlsx"
+            output_path = out_dir / output_name
+            df.to_excel(output_path, index=False, engine='openpyxl')
+            print(f"OK: Generated outputs/{output_name}")
+        else:
+            # Fallback: save raw output as text if conversion failed
+            output_name = f"{output_stem}.txt"
+            (out_dir / output_name).write_text(output_text, encoding="utf-8")
+            print(f"WARNING: Could not convert to Excel. Saved raw output to outputs/{output_name}")
 
 
 if __name__ == "__main__":
