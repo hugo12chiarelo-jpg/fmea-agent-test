@@ -6,7 +6,12 @@ import pandas as pd
 
 sys.path.insert(0, 'scripts')
 
-from run_agent import load_instruction_entries, search_manual_with_levity, slugify_for_filename
+from run_agent import (
+    estimate_usage_cost,
+    load_instruction_entries,
+    search_manual_with_levity,
+    slugify_for_filename,
+)
 
 
 def test_load_instruction_entries_from_xlsx(tmp_path, monkeypatch):
@@ -95,3 +100,22 @@ def test_slugify_for_filename_edge_cases():
     assert slugify_for_filename("Pump, Centrifugal") == "pump_centrifugal"
     assert slugify_for_filename("  ") == "item_class"
     assert slugify_for_filename("Mótör #1 / A") == "m_t_r_1_a"
+
+
+def test_estimate_usage_cost_with_env_rates(monkeypatch):
+    monkeypatch.setenv("INPUT_TOKEN_COST_PER_MILLION", "1.5")
+    monkeypatch.setenv("OUTPUT_TOKEN_COST_PER_MILLION", "2.5")
+    cost = estimate_usage_cost(2_000_000, 1_000_000)
+    assert cost == 5.5
+
+
+def test_estimate_usage_cost_invalid_inputs(monkeypatch):
+    monkeypatch.setenv("INPUT_TOKEN_COST_PER_MILLION", "x")
+    monkeypatch.setenv("OUTPUT_TOKEN_COST_PER_MILLION", "1")
+    assert estimate_usage_cost(100, 100) is None
+
+    monkeypatch.setenv("INPUT_TOKEN_COST_PER_MILLION", "-1")
+    monkeypatch.setenv("OUTPUT_TOKEN_COST_PER_MILLION", "1")
+    assert estimate_usage_cost(100, 100) is None
+    assert estimate_usage_cost(None, 100) is None
+    assert estimate_usage_cost(100, None) is None
