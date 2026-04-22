@@ -1708,19 +1708,46 @@ def _is_complex_equipment(item_class: str) -> bool:
     return True
 
 
-def _is_model_not_exist_error(exc: Exception) -> bool:
-    message = str(exc).lower()
-    return "model not exist" in message or "model_not_found" in message
+def _is_model_nonexistent_error(exc: Exception) -> bool:
+    def _contains_model_not_exist_text(text: str) -> bool:
+        text_lower = text.lower()
+        return "model not exist" in text_lower or "model_not_found" in text_lower
+
+    status_code = getattr(exc, "status_code", None)
+    body = getattr(exc, "body", None)
+
+    if isinstance(body, dict):
+        error_data = body.get("error", {}) if isinstance(body.get("error"), dict) else {}
+        api_message = str(error_data.get("message", ""))
+        api_code = str(error_data.get("code", ""))
+        if _contains_model_not_exist_text(api_message) or _contains_model_not_exist_text(api_code):
+            return True
+
+    message = str(exc)
+    if _contains_model_not_exist_text(message):
+        return True
+
+    message_lower = message.lower()
+    return status_code in {400, 404} and "model" in message_lower and "exist" in message_lower
+
+
+def resolve_model_name(model: str | None) -> str:
+    return (model or "").strip() or "deepseek-chat"
 
 
 def create_chat_completion_with_model_fallback(client: OpenAI, model: str, messages: list[dict[str, str]]) -> tuple[object, str]:
-    selected_model = (model or "").strip() or "deepseek-chat"
+    """
+    Request a chat completion and gracefully fallback to `deepseek-chat` for model-not-found errors.
+
+    Returns a tuple with `(response, used_model)`, where `used_model` is the model that succeeded.
+    """
+    selected_model = resolve_model_name(model)
     fallback_model = "deepseek-chat"
     candidates = [selected_model]
     if selected_model != fallback_model:
         candidates.append(fallback_model)
 
-    last_error: Exception | None = None
+    last_model_not_found_error: Exception | None = None
     for candidate in candidates:
         try:
             response = client.chat.completions.create(
@@ -1729,20 +1756,21 @@ def create_chat_completion_with_model_fallback(client: OpenAI, model: str, messa
             )
             return response, candidate
         except Exception as exc:
-            last_error = exc
-            if candidate != fallback_model and _is_model_not_exist_error(exc):
-                print(f"[WARN] Model '{candidate}' not available. Retrying with fallback model '{fallback_model}'.")
+            if _is_model_nonexistent_error(exc):
+                last_model_not_found_error = exc
+                if candidate != fallback_model:
+                    print(f"[WARN] Model '{candidate}' not available. Retrying with fallback model '{fallback_model}'.")
                 continue
             raise
 
-    if last_error is not None:
-        raise last_error
-    raise RuntimeError("Unable to request chat completion: no model candidates available")
+    if last_model_not_found_error is not None:
+        raise last_model_not_found_error
+    raise RuntimeError(f"Unable to create chat completion with available model candidates: {candidates}")
 
 
 def main():
     api_key = os.getenv("API_KEY_DS")
-    model = (os.getenv("DS_MODEL") or os.getenv("OPENAI_MODEL") or "deepseek-chat").strip()
+    effective_model = resolve_model_name(os.getenv("DS_MODEL") or os.getenv("OPENAI_MODEL"))
     base_url = os.getenv("DS_BASE_URL", "https://api.deepseek.com")
     levity_api_key = os.getenv("API_KEY_LEVITY")
     levity_reference_vendor = (os.getenv("LEVITY_REFERENCE_VENDOR") or DEFAULT_LEVITY_REFERENCE_VENDOR).strip()
@@ -1986,13 +2014,13 @@ Return ONLY the final deliverables requested in the instruction.
 
         resp, used_model = create_chat_completion_with_model_fallback(
             client=client,
-            model=model,
+            model=effective_model,
             messages=[
                 {"role": "system", "content": system_prompt + "\n\n### SPEC (MANDATORY)\n" + spec},
                 {"role": "user", "content": user_prompt},
             ],
         )
-        model = used_model
+        effective_model = used_model
 
         usage = getattr(resp, "usage", None)
         in_tokens = getattr(usage, "prompt_tokens", None) if usage else None
@@ -2049,10 +2077,10 @@ Return ONLY the final deliverables requested in the instruction.
             # Request correction from AI
             correction_resp, used_model = create_chat_completion_with_model_fallback(
                 client=client,
-                model=model,
+                model=effective_model,
                 messages=conversation_history,
             )
-            model = used_model
+            effective_model = used_model
 
             usage = getattr(correction_resp, "usage", None)
             in_tokens = getattr(usage, "prompt_tokens", None) if usage else None
