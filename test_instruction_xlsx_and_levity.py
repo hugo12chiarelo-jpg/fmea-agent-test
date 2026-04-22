@@ -206,6 +206,19 @@ def test_pick_scope_from_ems_returns_empty_when_scope_missing(tmp_path):
     assert pick_scope_from_ems(ems_path, "Pump, Centrifugal") == ""
 
 
+def test_pick_scope_from_ems_returns_first_non_empty_scope_when_multiple_rows_match(tmp_path):
+    ems_path = tmp_path / "EMS.csv"
+    ems_path.write_text(
+        "Item Class;Item Class Name;Scope\n"
+        "PUMP;Pump, Centrifugal;\n"
+        "PUMP;Pump, Centrifugal;First non-empty scope\n"
+        "PUMP;Pump, Centrifugal;Another scope\n",
+        encoding="utf-8",
+    )
+
+    assert pick_scope_from_ems(ems_path, "Pump, Centrifugal") == "First non-empty scope"
+
+
 def test_read_csv_with_fallback_uses_cache(tmp_path, monkeypatch):
     csv_path = tmp_path / "data.csv"
     csv_path.write_text("col1,col2\n1,2\n", encoding="utf-8")

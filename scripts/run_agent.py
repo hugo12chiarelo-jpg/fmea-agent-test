@@ -328,6 +328,10 @@ def filter_ems_for_item_class(ems_path: Path, item_class: str, max_rows: int = 2
 def pick_scope_from_ems(ems_path: Path, item_class: str) -> str:
     """
     Pick Scope from EMS row matching the Item Class when available.
+
+    Returns the first non-empty Scope value among matching rows.
+    Returns an empty string when Scope column is missing, no rows match, or
+    all matching Scope values are empty.
     """
     df = read_csv_with_fallback(ems_path)
     df.columns = [str(c).replace("\ufeff", "").strip() for c in df.columns]
