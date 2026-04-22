@@ -13,6 +13,7 @@ from run_agent import (
     create_chat_completion_with_model_fallback,
     estimate_usage_cost,
     load_instruction_entries,
+    pick_manual_text,
     read_csv_with_fallback,
     resolve_model_name,
     search_manual_with_levity,
@@ -59,11 +60,11 @@ def test_search_manual_with_levity_parses_results(monkeypatch):
             return {
                 "results": [
                     {
-                        "text": "Manual section A",
+                        "text": "Pump centrifugal manual section A",
                         "url": "https://example.com/manual-a",
                     },
                     {
-                        "content": "Manual section B",
+                        "content": "Pump operation section B",
                         "url": "https://example.com/manual-b",
                     },
                 ]
@@ -88,8 +89,8 @@ def test_search_manual_with_levity_parses_results(monkeypatch):
         scope="Transfer fluid",
     )
 
-    assert "Manual section A" in text
-    assert "Manual section B" in text
+    assert "Pump centrifugal manual section A" in text
+    assert "Pump operation section B" in text
     assert source == "https://example.com/manual-a"
     assert captured["url"] == "https://levity.example/search"
     assert captured["headers"]["Authorization"] == "Bearer levity-token"
@@ -103,7 +104,7 @@ def test_search_manual_with_levity_uses_env_overrides(monkeypatch):
         status_code = 200
 
         def json(self):
-            return {"text": "Manual section override"}
+            return {"text": "Diesel engine manual section override"}
 
     captured = {}
 
@@ -122,11 +123,62 @@ def test_search_manual_with_levity_uses_env_overrides(monkeypatch):
         scope="Main propulsion backup",
     )
 
-    assert "Manual section override" in text
+    assert "Diesel engine manual section override" in text
     assert captured["json"]["reference_vendor"] == "Wartsila"
     assert captured["json"]["equipment_context"] == "offshore power generation"
     assert "Wartsila" in captured["json"]["query"]
     assert "offshore power generation" in captured["json"]["query"]
+
+
+def test_search_manual_with_levity_skips_irrelevant_results(monkeypatch):
+    class DummyResponse:
+        status_code = 200
+
+        def json(self):
+            return {
+                "results": [
+                    {"text": "Wind turbine troubleshooting chapter"},
+                    {"content": "Solar inverter maintenance summary"},
+                ]
+            }
+
+    monkeypatch.setattr("run_agent.httpx.post", lambda *args, **kwargs: DummyResponse())
+
+    text, source = search_manual_with_levity(
+        api_key_levity="levity-token",
+        item_class="Pump, Centrifugal",
+        item_class_description="Centrifugal process pump",
+        scope="Transfer fluid",
+    )
+
+    assert text is None
+    assert source is None
+
+
+def test_pick_manual_text_returns_none_when_no_relevant_file(tmp_path, monkeypatch):
+    manual_dir = tmp_path / "inputs" / "Manual"
+    manual_dir.mkdir(parents=True)
+    (manual_dir / "diesel_engine_manual.txt").write_text("Diesel engine details", encoding="utf-8")
+    (manual_dir / "compressor_handbook.txt").write_text("Compressor details", encoding="utf-8")
+
+    monkeypatch.chdir(tmp_path)
+    assert pick_manual_text("Pump, Centrifugal") is None
+
+
+def test_pick_manual_text_returns_none_when_manual_folder_missing(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    assert pick_manual_text("Pump, Centrifugal") is None
+
+
+def test_pick_manual_text_selects_relevant_file(tmp_path, monkeypatch):
+    manual_dir = tmp_path / "inputs" / "Manual"
+    manual_dir.mkdir(parents=True)
+    relevant_path = manual_dir / "pump_centrifugal_manual.txt"
+    relevant_path.write_text("Pump manual details", encoding="utf-8")
+    (manual_dir / "diesel_engine_manual.txt").write_text("Diesel engine details", encoding="utf-8")
+
+    monkeypatch.chdir(tmp_path)
+    assert pick_manual_text("Pump, Centrifugal").resolve() == relevant_path.resolve()
 
 
 def test_read_csv_with_fallback_uses_cache(tmp_path, monkeypatch):
