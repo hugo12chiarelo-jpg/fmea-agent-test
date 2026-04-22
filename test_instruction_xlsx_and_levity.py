@@ -24,15 +24,11 @@ def test_load_instruction_entries_from_xlsx(tmp_path, monkeypatch):
                 "Item Class": "Pump, Centrifugal",
                 "Item Class Description": "Centrifugal process pump",
                 "Scope": "Transfer process fluid",
-                "Vendor": "ACME",
-                "Model": "P-1000",
             },
             {
                 "Item Class": "Compressor, Screw",
                 "Item Class Description": "Gas compression package",
                 "Scope": "Compress fuel gas",
-                "Vendor": "TurboCo",
-                "Model": "SC-200",
             },
         ]
     )
@@ -44,9 +40,9 @@ def test_load_instruction_entries_from_xlsx(tmp_path, monkeypatch):
 
     assert len(entries) == 2
     assert entries[0]["item_class"] == "Pump, Centrifugal"
-    assert entries[0]["vendor"] == "ACME"
+    assert entries[0]["item_class_description"] == "Centrifugal process pump"
     assert entries[1]["item_class"] == "Compressor, Screw"
-    assert entries[1]["model"] == "SC-200"
+    assert entries[1]["scope"] == "Compress fuel gas"
 
 
 def test_search_manual_with_levity_parses_results(monkeypatch):
@@ -84,8 +80,6 @@ def test_search_manual_with_levity_parses_results(monkeypatch):
         item_class="Pump, Centrifugal",
         item_class_description="Centrifugal process pump",
         scope="Transfer fluid",
-        vendor="ACME",
-        model="P-1000",
     )
 
     assert "Manual section A" in text
@@ -94,6 +88,8 @@ def test_search_manual_with_levity_parses_results(monkeypatch):
     assert captured["url"] == "https://levity.example/search"
     assert captured["headers"]["Authorization"] == "Bearer levity-token"
     assert "Pump, Centrifugal" in captured["json"]["query"]
+    assert "Caterpillar" in captured["json"]["query"]
+    assert captured["json"]["reference_vendor"] == "Caterpillar"
 
 
 def test_slugify_for_filename_edge_cases():

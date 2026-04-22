@@ -29,8 +29,6 @@ Expected columns:
 - `Item Class` (required)
 - `Item Class Description` (optional)
 - `Scope` (optional)
-- `Vendor` (optional)
-- `Model` (optional)
 
 When an XLSX file is present, each row is processed as one FMEA run and outputs are saved per item class.
 
