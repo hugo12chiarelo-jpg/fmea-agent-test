@@ -30,6 +30,9 @@ Expected columns:
 - `Item Class Description` (optional)
 - `Scope` (optional)
 
+The local manual input folder (`inputs/Manual`) is no longer required.  
+When `Scope` is not provided in Instructions, the agent tries to use the `Scope` column from EMS for the matched Item Class.
+
 When an XLSX file is present, each row is processed as one FMEA run and outputs are saved per item class.
 
 ## Recent Fixes: Automatic Validation Error Correction
