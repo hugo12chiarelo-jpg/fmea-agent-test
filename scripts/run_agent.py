@@ -431,9 +431,11 @@ def build_mi_list_from_ems_and_catalog(ems_path: Path, item_class: str, mi_catal
     rows = match_item_class_rows(ems, item_class)
     if rows.empty:
         sample = ems["Item Class"].astype(str).str.strip().dropna().unique()[:10].tolist()
-        raise RuntimeError(
-            f"No EMS rows matched Item Class='{item_class}' (tried both 'Item Class' and 'Item Class Name'). Sample EMS Item Class values: {sample}"
+        print(
+            f"[WARN] No EMS rows matched Item Class='{item_class}' (tried both 'Item Class' and 'Item Class Name'). "
+            f"Sample EMS Item Class values: {sample}. Skipping mandatory MI extraction for this Item Class."
         )
+        return []
 
     # Convert to strings robustly - handle NaN, floats, and other types
     boundary_values = rows[boundary_col].fillna('').astype(str).tolist()
