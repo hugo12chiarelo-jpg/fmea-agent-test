@@ -15,7 +15,7 @@ The CSV file can be opened in Excel, Google Sheets, or any CSV-compatible applic
 ## Runtime Configuration
 
 - `API_KEY_DS` (required): DeepSeek API key used by the generator model.
-- `DS_MODEL` (optional): DeepSeek model name (default: `deepseek-chat`).
+- `DS_MODEL` (optional): DeepSeek model name (default: `deepseek-chat`). Empty/invalid values automatically fall back to `deepseek-chat`.
 - `DS_BASE_URL` (optional): DeepSeek OpenAI-compatible base URL (default: `https://api.deepseek.com`).
 - `API_KEY_LEVITY` (optional): Levity API key used to search manuals online.
 - `LEVITY_API_URL` (optional): Levity endpoint for manual search (default: `https://api.levity.ai/manual-search`).

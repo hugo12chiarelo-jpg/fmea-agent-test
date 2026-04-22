@@ -9,8 +9,10 @@ sys.path.insert(0, 'scripts')
 from run_agent import (
     DEFAULT_LEVITY_REFERENCE_VENDOR,
     build_mi_list_from_ems_and_catalog,
+    create_chat_completion_with_model_fallback,
     estimate_usage_cost,
     load_instruction_entries,
+    resolve_model_name,
     search_manual_with_levity,
     slugify_for_filename,
 )
@@ -162,3 +164,61 @@ def test_build_mi_list_returns_empty_when_item_class_not_found(tmp_path):
 
     result = build_mi_list_from_ems_and_catalog(ems_path, "CEDS", catalog_path)
     assert result == []
+
+
+def test_create_chat_completion_uses_default_when_model_empty_or_whitespace():
+    class MockCompletions:
+        def __init__(self):
+            self.calls = []
+
+        def create(self, model=None, messages=None):
+            self.calls.append(model)
+            return {"model": model, "messages": messages}
+
+    class MockClient:
+        def __init__(self):
+            self.chat = type("Chat", (), {})()
+            self.chat.completions = MockCompletions()
+
+    client = MockClient()
+    response, used_model = create_chat_completion_with_model_fallback(client, "   ", [{"role": "user", "content": "x"}])
+
+    assert used_model == "deepseek-chat"
+    assert client.chat.completions.calls == ["deepseek-chat"]
+    assert response["model"] == "deepseek-chat"
+
+
+def test_create_chat_completion_retries_when_model_does_not_exist():
+    class MockAPIError(Exception):
+        def __init__(self):
+            super().__init__("Error code: 400 - {'error': {'message': 'Model Not Exist'}}")
+            self.status_code = 400
+            self.body = {"error": {"message": "Model Not Exist", "code": "invalid_request_error"}}
+
+    class MockCompletions:
+        def __init__(self):
+            self.calls = []
+
+        def create(self, model=None, messages=None):
+            self.calls.append(model)
+            if model == "invalid-model":
+                raise MockAPIError()
+            return {"model": model, "messages": messages}
+
+    class MockClient:
+        def __init__(self):
+            self.chat = type("Chat", (), {})()
+            self.chat.completions = MockCompletions()
+
+    client = MockClient()
+    response, used_model = create_chat_completion_with_model_fallback(client, "invalid-model", [{"role": "user", "content": "x"}])
+
+    assert used_model == "deepseek-chat"
+    assert client.chat.completions.calls == ["invalid-model", "deepseek-chat"]
+    assert response["model"] == "deepseek-chat"
+
+
+def test_resolve_model_name_fallbacks():
+    assert resolve_model_name("  ") == "deepseek-chat"
+    assert resolve_model_name(None) == "deepseek-chat"
+    assert resolve_model_name("deepseek-reasoner") == "deepseek-reasoner"
