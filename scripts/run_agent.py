@@ -1925,10 +1925,9 @@ def main():
             print(f"[WARN] Item Class not found in instruction. Using first EMS Item Class: {item_class}")
 
         normalized_item_class = (item_class or "").strip()
-        scope_is_empty = not scope or not scope.strip()
-        if normalized_item_class and scope_is_empty and ems_csv is not None:
+        if normalized_item_class and (not scope or not scope.strip()) and ems_csv is not None:
             scope = pick_scope_from_ems(ems_csv, normalized_item_class)
-            scope_is_empty = not scope or not scope.strip()
+        scope_is_empty = not scope or not scope.strip()
 
         print(f"\n[RUN] Processing item class {idx}/{len(instruction_entries)}: {item_class}")
 
