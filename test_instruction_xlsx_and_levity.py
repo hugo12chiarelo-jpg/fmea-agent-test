@@ -137,19 +137,25 @@ def test_read_csv_with_fallback_uses_cache(tmp_path, monkeypatch):
 
     original_read_csv = pd.read_csv
     calls = {"count": 0}
+    call_kwargs = []
 
     def counting_read_csv(*args, **kwargs):
         calls["count"] += 1
+        call_kwargs.append(kwargs)
         return original_read_csv(*args, **kwargs)
 
     monkeypatch.setattr("run_agent.pd.read_csv", counting_read_csv)
 
     df_first = read_csv_with_fallback(csv_path)
     df_second = read_csv_with_fallback(csv_path)
+    df_third = read_csv_with_fallback(csv_path, skip_bad_lines=True)
 
-    assert calls["count"] == 1
+    assert calls["count"] == 2
     assert df_first.equals(df_second)
+    assert df_first.equals(df_third)
     assert df_first is not df_second
+    assert "on_bad_lines" not in call_kwargs[0]
+    assert call_kwargs[1].get("on_bad_lines") == "skip"
 
 
 def test_slugify_for_filename_edge_cases():

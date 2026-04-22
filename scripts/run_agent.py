@@ -194,6 +194,16 @@ def read_text_file(path: Path, max_chars: int | None = None) -> str:
 
 @lru_cache(maxsize=32)
 def _read_csv_with_fallback_cached(path_str: str, skip_bad_lines: bool) -> pd.DataFrame:
+    """
+    Internal cached CSV loader with delimiter fallback.
+
+    Args:
+        path_str: Resolved CSV path.
+        skip_bad_lines: Whether to pass ``on_bad_lines='skip'`` on the first parse attempt.
+
+    Returns:
+        Parsed DataFrame. Result is cached per ``(path_str, skip_bad_lines)`` key.
+    """
     read_kwargs = {"sep": None, "engine": "python"}
     if skip_bad_lines:
         read_kwargs["on_bad_lines"] = "skip"
@@ -205,11 +215,32 @@ def _read_csv_with_fallback_cached(path_str: str, skip_bad_lines: bool) -> pd.Da
 
 
 def read_csv_with_fallback(path: Path, skip_bad_lines: bool = False) -> pd.DataFrame:
+    """
+    Load a CSV file using cached parsing with delimiter fallback.
+
+    Args:
+        path: CSV file path.
+        skip_bad_lines: When True, enables bad-line skipping in the first parse attempt.
+
+    Returns:
+        A copy of the cached DataFrame so callers can mutate it safely.
+    """
+    # Return a copy so callers can normalize headers / mutate data without
+    # mutating the cached DataFrame shared by other call sites.
     return _read_csv_with_fallback_cached(path.resolve().as_posix(), skip_bad_lines).copy()
 
 
 @lru_cache(maxsize=8)
 def _load_symptom_codes_cached(path_str: str) -> frozenset[str]:
+    """
+    Internal cached loader for symptom codes from catalog CSV.
+
+    Args:
+        path_str: Resolved path for ``Symptom Catalog.csv``.
+
+    Returns:
+        Frozen set of uppercase symptom codes, cached by path.
+    """
     symptom_codes: set[str] = set()
     symptom_df = pd.read_csv(path_str, sep=';', encoding='utf-8', encoding_errors='ignore')
 
@@ -471,10 +502,7 @@ def build_mi_list_from_ems_and_catalog(ems_path: Path, item_class: str, mi_catal
             catalog_items = [line.strip() for line in f if line.strip() and line.strip().lower() not in ('maintainable item', 'maintainable_item')]
     except Exception:
         # Fallback to pandas
-        try:
-            mi_df = read_csv_with_fallback(mi_catalog_path, skip_bad_lines=True)
-        except Exception:
-            mi_df = pd.read_csv(mi_catalog_path, sep=";", engine="python", on_bad_lines="skip")
+        mi_df = read_csv_with_fallback(mi_catalog_path, skip_bad_lines=True)
         
         mi_df.columns = [str(c).replace("\ufeff", "").strip() for c in mi_df.columns]
         
@@ -1801,12 +1829,12 @@ def main():
     mi_catalog = Path("inputs/Catalogs/Maintainable Item Catalog.csv")
     out_dir = Path("outputs")
     out_dir.mkdir(parents=True, exist_ok=True)
-    br_txt = Path("inputs/Business_Rules/Business Rules.txt")
-    br_text = read_text_file(br_txt, max_chars=120_000) if br_txt.exists() else None
-    mi = Path("inputs/Catalogs/Maintainable Item Catalog.csv")
-    mi_preview = load_csv_preview(mi, max_rows=600) if mi.exists() else None
-    sym = Path("inputs/Catalogs/Symptom Catalog.csv")
-    sym_preview = load_csv_preview(sym, max_rows=600) if sym.exists() else None
+    business_rules_path = Path("inputs/Business_Rules/Business Rules.txt")
+    business_rules_text = read_text_file(business_rules_path, max_chars=120_000) if business_rules_path.exists() else None
+    mi_catalog_path = Path("inputs/Catalogs/Maintainable Item Catalog.csv")
+    mi_catalog_preview = load_csv_preview(mi_catalog_path, max_rows=600) if mi_catalog_path.exists() else None
+    symptom_catalog_path = Path("inputs/Catalogs/Symptom Catalog.csv")
+    symptom_catalog_preview = load_csv_preview(symptom_catalog_path, max_rows=600) if symptom_catalog_path.exists() else None
 
     for idx, entry in enumerate(instruction_entries, start=1):
         instruction_source = entry["instruction_source"]
@@ -1851,17 +1879,17 @@ def main():
         # --- Minimal ingestion pack ---
         parts: list[str] = []
 
-        if br_text is not None:
-            parts.append(f"### FILE: {br_txt.as_posix()}\n{br_text}")
+        if business_rules_text is not None:
+            parts.append(f"### FILE: {business_rules_path.as_posix()}\n{business_rules_text}")
 
         if ems_csv is not None:
             parts.append(f"### FILE: {ems_csv.as_posix()} (FILTERED)\n{filter_ems_for_item_class(ems_csv, item_class, max_rows=400)}")
 
-        if mi_preview is not None:
-            parts.append(f"### FILE: {mi.as_posix()} (PREVIEW)\n{mi_preview}")
+        if mi_catalog_preview is not None:
+            parts.append(f"### FILE: {mi_catalog_path.as_posix()} (PREVIEW)\n{mi_catalog_preview}")
 
-        if sym_preview is not None:
-            parts.append(f"### FILE: {sym.as_posix()} (PREVIEW)\n{sym_preview}")
+        if symptom_catalog_preview is not None:
+            parts.append(f"### FILE: {symptom_catalog_path.as_posix()} (PREVIEW)\n{symptom_catalog_preview}")
 
         levity_manual_text, levity_source = search_manual_with_levity(
             api_key_levity=levity_api_key,
