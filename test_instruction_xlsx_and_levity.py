@@ -7,6 +7,7 @@ import pandas as pd
 sys.path.insert(0, 'scripts')
 
 from run_agent import (
+    DEFAULT_LEVITY_REFERENCE_VENDOR,
     estimate_usage_cost,
     load_instruction_entries,
     search_manual_with_levity,
@@ -24,15 +25,11 @@ def test_load_instruction_entries_from_xlsx(tmp_path, monkeypatch):
                 "Item Class": "Pump, Centrifugal",
                 "Item Class Description": "Centrifugal process pump",
                 "Scope": "Transfer process fluid",
-                "Vendor": "ACME",
-                "Model": "P-1000",
             },
             {
                 "Item Class": "Compressor, Screw",
                 "Item Class Description": "Gas compression package",
                 "Scope": "Compress fuel gas",
-                "Vendor": "TurboCo",
-                "Model": "SC-200",
             },
         ]
     )
@@ -44,9 +41,9 @@ def test_load_instruction_entries_from_xlsx(tmp_path, monkeypatch):
 
     assert len(entries) == 2
     assert entries[0]["item_class"] == "Pump, Centrifugal"
-    assert entries[0]["vendor"] == "ACME"
+    assert entries[0]["item_class_description"] == "Centrifugal process pump"
     assert entries[1]["item_class"] == "Compressor, Screw"
-    assert entries[1]["model"] == "SC-200"
+    assert entries[1]["scope"] == "Compress fuel gas"
 
 
 def test_search_manual_with_levity_parses_results(monkeypatch):
@@ -84,8 +81,6 @@ def test_search_manual_with_levity_parses_results(monkeypatch):
         item_class="Pump, Centrifugal",
         item_class_description="Centrifugal process pump",
         scope="Transfer fluid",
-        vendor="ACME",
-        model="P-1000",
     )
 
     assert "Manual section A" in text
@@ -94,6 +89,39 @@ def test_search_manual_with_levity_parses_results(monkeypatch):
     assert captured["url"] == "https://levity.example/search"
     assert captured["headers"]["Authorization"] == "Bearer levity-token"
     assert "Pump, Centrifugal" in captured["json"]["query"]
+    assert DEFAULT_LEVITY_REFERENCE_VENDOR in captured["json"]["query"]
+    assert captured["json"]["reference_vendor"] == DEFAULT_LEVITY_REFERENCE_VENDOR
+
+
+def test_search_manual_with_levity_uses_env_overrides(monkeypatch):
+    class DummyResponse:
+        status_code = 200
+
+        def json(self):
+            return {"text": "Manual section override"}
+
+    captured = {}
+
+    def fake_post(url, headers=None, json=None, timeout=None):
+        captured["json"] = json
+        return DummyResponse()
+
+    monkeypatch.setattr("run_agent.httpx.post", fake_post)
+    monkeypatch.setenv("LEVITY_REFERENCE_VENDOR", "Wartsila")
+    monkeypatch.setenv("LEVITY_EQUIPMENT_CONTEXT", "offshore power generation")
+
+    text, _ = search_manual_with_levity(
+        api_key_levity="levity-token",
+        item_class="Engine, Diesel",
+        item_class_description="Diesel Engine",
+        scope="Main propulsion backup",
+    )
+
+    assert "Manual section override" in text
+    assert captured["json"]["reference_vendor"] == "Wartsila"
+    assert captured["json"]["equipment_context"] == "offshore power generation"
+    assert "Wartsila" in captured["json"]["query"]
+    assert "offshore power generation" in captured["json"]["query"]
 
 
 def test_slugify_for_filename_edge_cases():

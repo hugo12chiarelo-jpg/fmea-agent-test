@@ -8,6 +8,8 @@ import pandas as pd
 from openai import OpenAI
 
 TEXT_EXT = {".md", ".txt", ".csv", ".json"}
+DEFAULT_LEVITY_REFERENCE_VENDOR = "Caterpillar"
+DEFAULT_LEVITY_EQUIPMENT_CONTEXT = "FPSO typical equipment"
 
 # Validation threshold: Flag if more than this ratio of (MI, Symptom) pairs have only 1 mechanism
 MAX_SINGLE_MECHANISM_RATIO = 0.70
@@ -106,9 +108,6 @@ def load_instruction_entries() -> list[dict[str, str]]:
         col_item_class = normalized["item class"]
         col_item_class_desc = normalized.get("item class description")
         col_scope = normalized.get("scope")
-        col_vendor = normalized.get("vendor")
-        col_model = normalized.get("model")
-
         entries: list[dict[str, str]] = []
         for _, row in df.iterrows():
             item_class = str(row.get(col_item_class, "")).strip()
@@ -117,25 +116,17 @@ def load_instruction_entries() -> list[dict[str, str]]:
 
             item_class_description = str(row.get(col_item_class_desc, "")).strip() if col_item_class_desc else ""
             scope = str(row.get(col_scope, "")).strip() if col_scope else ""
-            vendor = str(row.get(col_vendor, "")).strip() if col_vendor else ""
-            model = str(row.get(col_model, "")).strip() if col_model else ""
 
             if item_class_description.lower() == "nan":
                 item_class_description = ""
             if scope.lower() == "nan":
                 scope = ""
-            if vendor.lower() == "nan":
-                vendor = ""
-            if model.lower() == "nan":
-                model = ""
 
             instruction_text = "\n".join(
                 [
                     f"Item Class: {item_class}",
                     f"Item Class Description: {item_class_description}" if item_class_description else "Item Class Description:",
                     f"Scope: {scope}" if scope else "Scope:",
-                    f"Vendor: {vendor}" if vendor else "Vendor:",
-                    f"Model: {model}" if model else "Model:",
                 ]
             )
 
@@ -146,8 +137,6 @@ def load_instruction_entries() -> list[dict[str, str]]:
                     "item_class": item_class,
                     "item_class_description": item_class_description,
                     "scope": scope,
-                    "vendor": vendor,
-                    "model": model,
                 }
             )
 
@@ -165,8 +154,6 @@ def load_instruction_entries() -> list[dict[str, str]]:
             "item_class": item_class,
             "item_class_description": "",
             "scope": "",
-            "vendor": "",
-            "model": "",
         }
     ]
 
@@ -735,8 +722,8 @@ def search_manual_with_levity(
     item_class: str,
     item_class_description: str = "",
     scope: str = "",
-    vendor: str = "",
-    model: str = "",
+    reference_vendor: str | None = None,
+    equipment_context: str | None = None,
     max_chars: int = 120_000,
 ) -> tuple[str | None, str | None]:
     """
@@ -746,7 +733,9 @@ def search_manual_with_levity(
         return None, None
 
     endpoint = os.getenv("LEVITY_API_URL", "https://api.levity.ai/manual-search")
-    query_parts = [item_class_description, scope, vendor, model, item_class]
+    reference_vendor = (reference_vendor or os.getenv("LEVITY_REFERENCE_VENDOR") or DEFAULT_LEVITY_REFERENCE_VENDOR).strip()
+    equipment_context = (equipment_context or os.getenv("LEVITY_EQUIPMENT_CONTEXT") or DEFAULT_LEVITY_EQUIPMENT_CONTEXT).strip()
+    query_parts = [item_class, item_class_description, scope, reference_vendor, equipment_context]
     query = " ".join([p.strip() for p in query_parts if p and p.strip()])
     if not query:
         query = item_class
@@ -758,8 +747,8 @@ def search_manual_with_levity(
         "item_class": item_class,
         "item_class_description": item_class_description,
         "scope": scope,
-        "vendor": vendor,
-        "model": model,
+        "reference_vendor": reference_vendor,
+        "equipment_context": equipment_context,
     }
 
     try:
@@ -1722,6 +1711,8 @@ def main():
     model = os.getenv("DS_MODEL", os.getenv("OPENAI_MODEL", "deepseek-chat"))
     base_url = os.getenv("DS_BASE_URL", "https://api.deepseek.com")
     levity_api_key = os.getenv("API_KEY_LEVITY")
+    levity_reference_vendor = (os.getenv("LEVITY_REFERENCE_VENDOR") or DEFAULT_LEVITY_REFERENCE_VENDOR).strip()
+    levity_equipment_context = (os.getenv("LEVITY_EQUIPMENT_CONTEXT") or DEFAULT_LEVITY_EQUIPMENT_CONTEXT).strip()
     max_correction_attempts = int(os.getenv("MAX_CORRECTION_ATTEMPTS", "3"))
     if not api_key:
         raise RuntimeError("Missing API_KEY_DS secret")
@@ -1744,8 +1735,6 @@ def main():
         item_class = entry["item_class"]
         item_class_description = entry["item_class_description"]
         scope = entry["scope"]
-        vendor = entry["vendor"]
-        model_hint = entry["model"]
 
         # --- Fallback: if instruction didn't specify Item Class, pick first available from EMS ---
         if item_class == "UNKNOWN_ITEM_CLASS":
@@ -1806,8 +1795,8 @@ def main():
             item_class=item_class,
             item_class_description=item_class_description,
             scope=scope,
-            vendor=vendor,
-            model=model_hint,
+            reference_vendor=levity_reference_vendor,
+            equipment_context=levity_equipment_context,
             max_chars=120_000,
         )
         if levity_manual_text:
@@ -1832,8 +1821,8 @@ def main():
 ## ITEM CLASS CONTEXT (from instruction row)
 Item Class Description: {item_class_description or "[not provided]"}
 Scope: {scope or "[not provided]"}
-Vendor: {vendor or "[not provided]"}
-Model: {model_hint or "[not provided]"}
+Levity technical reference source: {levity_reference_vendor} operation and maintenance manuals for {levity_equipment_context}.
+Manual lookup scope: use only this Item Class row context; do not reuse context from other Item Classes.
 
 ## SPECIFICATION (MANDATORY)
 {spec}
