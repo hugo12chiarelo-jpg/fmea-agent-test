@@ -7,11 +7,13 @@ import pandas as pd
 sys.path.insert(0, 'scripts')
 
 from run_agent import (
+    _read_csv_with_fallback_cached,
     DEFAULT_LEVITY_REFERENCE_VENDOR,
     build_mi_list_from_ems_and_catalog,
     create_chat_completion_with_model_fallback,
     estimate_usage_cost,
     load_instruction_entries,
+    read_csv_with_fallback,
     resolve_model_name,
     search_manual_with_levity,
     slugify_for_filename,
@@ -125,6 +127,35 @@ def test_search_manual_with_levity_uses_env_overrides(monkeypatch):
     assert captured["json"]["equipment_context"] == "offshore power generation"
     assert "Wartsila" in captured["json"]["query"]
     assert "offshore power generation" in captured["json"]["query"]
+
+
+def test_read_csv_with_fallback_uses_cache(tmp_path, monkeypatch):
+    csv_path = tmp_path / "data.csv"
+    csv_path.write_text("col1,col2\n1,2\n", encoding="utf-8")
+
+    _read_csv_with_fallback_cached.cache_clear()
+
+    original_read_csv = pd.read_csv
+    calls = {"count": 0}
+    call_kwargs = []
+
+    def counting_read_csv(*args, **kwargs):
+        calls["count"] += 1
+        call_kwargs.append(kwargs)
+        return original_read_csv(*args, **kwargs)
+
+    monkeypatch.setattr("run_agent.pd.read_csv", counting_read_csv)
+
+    df_first = read_csv_with_fallback(csv_path)
+    df_second = read_csv_with_fallback(csv_path)
+    df_third = read_csv_with_fallback(csv_path, skip_bad_lines=True)
+
+    assert calls["count"] == 2
+    assert df_first.equals(df_second)
+    assert df_first.equals(df_third)
+    assert df_first is not df_second
+    assert "on_bad_lines" not in call_kwargs[0]
+    assert call_kwargs[1].get("on_bad_lines") == "skip"
 
 
 def test_slugify_for_filename_edge_cases():
