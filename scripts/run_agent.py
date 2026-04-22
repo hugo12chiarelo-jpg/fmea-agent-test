@@ -1708,9 +1708,41 @@ def _is_complex_equipment(item_class: str) -> bool:
     return True
 
 
+def _is_model_not_exist_error(exc: Exception) -> bool:
+    message = str(exc).lower()
+    return "model not exist" in message or "model_not_found" in message
+
+
+def create_chat_completion_with_model_fallback(client: OpenAI, model: str, messages: list[dict[str, str]]) -> tuple[object, str]:
+    selected_model = (model or "").strip() or "deepseek-chat"
+    fallback_model = "deepseek-chat"
+    candidates = [selected_model]
+    if selected_model != fallback_model:
+        candidates.append(fallback_model)
+
+    last_error: Exception | None = None
+    for candidate in candidates:
+        try:
+            response = client.chat.completions.create(
+                model=candidate,
+                messages=messages,
+            )
+            return response, candidate
+        except Exception as exc:
+            last_error = exc
+            if candidate != fallback_model and _is_model_not_exist_error(exc):
+                print(f"[WARN] Model '{candidate}' not available. Retrying with fallback model '{fallback_model}'.")
+                continue
+            raise
+
+    if last_error is not None:
+        raise last_error
+    raise RuntimeError("Unable to request chat completion: no model candidates available")
+
+
 def main():
     api_key = os.getenv("API_KEY_DS")
-    model = os.getenv("DS_MODEL", os.getenv("OPENAI_MODEL", "deepseek-chat"))
+    model = (os.getenv("DS_MODEL") or os.getenv("OPENAI_MODEL") or "deepseek-chat").strip()
     base_url = os.getenv("DS_BASE_URL", "https://api.deepseek.com")
     levity_api_key = os.getenv("API_KEY_LEVITY")
     levity_reference_vendor = (os.getenv("LEVITY_REFERENCE_VENDOR") or DEFAULT_LEVITY_REFERENCE_VENDOR).strip()
@@ -1952,13 +1984,15 @@ The list below contains Maintainable Items derived from EMS Boundaries column, e
 Return ONLY the final deliverables requested in the instruction.
 """
 
-        resp = client.chat.completions.create(
+        resp, used_model = create_chat_completion_with_model_fallback(
+            client=client,
             model=model,
             messages=[
                 {"role": "system", "content": system_prompt + "\n\n### SPEC (MANDATORY)\n" + spec},
                 {"role": "user", "content": user_prompt},
             ],
         )
+        model = used_model
 
         usage = getattr(resp, "usage", None)
         in_tokens = getattr(usage, "prompt_tokens", None) if usage else None
@@ -2013,10 +2047,12 @@ Return ONLY the final deliverables requested in the instruction.
             conversation_history.append({"role": "user", "content": correction_prompt})
 
             # Request correction from AI
-            correction_resp = client.chat.completions.create(
+            correction_resp, used_model = create_chat_completion_with_model_fallback(
+                client=client,
                 model=model,
                 messages=conversation_history,
             )
+            model = used_model
 
             usage = getattr(correction_resp, "usage", None)
             in_tokens = getattr(usage, "prompt_tokens", None) if usage else None
