@@ -8,6 +8,7 @@ sys.path.insert(0, 'scripts')
 
 from run_agent import (
     DEFAULT_LEVITY_REFERENCE_VENDOR,
+    build_mi_list_from_ems_and_catalog,
     estimate_usage_cost,
     load_instruction_entries,
     search_manual_with_levity,
@@ -147,3 +148,17 @@ def test_estimate_usage_cost_invalid_inputs(monkeypatch):
     assert estimate_usage_cost(100, 100) is None
     assert estimate_usage_cost(None, 100) is None
     assert estimate_usage_cost(100, None) is None
+
+
+def test_build_mi_list_returns_empty_when_item_class_not_found(tmp_path):
+    ems_path = tmp_path / "ems.csv"
+    catalog_path = tmp_path / "mi_catalog.csv"
+
+    ems_path.write_text(
+        "Item Class;Item Class Name;Boundaries\nDRDE;Diesel Engine;Include rotor and stator\n",
+        encoding="utf-8",
+    )
+    catalog_path.write_text("Maintainable Item\nRotor\nStator\n", encoding="utf-8")
+
+    result = build_mi_list_from_ems_and_catalog(ems_path, "CEDS", catalog_path)
+    assert result == []
