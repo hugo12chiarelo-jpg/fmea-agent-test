@@ -1,5 +1,6 @@
 import os
 import re
+from functools import lru_cache
 from io import StringIO
 from pathlib import Path
 
@@ -191,11 +192,39 @@ def read_text_file(path: Path, max_chars: int | None = None) -> str:
     return txt
 
 
-def load_csv_preview(path: Path, max_rows: int = 200, max_cols: int = 30) -> str:
+@lru_cache(maxsize=32)
+def _read_csv_with_fallback_cached(path_str: str, skip_bad_lines: bool) -> pd.DataFrame:
+    read_kwargs = {"sep": None, "engine": "python"}
+    if skip_bad_lines:
+        read_kwargs["on_bad_lines"] = "skip"
+
     try:
-        df = pd.read_csv(path, sep=None, engine="python")
+        return pd.read_csv(path_str, **read_kwargs)
     except Exception:
-        df = pd.read_csv(path, sep=";", engine="python", on_bad_lines="skip")
+        return pd.read_csv(path_str, sep=";", engine="python", on_bad_lines="skip")
+
+
+def read_csv_with_fallback(path: Path, skip_bad_lines: bool = False) -> pd.DataFrame:
+    return _read_csv_with_fallback_cached(path.resolve().as_posix(), skip_bad_lines).copy()
+
+
+@lru_cache(maxsize=8)
+def _load_symptom_codes_cached(path_str: str) -> frozenset[str]:
+    symptom_codes: set[str] = set()
+    symptom_df = pd.read_csv(path_str, sep=';', encoding='utf-8', encoding_errors='ignore')
+
+    if 'Code' in symptom_df.columns or len(symptom_df.columns) > 0:
+        code_col = 'Code' if 'Code' in symptom_df.columns else symptom_df.columns[0]
+        for code in symptom_df[code_col].dropna():
+            code_str = str(code).strip().replace('\ufeff', '')
+            if code_str and code_str not in ['Code', '']:
+                symptom_codes.add(code_str.upper())
+
+    return frozenset(symptom_codes)
+
+
+def load_csv_preview(path: Path, max_rows: int = 200, max_cols: int = 30) -> str:
+    df = read_csv_with_fallback(path)
 
     df = df.iloc[:, :max_cols]
     if len(df) > max_rows:
@@ -235,10 +264,7 @@ def match_item_class_rows(df: pd.DataFrame, item_class: str) -> pd.DataFrame:
 
 
 def filter_ems_for_item_class(ems_path: Path, item_class: str, max_rows: int = 200) -> str:
-    try:
-        df = pd.read_csv(ems_path, sep=None, engine="python")
-    except Exception:
-        df = pd.read_csv(ems_path, sep=";", engine="python", on_bad_lines="skip")
+    df = read_csv_with_fallback(ems_path)
 
     # Normalize headers
     df.columns = [str(c).replace("\ufeff", "").strip() for c in df.columns]
@@ -406,10 +432,7 @@ def build_mi_list_from_ems_and_catalog(ems_path: Path, item_class: str, mi_catal
         List of Maintainable Items (catalog terminology) that should be included
     """
     # Read EMS
-    try:
-        ems = pd.read_csv(ems_path, sep=None, engine="python")
-    except Exception:
-        ems = pd.read_csv(ems_path, sep=";", engine="python", on_bad_lines="skip")
+    ems = read_csv_with_fallback(ems_path)
 
     # Normalize headers
     ems.columns = [str(c).replace("\ufeff", "").strip() for c in ems.columns]
@@ -449,7 +472,7 @@ def build_mi_list_from_ems_and_catalog(ems_path: Path, item_class: str, mi_catal
     except Exception:
         # Fallback to pandas
         try:
-            mi_df = pd.read_csv(mi_catalog_path, sep=None, engine="python", on_bad_lines="skip")
+            mi_df = read_csv_with_fallback(mi_catalog_path, skip_bad_lines=True)
         except Exception:
             mi_df = pd.read_csv(mi_catalog_path, sep=";", engine="python", on_bad_lines="skip")
         
@@ -1252,10 +1275,7 @@ def extract_ems_exclusions(ems_path: Path, item_class: str) -> list[str]:
     """
     try:
         # Read EMS
-        try:
-            ems = pd.read_csv(ems_path, sep=None, engine="python")
-        except Exception:
-            ems = pd.read_csv(ems_path, sep=";", engine="python", on_bad_lines="skip")
+        ems = read_csv_with_fallback(ems_path)
         
         # Normalize headers
         ems.columns = [str(c).replace("\ufeff", "").strip() for c in ems.columns]
@@ -1322,16 +1342,7 @@ def validate_output_cardinality(output_text: str, item_class: str = "") -> list[
     symptom_catalog_path = Path("inputs/Catalogs/Symptom Catalog.csv")
     if symptom_catalog_path.exists():
         try:
-            # Symptom Catalog uses semicolon as separator
-            symptom_df = pd.read_csv(symptom_catalog_path, sep=';', encoding='utf-8', encoding_errors='ignore')
-            # Extract symptom codes from first column (Code)
-            if 'Code' in symptom_df.columns or len(symptom_df.columns) > 0:
-                code_col = 'Code' if 'Code' in symptom_df.columns else symptom_df.columns[0]
-                # Clean up BOM and extract codes
-                for code in symptom_df[code_col].dropna():
-                    code_str = str(code).strip().replace('\ufeff', '')
-                    if code_str and code_str not in ['Code', '']:
-                        symptom_codes.add(code_str.upper())
+            symptom_codes = set(_load_symptom_codes_cached(symptom_catalog_path.resolve().as_posix()))
         except Exception as e:
             print(f"[WARN] Could not load Symptom Catalog for validation: {e}")
     
@@ -1790,6 +1801,12 @@ def main():
     mi_catalog = Path("inputs/Catalogs/Maintainable Item Catalog.csv")
     out_dir = Path("outputs")
     out_dir.mkdir(parents=True, exist_ok=True)
+    br_txt = Path("inputs/Business_Rules/Business Rules.txt")
+    br_text = read_text_file(br_txt, max_chars=120_000) if br_txt.exists() else None
+    mi = Path("inputs/Catalogs/Maintainable Item Catalog.csv")
+    mi_preview = load_csv_preview(mi, max_rows=600) if mi.exists() else None
+    sym = Path("inputs/Catalogs/Symptom Catalog.csv")
+    sym_preview = load_csv_preview(sym, max_rows=600) if sym.exists() else None
 
     for idx, entry in enumerate(instruction_entries, start=1):
         instruction_source = entry["instruction_source"]
@@ -1804,10 +1821,7 @@ def main():
             if ems_csv_fallback is None:
                 raise RuntimeError("[ERROR] Instruction missing Item Class and no EMS CSV found in inputs/EMS/.")
 
-            try:
-                df_ems = pd.read_csv(ems_csv_fallback, sep=None, engine="python")
-            except Exception:
-                df_ems = pd.read_csv(ems_csv_fallback, sep=";", engine="python", on_bad_lines="skip")
+            df_ems = read_csv_with_fallback(ems_csv_fallback)
 
             # normalize headers
             df_ems.columns = [str(c).replace("\ufeff", "").strip() for c in df_ems.columns]
@@ -1837,20 +1851,17 @@ def main():
         # --- Minimal ingestion pack ---
         parts: list[str] = []
 
-        br_txt = Path("inputs/Business_Rules/Business Rules.txt")
-        if br_txt.exists():
-            parts.append(f"### FILE: {br_txt.as_posix()}\n{read_text_file(br_txt, max_chars=120_000)}")
+        if br_text is not None:
+            parts.append(f"### FILE: {br_txt.as_posix()}\n{br_text}")
 
         if ems_csv is not None:
             parts.append(f"### FILE: {ems_csv.as_posix()} (FILTERED)\n{filter_ems_for_item_class(ems_csv, item_class, max_rows=400)}")
 
-        mi = Path("inputs/Catalogs/Maintainable Item Catalog.csv")
-        if mi.exists():
-            parts.append(f"### FILE: {mi.as_posix()} (PREVIEW)\n{load_csv_preview(mi, max_rows=600)}")
+        if mi_preview is not None:
+            parts.append(f"### FILE: {mi.as_posix()} (PREVIEW)\n{mi_preview}")
 
-        sym = Path("inputs/Catalogs/Symptom Catalog.csv")
-        if sym.exists():
-            parts.append(f"### FILE: {sym.as_posix()} (PREVIEW)\n{load_csv_preview(sym, max_rows=600)}")
+        if sym_preview is not None:
+            parts.append(f"### FILE: {sym.as_posix()} (PREVIEW)\n{sym_preview}")
 
         levity_manual_text, levity_source = search_manual_with_levity(
             api_key_levity=levity_api_key,
@@ -2046,8 +2057,9 @@ Return ONLY the final deliverables requested in the instruction.
 
         # Check for missing mandatory MIs - now informational since AI can filter intelligently
         missing: list[str] = []
+        output_text_lower = output_text.lower()
         for mi_name in mandatory_mi:
-            if mi_name and (mi_name.lower() not in output_text.lower()):
+            if mi_name and (mi_name.lower() not in output_text_lower):
                 missing.append(mi_name)
 
         if mandatory_mi and missing:
