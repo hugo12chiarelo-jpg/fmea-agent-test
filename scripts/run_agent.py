@@ -325,6 +325,36 @@ def filter_ems_for_item_class(ems_path: Path, item_class: str, max_rows: int = 2
     return dff.to_csv(index=False) + note
 
 
+def pick_scope_from_ems(ems_path: Path, item_class: str) -> str:
+    """
+    Pick Scope from EMS row matching the Item Class when available.
+
+    Returns the first non-empty Scope value among matching rows.
+    Returns an empty string when Scope column is missing, no rows match, or
+    all matching Scope values are empty.
+    """
+    df = read_csv_with_fallback(ems_path)
+    df.columns = [str(c).replace("\ufeff", "").strip() for c in df.columns]
+
+    scope_col = None
+    for c in df.columns:
+        if str(c).strip().lower() == "scope":
+            scope_col = c
+            break
+    if scope_col is None:
+        return ""
+
+    rows = match_item_class_rows(df, item_class)
+    if rows.empty:
+        return ""
+
+    for value in rows[scope_col].tolist():
+        txt = str(value).strip()
+        if txt and txt.lower() != "nan":
+            return txt
+    return ""
+
+
 def apply_item_class_specific_rules(mi_list: list[str], item_class: str) -> list[str]:
     """
     Apply item-class-specific business rules to filter and adjust the MI list.
@@ -1626,7 +1656,7 @@ def validate_output_cardinality(output_text: str, item_class: str = "") -> list[
             errors.append(
                 f"G9 VIOLATION: Item Class '{item_class}' is classified as {equipment_type} equipment. "
                 f"Found only {unique_mis} distinct Maintainable Item(s), but need at least {min_mi_count}. "
-                f"Add more relevant maintainable items using EMS boundaries, Maintainable Item Catalog, Manual, and ISO 14224."
+                f"Add more relevant maintainable items using EMS boundaries, EMS Scope, Maintainable Item Catalog, and ISO 14224."
             )
         
         # G10: Check for SUGGESTED ADDITIONAL MAINTAINABLE ITEMS section
@@ -1894,6 +1924,11 @@ def main():
             item_class = candidates.iloc[0]
             print(f"[WARN] Item Class not found in instruction. Using first EMS Item Class: {item_class}")
 
+        normalized_item_class = (item_class or "").strip()
+        if normalized_item_class and (not scope or not scope.strip()) and ems_csv is not None:
+            scope = pick_scope_from_ems(ems_csv, normalized_item_class)
+        scope_is_empty = not scope or not scope.strip()
+
         print(f"\n[RUN] Processing item class {idx}/{len(instruction_entries)}: {item_class}")
 
         # --- Build mandatory MI list (deterministic) ---
@@ -1929,10 +1964,11 @@ def main():
         )
         if levity_manual_text:
             parts.append(f"### FILE: LEVITY ONLINE MANUAL ({levity_source})\n{levity_manual_text}")
-        else:
-            manual_txt = pick_manual_text(item_class)
-            if manual_txt:
-                parts.append(f"### FILE: {manual_txt.as_posix()} (TRUNCATED)\n{read_text_file(manual_txt, max_chars=120_000)}")
+        elif scope_is_empty:
+            print(
+                f"[WARN] No Levity manual context and empty EMS Scope for Item Class '{item_class}'. "
+                "Generation will rely on EMS boundaries, catalogs, and business rules."
+            )
 
         minimal_inputs = "\n\n".join(parts)
 
@@ -1975,7 +2011,7 @@ The list below contains Maintainable Items derived from EMS Boundaries column, e
 1. You MUST build the FMEA for EVERY relevant Maintainable Item - not just those listed below
 2. APPLY ENGINEERING JUDGMENT to filter the base list (remove items that are sub-components or not independently maintainable)
 3. PROACTIVELY ADD maintainable items from ISO 14224 Table B.15 that are relevant but not in boundaries (mark with "(*)") 
-4. Review the Equipment Manual and EMS Boundaries to identify ANY additional Maintainable Items of technical relevance
+4. Review EMS Scope and EMS Boundaries to identify ANY additional Maintainable Items of technical relevance
 5. Do NOT limit yourself to only the "main" or "most probable" items - include ALL technically relevant items
 6. Mark any additional Maintainable Items you suggest (beyond the base list or from ISO 14224) with "(*)" to indicate they are inferred
 
@@ -2000,7 +2036,7 @@ The list below contains Maintainable Items derived from EMS Boundaries column, e
   * **Select based on**: Item Class functional requirements, operating principles, and failure risk profile
   * Verify technical relevance to the specific Item Class
   * Mark ALL ISO 14224-suggested items with "(*)"
-- Review the Equipment Manual for components/systems that could cause functional failure
+- Review EMS Scope for components/systems that could cause functional failure
 - Consider: Power transmission, control systems, monitoring systems, structural components, sealing systems, cooling systems, auxiliary systems, etc.
 - Each suggested item should be technically justified and relevant to the Item Class
 - Transform all names to match Maintainable Item Catalog terminology
@@ -2014,8 +2050,8 @@ The list below contains Maintainable Items derived from EMS Boundaries column, e
 - ⚠️  **BEFORE FINALIZING OUTPUT**: Count your distinct Maintainable Items
 - ⚠️  **IF BELOW MINIMUM**: Add more relevant MIs from:
   * EMS boundaries (items not yet covered)
+  * EMS Scope (functional context and systems in scope)
   * Maintainable Item Catalog (relevant components for this equipment type)
-  * Equipment Manual (systems/components that can fail)
   * ISO 14224 Table B.15 (standard maintainable items for equipment class)
 - ✅ **ALWAYS include**: Power transmission, control systems, lubrication, cooling, sealing, structural, monitoring systems as applicable
 

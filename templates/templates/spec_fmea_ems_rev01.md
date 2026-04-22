@@ -1,6 +1,6 @@
 OBJECTIVE
 Build a complete, ISO 14224–compliant FMEA for a user-provided Item Class of the EMS Upgrade, strictly following the "Business Rules for EMS Upgrade Rev01". 
-The FMEA must reflect the technical characteristics of each Maintainable Item, with correct Symptoms, Failure Mechanisms, and Treatment Actions derived from reliability engineering standards (ISO 14224, OREDA, Moubray RCM) and the Maintenance Manual (PDF) as technical base for Treatment Actions.
+The FMEA must reflect the technical characteristics of each Maintainable Item, with correct Symptoms, Failure Mechanisms, and Treatment Actions derived from reliability engineering standards (ISO 14224, OREDA, Moubray RCM) and EMS Scope context as technical base for Treatment Actions.
 
 **CRITICAL CONSTRAINTS** (MUST BE ENFORCED):
 1. **CARDINALITY ENFORCEMENT**: Each Maintainable Item MUST have EXACTLY 4-8 distinct Symptoms. NO EXCEPTIONS.
@@ -29,7 +29,7 @@ EMS.xlsx: defines scope/boundaries and Task Template IDs. Boundaries define what
 Maintainable Item Catalog: authoritative item naming; any inferred maintainable item must be marked with "(*)".
 Symptom Catalog: symptom codes to be used.
 ISO 14224: use Table B.15 for symptoms and Table B.2 for failure mechanisms.
-Maintenance Manual.pdf: technical basis to design Treatment Actions.
+EMS Scope column: technical basis to understand Item Class function in FPSO and design Treatment Actions.
 If there is any conflict, follow the priority above.
 
 INPUT
@@ -131,8 +131,8 @@ Equipment with simpler construction, fewer subsystems, or limited mechanical com
 **CRITICAL REQUIREMENT**: 
 - For COMPLEX equipment: Generate AT LEAST 12 distinct Maintainable Items
 - For SIMPLE equipment: Generate AT LEAST 5 distinct Maintainable Items
-- These are MINIMUM requirements. More Maintainable Items should be added if technically justified by boundaries, catalog, manual, or engineering analysis.
-- The same quality structure applies: Boundaries → Catalog → Manual → AI intelligence
+- These are MINIMUM requirements. More Maintainable Items should be added if technically justified by boundaries, EMS Scope, catalog, or engineering analysis.
+- The same quality structure applies: Boundaries → EMS Scope → Catalog → AI intelligence
 - Use the existing questions in the code to determine correct Maintainable Items - these are validated and practical.
 
 **Process:**
@@ -193,9 +193,9 @@ Equipment with simpler construction, fewer subsystems, or limited mechanical com
      3. Cross-reference with ISO 14224 Table B.15 for standard maintainable items
      4. Verify each suggested item has distinct failure modes and maintenance requirements
      5. Ensure suggested items are not already covered by boundary-derived maintainable items
-   - **Mark ALL suggested items with "(*)"** to indicate they are inferred from ISO 14224/manual, not explicit in boundaries
+   - **Mark ALL suggested items with "(*)"** to indicate they are inferred from ISO 14224/engineering analysis, not explicit in boundaries
    - **Engineering validation**: Each suggested item must have clear justification based on failure risk, criticality, and maintenance strategy
-8. Mark inferred items with "(*)": If a maintainable item is suggested by AI from ISO 14224, manual, or engineering judgment and is NOT explicitly stated in EMS boundaries, mark it with "(*)".
+8. Mark inferred items with "(*)": If a maintainable item is suggested by AI from ISO 14224, EMS Scope context, or engineering judgment and is NOT explicitly stated in EMS boundaries, mark it with "(*)".
 9. Never suggest any maintainable item that is mentioned as excluded in boundaries.
 10. Add new maintainable items when there are relevant components/systems that could cause system failure, including (non-exhaustive): Power transmission; construction components (impeller, piston, valves, etc.); control & monitoring; lubrication system; seal system; cooling system; exhaust; fuel system; or any other relevant system.
 11. Appropriate level test: Ask: "What component could fail to cause system failure?" Example: Impeller Failure, Shaft Failure, Dry Gas Seal Failure.
@@ -254,7 +254,7 @@ Treatment Actions must be binary, measurable, auditable: [Y/N].
 Classify each Treatment Action as one of: Predictive, Preventive, Failure-Finding, Redesign, Run-to-Failure.
 Treatment Actions must be technically feasible for the maintainable item + mechanism combination.
 Avoid administrative/procedural/documentation-only actions.
-Use Maintenance Manual.pdf as technical basis to build the actions.
+Use EMS Scope context and reliability standards as technical basis to build the actions.
 Each mechanism row must have ≥1 Treatment Action.
 REQUIRED CARDINALITIES
 
@@ -360,12 +360,12 @@ QUALITY GATES (MUST PASS BEFORE EXPORT)
      * These equipment types have lower constructive complexity
    - **MANDATORY VERIFICATION**: Count the total number of unique Maintainable Items in the output
    - **BEFORE GENERATING OUTPUT**: Review the Item Class and determine its complexity level, then ensure sufficient MIs are generated
-   - If the Item Class is complex but you have fewer than 12 MIs: ADD more relevant maintainable items using boundaries, catalog, manual, and ISO 14224
+   - If the Item Class is complex but you have fewer than 12 MIs: ADD more relevant maintainable items using boundaries, EMS Scope, catalog, and ISO 14224
    - If the Item Class is simple but you have fewer than 5 MIs: ADD more relevant maintainable items
    - **QUALITY REMINDER**: Maintain the same quality standards for Maintainable Item derivation:
      1. Start with EMS Boundary items
      2. Check Maintainable Item Catalog for relevant components
-     3. Check Manual for additional relevant components
+     3. Check EMS Scope for additional relevant components
      4. Apply engineering intelligence to identify missing critical components from ISO 14224
 
 **G10**: **SUGGESTED ADDITIONAL MAINTAINABLE ITEMS SECTION**: The output MUST include a "SUGGESTED ADDITIONAL MAINTAINABLE ITEMS (for Engineering Review)" section at the end.

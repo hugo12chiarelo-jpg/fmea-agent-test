@@ -14,6 +14,7 @@ from run_agent import (
     estimate_usage_cost,
     load_instruction_entries,
     pick_manual_text,
+    pick_scope_from_ems,
     read_csv_with_fallback,
     resolve_model_name,
     search_manual_with_levity,
@@ -179,6 +180,43 @@ def test_pick_manual_text_selects_relevant_file(tmp_path, monkeypatch):
 
     monkeypatch.chdir(tmp_path)
     assert pick_manual_text("Pump, Centrifugal").resolve() == relevant_path.resolve()
+
+
+def test_pick_scope_from_ems_returns_matching_scope(tmp_path):
+    ems_path = tmp_path / "EMS.csv"
+    ems_path.write_text(
+        "Item Class;Item Class Name;Scope\n"
+        "PUMP;Pump, Centrifugal;Transfers process fluid in FPSO\n"
+        "COMP;Compressor, Screw;Compresses fuel gas\n",
+        encoding="utf-8",
+    )
+
+    assert pick_scope_from_ems(ems_path, "Pump, Centrifugal") == "Transfers process fluid in FPSO"
+    assert pick_scope_from_ems(ems_path, "PUMP") == "Transfers process fluid in FPSO"
+
+
+def test_pick_scope_from_ems_returns_empty_when_scope_missing(tmp_path):
+    ems_path = tmp_path / "EMS.csv"
+    ems_path.write_text(
+        "Item Class;Item Class Name;Boundaries\n"
+        "PUMP;Pump, Centrifugal;Includes casing\n",
+        encoding="utf-8",
+    )
+
+    assert pick_scope_from_ems(ems_path, "Pump, Centrifugal") == ""
+
+
+def test_pick_scope_from_ems_returns_first_non_empty_scope_when_multiple_rows_match(tmp_path):
+    ems_path = tmp_path / "EMS.csv"
+    ems_path.write_text(
+        "Item Class;Item Class Name;Scope\n"
+        "PUMP;Pump, Centrifugal;\n"
+        "PUMP;Pump, Centrifugal;First non-empty scope\n"
+        "PUMP;Pump, Centrifugal;Another scope\n",
+        encoding="utf-8",
+    )
+
+    assert pick_scope_from_ems(ems_path, "Pump, Centrifugal") == "First non-empty scope"
 
 
 def test_read_csv_with_fallback_uses_cache(tmp_path, monkeypatch):
