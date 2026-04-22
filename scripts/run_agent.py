@@ -1924,8 +1924,9 @@ def main():
             item_class = candidates.iloc[0]
             print(f"[WARN] Item Class not found in instruction. Using first EMS Item Class: {item_class}")
 
-        if item_class and item_class.strip() and not (scope and scope.strip()) and ems_csv is not None:
-            scope = pick_scope_from_ems(ems_csv, item_class)
+        normalized_item_class = (item_class or "").strip()
+        if normalized_item_class and not (scope and scope.strip()) and ems_csv is not None:
+            scope = pick_scope_from_ems(ems_csv, normalized_item_class)
 
         print(f"\n[RUN] Processing item class {idx}/{len(instruction_entries)}: {item_class}")
 
