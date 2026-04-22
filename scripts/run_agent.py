@@ -1928,6 +1928,7 @@ def main():
         scope_is_empty = not scope or not scope.strip()
         if normalized_item_class and scope_is_empty and ems_csv is not None:
             scope = pick_scope_from_ems(ems_csv, normalized_item_class)
+            scope_is_empty = not scope or not scope.strip()
 
         print(f"\n[RUN] Processing item class {idx}/{len(instruction_entries)}: {item_class}")
 
@@ -1964,7 +1965,7 @@ def main():
         )
         if levity_manual_text:
             parts.append(f"### FILE: LEVITY ONLINE MANUAL ({levity_source})\n{levity_manual_text}")
-        elif not scope or not scope.strip():
+        elif scope_is_empty:
             print(
                 f"[WARN] No Levity manual context and empty EMS Scope for Item Class '{item_class}'. "
                 "Generation will rely on EMS boundaries, catalogs, and business rules."
