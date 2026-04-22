@@ -19,6 +19,8 @@ MAX_SINGLE_MECHANISM_RATIO = 0.70
 MIN_WORD_LENGTH_FOR_EXCLUSION = 2  # Minimum word length to consider as significant for exclusion checks
 MIN_STEM_MATCH_LENGTH = 5  # Minimum character overlap for stem matching to avoid false positives
 EXCLUSION_STOP_WORDS = {'and', 'the', 'or', 'with', 'for', 'in', 'of', 'to', 'a', 'an'}
+MIN_MANUAL_RELEVANCE_TOKEN_LENGTH = 4
+TOKEN_PATTERN = r"[A-Za-z0-9]+"
 
 
 def read_required(path_a: str, path_b: str) -> str:
@@ -758,11 +760,11 @@ def mark_mi_not_in_catalog(df: pd.DataFrame, mi_catalog_path: Path) -> pd.DataFr
     return df
 
 
-def _manual_relevance_terms(*values: str) -> set[str]:
+def _extract_relevance_tokens(*values: str) -> set[str]:
     terms: set[str] = set()
     for value in values:
-        for token in re.findall(r"[A-Za-z0-9]+", str(value).lower()):
-            if len(token) >= 4:
+        for token in re.findall(TOKEN_PATTERN, str(value).lower()):
+            if len(token) >= MIN_MANUAL_RELEVANCE_TOKEN_LENGTH:
                 terms.add(token)
     return terms
 
@@ -770,8 +772,8 @@ def _manual_relevance_terms(*values: str) -> set[str]:
 def _is_relevant_manual_candidate(text: str, relevance_terms: set[str], source: str | None = None) -> bool:
     if not relevance_terms:
         return True
-    haystack = f"{source or ''}\n{text}".lower()
-    return any(term in haystack for term in relevance_terms)
+    haystack_tokens = set(re.findall(TOKEN_PATTERN, f"{source or ''}\n{text}".lower()))
+    return bool(haystack_tokens & relevance_terms)
 
 
 def pick_manual_text(item_class: str) -> Path | None:
@@ -783,7 +785,7 @@ def pick_manual_text(item_class: str) -> Path | None:
     if not txts:
         return None
 
-    relevance_terms = _manual_relevance_terms(item_class)
+    relevance_terms = _extract_relevance_tokens(item_class)
     for manual_path in txts:
         if _is_relevant_manual_candidate(manual_path.stem, relevance_terms):
             return manual_path
@@ -842,7 +844,7 @@ def search_manual_with_levity(
         return (text[:max_chars], f"Levity ({endpoint})") if text else (None, None)
 
     manual_candidates: list[tuple[str, str | None]] = []
-    relevance_terms = _manual_relevance_terms(item_class, item_class_description, scope)
+    relevance_terms = _extract_relevance_tokens(item_class, item_class_description, scope)
 
     def add_candidate(value: str | None, source: str | None = None):
         if not value:

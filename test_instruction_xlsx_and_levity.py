@@ -165,6 +165,22 @@ def test_pick_manual_text_returns_none_when_no_relevant_file(tmp_path, monkeypat
     assert pick_manual_text("Pump, Centrifugal") is None
 
 
+def test_pick_manual_text_returns_none_when_manual_folder_missing(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    assert pick_manual_text("Pump, Centrifugal") is None
+
+
+def test_pick_manual_text_selects_relevant_file(tmp_path, monkeypatch):
+    manual_dir = tmp_path / "inputs" / "Manual"
+    manual_dir.mkdir(parents=True)
+    relevant_path = manual_dir / "pump_centrifugal_manual.txt"
+    relevant_path.write_text("Pump manual details", encoding="utf-8")
+    (manual_dir / "diesel_engine_manual.txt").write_text("Diesel engine details", encoding="utf-8")
+
+    monkeypatch.chdir(tmp_path)
+    assert pick_manual_text("Pump, Centrifugal").resolve() == relevant_path.resolve()
+
+
 def test_read_csv_with_fallback_uses_cache(tmp_path, monkeypatch):
     csv_path = tmp_path / "data.csv"
     csv_path.write_text("col1,col2\n1,2\n", encoding="utf-8")
