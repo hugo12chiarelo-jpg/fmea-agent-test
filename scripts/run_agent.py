@@ -1925,7 +1925,8 @@ def main():
             print(f"[WARN] Item Class not found in instruction. Using first EMS Item Class: {item_class}")
 
         normalized_item_class = (item_class or "").strip()
-        if normalized_item_class and not (scope and scope.strip()) and ems_csv is not None:
+        scope_is_empty = not scope or not scope.strip()
+        if normalized_item_class and scope_is_empty and ems_csv is not None:
             scope = pick_scope_from_ems(ems_csv, normalized_item_class)
 
         print(f"\n[RUN] Processing item class {idx}/{len(instruction_entries)}: {item_class}")
@@ -1963,6 +1964,11 @@ def main():
         )
         if levity_manual_text:
             parts.append(f"### FILE: LEVITY ONLINE MANUAL ({levity_source})\n{levity_manual_text}")
+        elif not scope or not scope.strip():
+            print(
+                f"[WARN] No Levity manual context and empty EMS Scope for Item Class '{item_class}'. "
+                "Generation will rely on EMS boundaries, catalogs, and business rules."
+            )
 
         minimal_inputs = "\n\n".join(parts)
 
