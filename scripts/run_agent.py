@@ -8,6 +8,8 @@ import pandas as pd
 from openai import OpenAI
 
 TEXT_EXT = {".md", ".txt", ".csv", ".json"}
+DEFAULT_LEVITY_REFERENCE_VENDOR = "Caterpillar"
+DEFAULT_LEVITY_EQUIPMENT_CONTEXT = "FPSO typical equipment"
 
 # Validation threshold: Flag if more than this ratio of (MI, Symptom) pairs have only 1 mechanism
 MAX_SINGLE_MECHANISM_RATIO = 0.70
@@ -720,6 +722,8 @@ def search_manual_with_levity(
     item_class: str,
     item_class_description: str = "",
     scope: str = "",
+    reference_vendor: str | None = None,
+    equipment_context: str | None = None,
     max_chars: int = 120_000,
 ) -> tuple[str | None, str | None]:
     """
@@ -729,7 +733,9 @@ def search_manual_with_levity(
         return None, None
 
     endpoint = os.getenv("LEVITY_API_URL", "https://api.levity.ai/manual-search")
-    query_parts = [item_class_description, scope, item_class, "Caterpillar", "FPSO typical equipment"]
+    reference_vendor = (reference_vendor or os.getenv("LEVITY_REFERENCE_VENDOR") or DEFAULT_LEVITY_REFERENCE_VENDOR).strip()
+    equipment_context = (equipment_context or os.getenv("LEVITY_EQUIPMENT_CONTEXT") or DEFAULT_LEVITY_EQUIPMENT_CONTEXT).strip()
+    query_parts = [item_class, item_class_description, scope, reference_vendor, equipment_context]
     query = " ".join([p.strip() for p in query_parts if p and p.strip()])
     if not query:
         query = item_class
@@ -741,7 +747,8 @@ def search_manual_with_levity(
         "item_class": item_class,
         "item_class_description": item_class_description,
         "scope": scope,
-        "reference_vendor": "Caterpillar",
+        "reference_vendor": reference_vendor,
+        "equipment_context": equipment_context,
     }
 
     try:
@@ -1704,6 +1711,8 @@ def main():
     model = os.getenv("DS_MODEL", os.getenv("OPENAI_MODEL", "deepseek-chat"))
     base_url = os.getenv("DS_BASE_URL", "https://api.deepseek.com")
     levity_api_key = os.getenv("API_KEY_LEVITY")
+    levity_reference_vendor = (os.getenv("LEVITY_REFERENCE_VENDOR") or DEFAULT_LEVITY_REFERENCE_VENDOR).strip()
+    levity_equipment_context = (os.getenv("LEVITY_EQUIPMENT_CONTEXT") or DEFAULT_LEVITY_EQUIPMENT_CONTEXT).strip()
     max_correction_attempts = int(os.getenv("MAX_CORRECTION_ATTEMPTS", "3"))
     if not api_key:
         raise RuntimeError("Missing API_KEY_DS secret")
@@ -1786,6 +1795,8 @@ def main():
             item_class=item_class,
             item_class_description=item_class_description,
             scope=scope,
+            reference_vendor=levity_reference_vendor,
+            equipment_context=levity_equipment_context,
             max_chars=120_000,
         )
         if levity_manual_text:
@@ -1810,7 +1821,8 @@ def main():
 ## ITEM CLASS CONTEXT (from instruction row)
 Item Class Description: {item_class_description or "[not provided]"}
 Scope: {scope or "[not provided]"}
-Levity research baseline: Caterpillar operation and maintenance manuals for typical FPSO equipment for this Item Class only.
+Levity technical reference source: {levity_reference_vendor} operation and maintenance manuals for {levity_equipment_context}.
+Manual lookup scope: use only this Item Class row context; do not reuse context from other Item Classes.
 
 ## SPECIFICATION (MANDATORY)
 {spec}
