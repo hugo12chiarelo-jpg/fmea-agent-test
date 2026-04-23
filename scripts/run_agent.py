@@ -2114,7 +2114,10 @@ def main():
                 ]
             )
         else:
-            item_class_context_lines.append("Levity manual lookup: [disabled]")
+            item_class_context_lines.append(
+                "Levity manual lookup: [disabled] — EMS Scope column is the research guide for additional "
+                "Maintainable Item suggestions (replaces the equipment manual). EMS Boundaries remain the primary source."
+            )
         item_class_context_block = "\n".join(item_class_context_lines)
 
         # Build item-class-specific guidance
@@ -2140,6 +2143,20 @@ def main():
 {minimal_inputs}
 {item_class_guidance}
 
+## EMS SCOPE — RESEARCH GUIDE FOR ADDITIONAL MAINTAINABLE ITEM SUGGESTIONS
+No equipment manual is available. The **EMS Scope column is the research guide** that describes the equipment's function, operating principle, and technical context — use it to inform and justify suggestions for Maintainable Items that go beyond what is explicitly listed in the EMS Boundaries.
+
+**Source hierarchy (do not change):**
+1. **EMS Boundaries** → defines the MANDATORY base list of Maintainable Items (primary source)
+2. **EMS Scope** → guides additional MI suggestions by describing equipment function and design (replaces the equipment manual)
+3. **ISO 14224 Table B.15** → supplements with standard items not covered by Boundaries or Scope
+
+**How to use the Scope:**
+- Read the Scope text (provided in ITEM CLASS CONTEXT above under "Scope:") to understand the equipment's operating principle and critical functions
+- Identify systems, components, and functional elements mentioned in the Scope that are NOT already in the Boundaries list — these are candidates for (*)-marked additional MIs
+- Use the Scope to understand failure modes specific to this equipment type on an FPSO
+- Mark all Scope-derived items that are not in EMS Boundaries with "(*)"
+
 ## MANDATORY MAINTAINABLE ITEM LIST (BASE FROM EMS BOUNDARIES)
 The list below contains Maintainable Items derived from EMS Boundaries column, excluding items marked as "Exclude", "optional", or "if applicable".
 
@@ -2147,25 +2164,29 @@ The list below contains Maintainable Items derived from EMS Boundaries column, e
 - Some boundary items may be redundant or covered by other maintainable items
 - Some boundary items may not be independently maintainable
 - You should filter further based on maintainability criteria (see MAINTAINABLE ITEM RULES in spec)
-- You should also ADD maintainable items from ISO 14224 standards that are not in boundaries
+- You should also ADD maintainable items from the EMS Scope and ISO 14224 standards that are not in boundaries
 
 **CRITICAL REQUIREMENTS:**
 1. You MUST build the FMEA for EVERY relevant Maintainable Item - not just those listed below
 2. APPLY ENGINEERING JUDGMENT to filter the base list (remove items that are sub-components or not independently maintainable)
-3. PROACTIVELY ADD maintainable items from ISO 14224 Table B.15 that are relevant but not in boundaries (mark with "(*)") 
+3. PROACTIVELY ADD maintainable items from the EMS Scope and ISO 14224 Table B.15 that are relevant but not in boundaries (mark with "(*)")
 4. Review EMS Scope and EMS Boundaries to identify ANY additional Maintainable Items of technical relevance
 5. Do NOT limit yourself to only the "main" or "most probable" items - include ALL technically relevant items
-6. Mark any additional Maintainable Items you suggest (beyond the base list or from ISO 14224) with "(*)" to indicate they are inferred
+6. Mark any additional Maintainable Items you suggest (beyond the base list) with "(*)" to indicate they are inferred
 
 **Base Maintainable Items from EMS Boundaries (filtered for explicit exclusions only):**
 {mandatory_mi_block}
 
 **Additional Maintainable Items - YOUR RESPONSIBILITY:**
-- **APPLY ENGINEERING INTELLIGENCE**: Not all items mentioned in boundaries should become Maintainable Items
+- **STEP 1 — READ EMS SCOPE (RESEARCH GUIDE)**: The EMS Scope (in ITEM CLASS CONTEXT above) replaces the equipment manual as the technical reference for additional MI suggestions.
+  * Read the Scope to understand the equipment's function, design, and failure risk profile
+  * Identify components, systems, and sub-assemblies mentioned in Scope that are NOT in the Boundaries base list above — these are prime candidates for (*)-marked suggestions
+  * Use the Scope to understand failure modes specific to this equipment type on an FPSO
+- **STEP 2 — APPLY ENGINEERING INTELLIGENCE**: Not all items from Boundaries or Scope should become Maintainable Items
   * **PRIMARY CRITERION (MOST IMPORTANT)**: Ask first "Could this component's failure cause complete system failure?"
     - If NO → Exclude from Maintainable Items (likely sub-component or non-critical)
     - If YES → Continue with additional evaluation tests below
-  * **Use decision framework IN ORDER**: 
+  * **Use decision framework IN ORDER**:
     1. Primary: Critical system failure test (most important)
     2. Independence test
     3. Symptom distinctiveness test
@@ -2173,13 +2194,11 @@ The list below contains Maintainable Items derived from EMS Boundaries column, e
   * **Filter hierarchically**: Exclude sub-components covered by parent items (use parent-child relationship analysis)
   * **Only include components** that pass the primary criterion AND are independently maintainable AND have distinct failure symptoms
   * **Generic principle**: If component A's maintenance/symptoms are fully covered by component B's FMEA, exclude component A
-- **CONSULT ISO 14224 Table B.15**: Proactively suggest standard maintainable items for this Item Class type
+- **STEP 3 — CONSULT ISO 14224 Table B.15**: Supplement with standard maintainable items for this Item Class type
   * **Evaluate generic system categories**: Power transmission, lubrication, cooling, sealing, bearing, monitoring/control, power supply, structural, fluid handling
-  * **Select based on**: Item Class functional requirements, operating principles, and failure risk profile
+  * **Select based on**: Item Class functional requirements, operating principles, and failure risk profile derived from the Scope
   * Verify technical relevance to the specific Item Class
-  * Mark ALL ISO 14224-suggested items with "(*)"
-- Review EMS Scope for components/systems that could cause functional failure
-- Consider: Power transmission, control systems, monitoring systems, structural components, sealing systems, cooling systems, auxiliary systems, etc.
+  * Mark ALL ISO 14224-suggested items not in Boundaries/Scope with "(*)"
 - Each suggested item should be technically justified and relevant to the Item Class
 - Transform all names to match Maintainable Item Catalog terminology
 - **OUTPUT VALIDATION SECTION**: At the end of the FMEA, include a "SUGGESTED ADDITIONAL MAINTAINABLE ITEMS" table with justification for each (*)-marked item
