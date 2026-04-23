@@ -12,6 +12,7 @@ from run_agent import (
     build_mi_list_from_ems_and_catalog,
     create_chat_completion_with_model_fallback,
     estimate_usage_cost,
+    extract_item_classes,
     load_instruction_entries,
     pick_manual_text,
     pick_scope_from_ems,
@@ -52,6 +53,42 @@ def test_load_instruction_entries_from_xlsx(tmp_path, monkeypatch):
     assert entries[0]["item_class_description"] == "Centrifugal process pump"
     assert entries[1]["item_class"] == "Compressor, Screw"
     assert entries[1]["scope"] == "Compress fuel gas"
+
+
+def test_load_instruction_entries_respects_text_item_class_subset(tmp_path, monkeypatch):
+    instructions_dir = tmp_path / "inputs" / "Instructions"
+    instructions_dir.mkdir(parents=True)
+
+    (instructions_dir / "instructions").write_text(
+        "Build the complete EMS Upgrade FMEA for Item Class: Pump, Centrifugal;Heat Exchanger, Plate",
+        encoding="utf-8",
+    )
+
+    df = pd.DataFrame(
+        [
+            {"Item Class": "PUMP", "Item Class Name": "Pump, Centrifugal", "Scope": "Pump scope"},
+            {"Item Class": "HEX", "Item Class Name": "Heat Exchanger, Plate", "Scope": "HEX scope"},
+            {"Item Class": "COMP", "Item Class Name": "Compressor, Screw", "Scope": "Compressor scope"},
+        ]
+    )
+    df.to_excel(instructions_dir / "all_item_classes.xlsx", index=False)
+
+    monkeypatch.chdir(tmp_path)
+    entries = load_instruction_entries()
+
+    assert [entry["item_class"] for entry in entries] == ["Pump, Centrifugal", "Heat Exchanger, Plate"]
+    assert entries[0]["scope"] == "Pump scope"
+    assert entries[1]["scope"] == "HEX scope"
+
+
+def test_extract_item_classes_handles_semicolon_list():
+    instruction = "Build FMEA for Item Classes: Class A;Class B;Class C."
+    assert extract_item_classes(instruction) == ["Class A", "Class B", "Class C"]
+
+
+def test_extract_item_classes_ignores_empty_and_duplicate_values():
+    instruction = "Build FMEA for Item Classes: Class A;;Class B; Class A ;"
+    assert extract_item_classes(instruction) == ["Class A", "Class B"]
 
 
 def test_search_manual_with_levity_parses_results(monkeypatch):
