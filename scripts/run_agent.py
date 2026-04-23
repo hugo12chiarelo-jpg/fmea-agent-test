@@ -1972,21 +1972,35 @@ def main():
                 equipment_context=levity_equipment_context,
                 max_chars=120_000,
             )
+        fallback_context_warning = "Generation will rely on EMS boundaries, catalogs, and business rules."
         if levity_manual_text:
             parts.append(f"### FILE: LEVITY ONLINE MANUAL ({levity_source})\n{levity_manual_text}")
         elif scope_is_empty and levity_lookup_enabled:
             print(
                 f"[WARN] No Levity manual context and empty EMS Scope for Item Class '{item_class}'. "
-                "Generation will rely on EMS boundaries, catalogs, and business rules."
+                f"{fallback_context_warning}"
+            )
+        elif scope_is_empty:
+            print(
+                f"[WARN] EMS Scope is empty and Levity manual lookup is disabled for Item Class '{item_class}'. "
+                f"{fallback_context_warning}"
             )
 
         minimal_inputs = "\n\n".join(parts)
-        levity_prompt_context = ""
+        item_class_context_lines = [
+            f"Item Class Description: {item_class_description or '[not provided]'}",
+            f"Scope: {scope or '[not provided]'}",
+        ]
         if levity_lookup_enabled:
-            levity_prompt_context = f"""
-Levity technical reference source: {levity_reference_vendor} operation and maintenance manuals for {levity_equipment_context}.
-Manual lookup scope: use only this Item Class row context; do not reuse context from other Item Classes.
-"""
+            item_class_context_lines.extend(
+                [
+                    f"Levity technical reference source: {levity_reference_vendor} operation and maintenance manuals for {levity_equipment_context}.",
+                    "Manual lookup scope: use only this Item Class row context; do not reuse context from other Item Classes.",
+                ]
+            )
+        else:
+            item_class_context_lines.append("Levity manual lookup: [disabled]")
+        item_class_context_block = "\n".join(item_class_context_lines)
 
         # Build item-class-specific guidance
         item_class_guidance = build_item_class_specific_guidance(item_class)
@@ -1999,9 +2013,7 @@ Manual lookup scope: use only this Item Class row context; do not reuse context 
 {item_class}
 
 ## ITEM CLASS CONTEXT (from instruction row)
-Item Class Description: {item_class_description or "[not provided]"}
-Scope: {scope or "[not provided]"}
-{levity_prompt_context}
+{item_class_context_block}
 
 ## SPECIFICATION (MANDATORY)
 {spec}

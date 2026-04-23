@@ -170,6 +170,17 @@ def test_should_use_levity_manual_lookup_accepts_truthy_values(monkeypatch):
     monkeypatch.setenv("ENABLE_LEVITY_MANUAL_LOOKUP", "1")
     assert should_use_levity_manual_lookup("levity-token") is True
 
+    monkeypatch.setenv("ENABLE_LEVITY_MANUAL_LOOKUP", "yes")
+    assert should_use_levity_manual_lookup("levity-token") is True
+
+    monkeypatch.setenv("ENABLE_LEVITY_MANUAL_LOOKUP", "on")
+    assert should_use_levity_manual_lookup("levity-token") is True
+
+
+def test_should_use_levity_manual_lookup_enabled_without_api_key_returns_false(monkeypatch):
+    monkeypatch.setenv("ENABLE_LEVITY_MANUAL_LOOKUP", "true")
+    assert should_use_levity_manual_lookup(None) is False
+
 
 def test_pick_manual_text_returns_none_when_no_relevant_file(tmp_path, monkeypatch):
     manual_dir = tmp_path / "inputs" / "Manual"
