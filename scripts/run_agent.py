@@ -124,7 +124,7 @@ def load_instruction_entries() -> list[dict[str, str]]:
         col_item_class_desc = normalized.get("item class description")
         col_scope = normalized.get("scope")
 
-        def _entry_from_row(row_data: pd.Series, selected_item_class: str | None = None) -> dict[str, str]:
+        def entry_from_row(row_data: pd.Series, selected_item_class: str | None = None) -> dict[str, str]:
             row_item_class = str(row_data.get(col_item_class, "")).strip()
             row_item_class_name = str(row_data.get(col_item_class_name, "")).strip() if col_item_class_name else ""
             item_class = (selected_item_class or row_item_class).strip()
@@ -155,23 +155,35 @@ def load_instruction_entries() -> list[dict[str, str]]:
 
         if explicit_item_classes:
             entries: list[dict[str, str]] = []
-            normalized_to_row: dict[str, pd.Series] = {}
+            lowercase_class_to_row: dict[str, pd.Series] = {}
 
             for _, row in df.iterrows():
                 row_item_class = str(row.get(col_item_class, "")).strip()
                 if row_item_class and row_item_class.lower() != "nan":
-                    normalized_to_row[row_item_class.lower()] = row
+                    key = row_item_class.lower()
+                    if key in lowercase_class_to_row:
+                        print(f"[WARN] Duplicate Item Class key in instruction sheet: '{row_item_class}'. Using first match.")
+                    else:
+                        lowercase_class_to_row[key] = row
 
                 if col_item_class_name:
                     row_item_class_name = str(row.get(col_item_class_name, "")).strip()
                     if row_item_class_name and row_item_class_name.lower() != "nan":
-                        normalized_to_row[row_item_class_name.lower()] = row
+                        key = row_item_class_name.lower()
+                        if key in lowercase_class_to_row:
+                            print(f"[WARN] Duplicate Item Class Name key in instruction sheet: '{row_item_class_name}'. Using first match.")
+                        else:
+                            lowercase_class_to_row[key] = row
 
             for selected_item_class in explicit_item_classes:
-                matched_row = normalized_to_row.get(selected_item_class.lower())
+                matched_row = lowercase_class_to_row.get(selected_item_class.lower())
                 if matched_row is not None:
-                    entries.append(_entry_from_row(matched_row, selected_item_class=selected_item_class))
+                    entries.append(entry_from_row(matched_row, selected_item_class=selected_item_class))
                 else:
+                    print(
+                        f"[WARN] Item Class '{selected_item_class}' was listed in instruction text but not found in "
+                        f"'{instruction_sheet.name}'. Using text-only entry."
+                    )
                     entries.append(
                         {
                             "instruction_source": instruction_file.as_posix() if instruction_file else instruction_sheet.as_posix(),
@@ -190,7 +202,7 @@ def load_instruction_entries() -> list[dict[str, str]]:
             if item_class == "" or item_class.lower() == "nan":
                 continue
 
-            entries.append(_entry_from_row(row))
+            entries.append(entry_from_row(row))
 
         if not entries:
             raise RuntimeError(f"Instruction sheet '{instruction_sheet}' has no valid 'Item Class' rows")
@@ -272,11 +284,16 @@ def extract_item_classes(instruction_text: str) -> list[str]:
 
         parts = [part.strip() for part in raw_value.split(";")]
         classes: list[str] = []
+        seen: set[str] = set()
         for part in parts:
-            if not part or part.lower() == "nan":
+            if not part:
                 continue
-            if part not in classes:
-                classes.append(part)
+            if part.lower() == "nan":
+                continue
+            if part in seen:
+                continue
+            seen.add(part)
+            classes.append(part)
 
         if classes:
             return classes

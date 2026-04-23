@@ -86,6 +86,11 @@ def test_extract_item_classes_handles_semicolon_list():
     assert extract_item_classes(instruction) == ["Class A", "Class B", "Class C"]
 
 
+def test_extract_item_classes_ignores_empty_and_duplicate_values():
+    instruction = "Build FMEA for Item Classes: Class A;;Class B; Class A ;"
+    assert extract_item_classes(instruction) == ["Class A", "Class B"]
+
+
 def test_search_manual_with_levity_parses_results(monkeypatch):
     class DummyResponse:
         status_code = 200
