@@ -29,7 +29,7 @@ EMS.xlsx: defines scope/boundaries and Task Template IDs. Boundaries define what
 Maintainable Item Catalog: authoritative item naming; any inferred maintainable item must be marked with "(*)".
 Symptom Catalog: symptom codes to be used.
 ISO 14224: use Table B.15 for symptoms and Table B.2 for failure mechanisms.
-EMS Scope column: PRIMARY technical reference for understanding Item Class function, design, and failure risk profile in FPSO context. Use the Scope text to identify additional Maintainable Items beyond EMS Boundaries and to design Treatment Actions. No equipment manual is available — the Scope replaces the manual as the main technical input for MI suggestions.
+EMS Scope column: research guide for additional Maintainable Item suggestions — describes the Item Class function, operating principle, and technical context in the FPSO. No equipment manual is available; the Scope replaces the manual as the reference for suggesting MIs beyond EMS Boundaries. EMS Boundaries remain the primary source for the mandatory MI base list.
 If there is any conflict, follow the priority above.
 
 INPUT

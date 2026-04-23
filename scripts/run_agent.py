@@ -2000,8 +2000,8 @@ def main():
             )
         else:
             item_class_context_lines.append(
-                "Levity manual lookup: [disabled] — EMS Scope column is the PRIMARY technical reference "
-                "for understanding equipment function and suggesting Maintainable Items."
+                "Levity manual lookup: [disabled] — EMS Scope column is the research guide for additional "
+                "Maintainable Item suggestions (replaces the equipment manual). EMS Boundaries remain the primary source."
             )
         item_class_context_block = "\n".join(item_class_context_lines)
 
@@ -2028,21 +2028,19 @@ def main():
 {minimal_inputs}
 {item_class_guidance}
 
-## EMS SCOPE — PRIMARY TECHNICAL REFERENCE FOR MAINTAINABLE ITEM SUGGESTIONS
-No equipment manual is available. The **EMS Scope column is the PRIMARY source of technical context** for understanding this equipment's function, design, and failure risk profile.
+## EMS SCOPE — RESEARCH GUIDE FOR ADDITIONAL MAINTAINABLE ITEM SUGGESTIONS
+No equipment manual is available. The **EMS Scope column is the research guide** that describes the equipment's function, operating principle, and technical context — use it to inform and justify suggestions for Maintainable Items that go beyond what is explicitly listed in the EMS Boundaries.
 
-**You MUST:**
-1. **Read the Scope text carefully** (provided in ITEM CLASS CONTEXT above under "Scope:") before building the MI list
-2. **Extract from the Scope** every system, component, sub-system, or functional element mentioned — these are candidates for Maintainable Items
-3. **Use the Scope** to understand the equipment's operating principle, critical functions, and failure-prone areas
-4. **Base your MI suggestions on the Scope** first, then supplement with ISO 14224 Table B.15 for items not mentioned but technically expected for this equipment type
-5. The Scope replaces the role of an equipment manual — treat it as your primary engineering reference
+**Source hierarchy (do not change):**
+1. **EMS Boundaries** → defines the MANDATORY base list of Maintainable Items (primary source)
+2. **EMS Scope** → guides additional MI suggestions by describing equipment function and design (replaces the equipment manual)
+3. **ISO 14224 Table B.15** → supplements with standard items not covered by Boundaries or Scope
 
-**How to use the Scope to derive Maintainable Items:**
-- Identify all physical components and systems mentioned in the Scope text
-- Identify all functional descriptions that imply a maintainable sub-assembly (e.g., "sealing system", "lubrication circuit", "drive end")
-- For each identified element, apply the maintainability decision framework (see below)
-- Mark items derived from Scope that are NOT in the EMS Boundaries list with "(*)"
+**How to use the Scope:**
+- Read the Scope text (provided in ITEM CLASS CONTEXT above under "Scope:") to understand the equipment's operating principle and critical functions
+- Identify systems, components, and functional elements mentioned in the Scope that are NOT already in the Boundaries list — these are candidates for (*)-marked additional MIs
+- Use the Scope to understand failure modes specific to this equipment type on an FPSO
+- Mark all Scope-derived items that are not in EMS Boundaries with "(*)"
 
 ## MANDATORY MAINTAINABLE ITEM LIST (BASE FROM EMS BOUNDARIES)
 The list below contains Maintainable Items derived from EMS Boundaries column, excluding items marked as "Exclude", "optional", or "if applicable".
@@ -2065,9 +2063,9 @@ The list below contains Maintainable Items derived from EMS Boundaries column, e
 {mandatory_mi_block}
 
 **Additional Maintainable Items - YOUR RESPONSIBILITY:**
-- **STEP 1 — READ EMS SCOPE (PRIMARY SOURCE)**: The EMS Scope (in ITEM CLASS CONTEXT above) describes the equipment function and design.
-  * Extract ALL components, systems, and sub-assemblies mentioned in the Scope text
-  * Cross-reference against the base list above — items in Scope but NOT in Boundaries are prime candidates for (*)-marked suggestions
+- **STEP 1 — READ EMS SCOPE (RESEARCH GUIDE)**: The EMS Scope (in ITEM CLASS CONTEXT above) replaces the equipment manual as the technical reference for additional MI suggestions.
+  * Read the Scope to understand the equipment's function, design, and failure risk profile
+  * Identify components, systems, and sub-assemblies mentioned in Scope that are NOT in the Boundaries base list above — these are prime candidates for (*)-marked suggestions
   * Use the Scope to understand failure modes specific to this equipment type on an FPSO
 - **STEP 2 — APPLY ENGINEERING INTELLIGENCE**: Not all items from Boundaries or Scope should become Maintainable Items
   * **PRIMARY CRITERION (MOST IMPORTANT)**: Ask first "Could this component's failure cause complete system failure?"
