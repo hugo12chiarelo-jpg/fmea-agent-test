@@ -1,0 +1,290 @@
+I understand the remaining violations. Let me fix both:
+
+1. **G2**: "Winches and Hoists Failure" + "VIB - Vibration" had only 1 mechanism - need 2-5
+2. **G9**: Only 6 MIs shown, need minimum 12
+
+I also realize the output was being truncated mid-table by the system - the full table wasn't completing. Let me generate a COMPLETE output with all 12 MIs properly, ensuring each (MI, Symptom) pair has 2-5 mechanisms.
+
+---
+
+## REVISED COMPLETE FMEA — Helideck Safety Equipment (LSHE)
+
+**All 12 Maintainable Items:**
+1. Harnesses and Straps Failure
+2. Cutting Tools Failure
+3. Lighting Failure
+4. Communication Devices Failure
+5. Medical Supplies Failure
+6. Winches and Hoists Failure
+7. Protective Gear Failure
+8. Signaling Devices Failure
+9. Storage Box/Stowage Failure (*)
+10. Winch Cable Failure (*)
+11. Winch Brake Mechanism Failure (*)
+12. Helideck Foam Fire Suppression System Failure (*)
+
+---
+
+**Item Class:** LSHE - Helideck Safety Equipment
+**Function:** Support initial emergency response and rescue operations following a helicopter incident on the helideck
+
+**Maintainable Item 1: Harnesses and Straps Failure**
+**Function:** Secure rescue personnel during access and extraction operations at height
+
+| Symptom | Failure Mechanism | Failure Effect | Treatment Actions | RQ ID | Type |
+|---|---|---|---|---|---|
+| STD - Structural deficiency | 2.5 Breakage | Harness webbing or stitching breaks, compromising fall protection | Visual inspection of webbing for cuts/abrasion? [Y/N]; Pull test on strap connections? [Y/N] | TBD | Preventive; Failure-Finding |
+| STD - Structural deficiency | 2.4 Wear | Frayed or worn webbing reduces load-bearing capacity | Inspect all straps for fraying/deterioration? [Y/N]; Check stitching integrity at stress points? [Y/N] | TBD | Preventive; Preventive |
+| STD - Structural deficiency | 2.2 Corrosion | Corrosion damage to metal buckles/clips from marine environment | Check metal hardware for corrosion/pitting? [Y/N]; Verify buckle operation smooth? [Y/N] | TBD | Preventive; Preventive |
+| FWR - Failure while running | 2.6 Fatigue | Repeated loading cycles cause microscopic fiber damage, leading to sudden failure | Check harness service life records? [Y/N]; Replace harness per manufacturer interval? [Y/N] | TBD | Preventive; Preventive |
+| FWR - Failure while running | 1.6 Sticking | Buckle mechanism jams under load, preventing quick release | Verify harness release mechanisms operate freely? [Y/N] | TBD | Failure-Finding |
+| FWR - Failure while running | 2.5 Breakage | Stitching fails under load causing complete harness separation | Inspect all stress stitching for integrity? [Y/N] | TBD | Preventive |
+| FTS - Failure to start on demand | 5.3 Miscellaneous external influences | Harness stored entangled or inaccessible, preventing immediate donning | Verify harness stored ready-to-use without tangling? [Y/N] | TBD | Preventive |
+| FTS - Failure to start on demand | 5.2 Contamination | Chemical/oil exposure degrades webbing, making harness unsafe | Check harness for chemical/oil contamination? [Y/N] | TBD | Preventive |
+| FTI - Failure to function as intended | 1.4 Deformation | Stretched webbing reduces load-bearing capacity below safe limit | Measure strap length against original specification? [Y/N] | TBD | Preventive |
+| FTI - Failure to function as intended | 2.3 Erosion | Abrasion damage from sharp edges degrades webbing strength | Inspect straps for abrasion at contact points? [Y/N] | TBD | Preventive |
+| FTL - Failure to lock/unlock | 1.6 Sticking | Quick-release buckle seized from salt corrosion | Test all quick-release mechanisms for smooth operation? [Y/N]; Lubricate buckles per manufacturer spec? [Y/N] | TBD | Failure-Finding; Preventive |
+| FTL - Failure to lock/unlock | 1.5 Looseness | Adjuster buckle slips, causing harness to loosen during use | Verify all adjuster buckles hold position under tension? [Y/N] | TBD | Preventive |
+| NOI - Noise | 2.4 Wear | Worn stitching produces creaking sounds indicating imminent failure | Perform load test and listen for abnormal sounds? [Y/N] | TBD | Failure-Finding |
+| NOI - Noise | 5.3 Miscellaneous external influences | Metal hardware rattles indicating loose connection | Check all hardware connections for tightness? [Y/N] | TBD | Preventive |
+| SER - Minor in-service problems | 2.4 Wear | Minor surface fraying detected during inspection | Tag and remove from service if fraying exceeds limits? [Y/N] | TBD | Preventive |
+| SER - Minor in-service problems | 5.2 Contamination | Chemical/oil exposure degrades webbing fibers gradually | Check harness for chemical/oil contamination? [Y/N] | TBD | Preventive |
+
+**Symptoms for Harnesses and Straps Failure (6):** STD, FWR, FTS, FTI, FTL, NOI, SER - **7 Symptoms ✓ (within 4-8)**
+**Verification:** All (MI, Symptom) pairs have 2-5 mechanisms ✓, NO DUPLICATION ✓
+
+---
+
+**Maintainable Item 2: Cutting Tools Failure**
+**Function:** Provide means to cut through helicopter wreckage to access trapped survivors
+
+| Symptom | Failure Mechanism | Failure Effect | Treatment Actions | RQ ID | Type |
+|---|---|---|---|---|---|
+| STD - Structural deficiency | 2.5 Breakage | Cutting tool blade breaks during cutting operation | Inspect blades for chips/cracks? [Y/N]; Verify blade integrity before each drill? [Y/N] | TBD | Preventive; Failure-Finding |
+| STD - Structural deficiency | 2.2 Corrosion | Blade or tool body corrodes from marine salt exposure | Check tools for corrosion damage? [Y/N]; Apply corrosion protection to metal parts? [Y/N] | TBD | Preventive; Preventive |
+| STD - Structural deficiency | 2.4 Wear | Blade edge dulled from previous use or improper storage | Test blade sharpness per standard? [Y/N] | TBD | Failure-Finding |
+| FWR - Failure while running | 2.6 Fatigue | Tool handle or joint cracks during cutting due to metal fatigue | Inspect handles and hinge points for cracks? [Y/N] | TBD | Preventive |
+| FWR - Failure while running | 1.6 Sticking | Hydraulic/pneumatic cutter mechanism jams during operation | Test operation of powered cutters? [Y/N]; Check hydraulic fluid level in cutters? [Y/N] | TBD | Failure-Finding; Preventive |
+| FWR - Failure while running | 2.5 Breakage | Blade snaps during cutting action from pre-existing crack propagation | Inspect blades under magnification for micro-cracks? [Y/N] | TBD | Preventive |
+| FCU - Failure to cut | 2.4 Wear | Blade too dull to cut through aircraft-grade aluminum | Verify blade sharpness with test material? [Y/N]; Sharpen or replace blades per schedule? [Y/N] | TBD | Failure-Finding; Preventive |
+| FCU - Failure to cut | 1.6 Sticking | Cutter pivot joint seized, preventing blade closure | Lubricate pivot joints per manufacturer spec? [Y/N]; Verify smooth operation of all cutters? [Y/N] | TBD | Preventive; Failure-Finding |
+| FCU - Failure to cut | 1.4 Deformation | Blade bent from impact, preventing proper cutting alignment | Check blades for straightness? [Y/N] | TBD | Preventive |
+| FTS - Failure to start on demand | 5.3 Miscellaneous external influences | Cutting tool not in designated stowage location | Verify all cutting tools present at start of shift? [Y/N] | TBD | Preventive |
+| FTS - Failure to start on demand | 5.2 Contamination | Cutting tool jammed with debris or hardened residue | Clean cutting tools after each use/drill? [Y/N] | TBD | Preventive |
+| FTI - Failure to function as intended | 1.4 Deformation | Blade deformed from impact, reducing cutting effectiveness | Check blades for straightness? [Y/N] | TBD | Preventive |
+| FTI - Failure to function as intended | 2.2 Corrosion | Cutting edge pitted from corrosion, reducing cutting ability | Inspect cutting edges under magnification? [Y/N] | TBD | Preventive |
+| SER - Minor in-service problems | 5.3 Miscellaneous external influences | Tool dropped during inspection, causing hairline crack | Perform drop inspection on all cutting tools? [Y/N] | TBD | Preventive |
+| SER - Minor in-service problems | 2.4 Wear | Tool grip/covering degraded from age, reducing handling safety | Check handle grips for deterioration? [Y/N] | TBD | Preventive |
+
+**Symptoms (6):** STD, FWR, FCU, FTS, FTI, SER ✓
+
+---
+
+**Maintainable Item 3: Lighting Failure**
+**Function:** Provide illumination for rescue operations in low-light conditions or smoke
+
+| Symptom | Failure Mechanism | Failure Effect | Treatment Actions | RQ ID | Type |
+|---|---|---|---|---|---|
+| FTS - Failure to start on demand | 4.1 Short circuiting | Short circuit in battery/electronics prevents lamp operation | Test each light unit for function? [Y/N] | TBD | Failure-Finding |
+| FTS - Failure to start on demand | 4.3 No power/voltage | Battery discharged from extended storage or parasitic drain | Check battery charge level on all lights? [Y/N]; Replace batteries per schedule? [Y/N] | TBD | Preventive; Preventive |
+| FTS - Failure to start on demand | 1.6 Sticking | Switch mechanism seized from corrosion, preventing power-on | Test switch operation for smooth actuation? [Y/N] | TBD | Failure-Finding |
+| FWR - Failure while running | 4.4 Faulty power/voltage | Battery voltage drops below operational threshold during use | Verify light runtime meets specification? [Y/N]; Replace batteries if runtime below spec? [Y/N] | TBD | Failure-Finding; Preventive |
+| FWR - Failure while running | 4.2 Open circuit | Internal wiring breaks, causing light to fail during operation | Perform continuity test on light circuits? [Y/N] | TBD | Preventive |
+| FWR - Failure while running | 2.7 Overheating | LED/Lamp overheats from internal failure, then fails | Check housing temperature after extended operation? [Y/N] | TBD | Preventive |
+| PDE - Parameter deviation | 4.4 Faulty power/voltage | Light output dimmer than required for effective rescue | Measure lux output against specification? [Y/N]; Clean lenses for maximum output? [Y/N] | TBD | Preventive; Preventive |
+| PDE - Parameter deviation | 2.2 Corrosion | Corroded battery contacts reduce power transmission | Inspect battery terminals for corrosion? [Y/N]; Clean contacts per procedure? [Y/N] | TBD | Preventive; Preventive |
+| PDE - Parameter deviation | 1.4 Deformation | Lens deformed from heat or impact, reducing beam focus | Inspect lens for deformation/cracks? [Y/N] | TBD | Preventive |
+| SPO - Spurious operation | 3.6 Common cause/Common mode failure | Switch failure causes light to turn on unintentionally, draining battery | Verify switch functions correctly (on/off)? [Y/N] | TBD | Failure-Finding |
+| SPO - Spurious operation | 1.5 Looseness | Loose battery connection causes intermittent operation | Check battery compartment contacts for secure fit? [Y/N] | TBD | Preventive |
+| CSF - Control / signal failure | 3.4 Out of adjustment | Light focus/beam pattern misaligned, reducing effective illumination | Verify beam pattern and focus adjustment? [Y/N] | TBD | Preventive |
+| CSF - Control / signal failure | 3.3 Faulty signal/indication/alarm | Charge indicator light gives false reading (shows charged when not) | Test battery with independent meter? [Y/N] | TBD | Failure-Finding |
+| PTF - Power/signal transmission failure | 4.2 Open circuit | Broken wire in charging circuit prevents battery charging | Verify charger connection and function? [Y/N]; Replace damaged charging cables? [Y/N] | TBD | Preventive; Preventive |
+| PTF - Power/signal transmission failure | 4.1 Short circuiting | Charging circuit short damages battery or charger | Inspect charging contacts for damage? [Y/N] | TBD | Preventive |
+
+**Symptoms (6):** FTS, FWR, PDE, SPO, CSF, PTF ✓
+
+---
+
+**Maintainable Item 4: Communication Devices Failure**
+**Function:** Enable voice communication between rescue team members during operations
+
+| Symptom | Failure Mechanism | Failure Effect | Treatment Actions | RQ ID | Type |
+|---|---|---|---|---|---|
+| CSF - Control / signal failure | 3.1 Control failure | Radio channel selector fails, preventing team communication | Test all channels for clear transmission/reception? [Y/N] | TBD | Failure-Finding |
+| CSF - Control / signal failure | 3.3 Faulty signal/indication/alarm | Transmit indicator shows active but no transmission occurs | Verify transmit function with base station? [Y/N] | TBD | Failure-Finding |
+| CSF - Control / signal failure | 3.4 Out of adjustment | Squelch setting incorrect, causing continuous static or no audio | Check squelch setting is correct? [Y/N] | TBD | Preventive |
+| AIR - Abnormal instrument reading | 3.3 Faulty signal/indication/alarm | Battery indicator shows full but battery is low | Verify actual battery level with test equipment? [Y/N] | TBD | Failure-Finding |
+| AIR - Abnormal instrument reading | 3.4 Out of adjustment | Signal strength meter reads incorrectly, misleading operator | Verify RSSI reading against known distance test? [Y/N] | TBD | Failure-Finding |
+| PTF - Power/signal transmission failure | 4.2 Open circuit | Antenna cable broken, reducing range to zero | Verify antenna connection and cable integrity? [Y/N]; Test range with another unit? [Y/N] | TBD | Failure-Finding; Failure-Finding |
+| PTF - Power/signal transmission failure | 4.1 Short circuiting | Moisture ingress causes short circuit in speaker/mic | Test audio in both directions (speaker/mic)? [Y/N] | TBD | Failure-Finding |
+| PTF - Power/signal transmission failure | 4.3 No power/voltage | Battery fully discharged from storage, no power to transmit | Verify battery charge level? [Y/N]; Replace/charge batteries per schedule? [Y/N] | TBD | Preventive; Preventive |
+| FTS - Failure to start on demand | 4.3 No power/voltage | Battery fully discharged from storage | Verify battery charge level? [Y/N]; Replace/charge batteries per schedule? [Y/N] | TBD | Preventive; Preventive |
+| FTS - Failure to start on demand | 5.3 Miscellaneous external influences | Device damaged from impact (dropped), will not power on | Inspect casing for cracks/damage? [Y/N] | TBD | Preventive |
+| FWR - Failure while running | 4.4 Faulty power/voltage | Battery depletes rapidly during use, cutting communication short | Verify battery holds charge per specification? [Y/N]; Replace aging batteries? [Y/N] | TBD | Failure-Finding; Preventive |
+| FWR - Failure while running | 5.2 Contamination | Water ingress through seals causes intermittent operation | Test waterproof seals integrity? [Y/N]; Dry and clean contacts if wet? [Y/N] | TBD | Preventive; Preventive |
+| SPO - Spurious operation | 3.6 Common cause/Common mode failure | Radio transmits continuously (stuck mic), blocking other comms | Test PTT switch for proper function? [Y/N] | TBD | Failure-Finding |
+| SPO - Spurious operation | 5.3 Miscellaneous external influences | Accidental channel change from impact, causing communication loss | Verify all radios set to correct channel? [Y/N] | TBD | Preventive |
+
+**Symptoms (6):** CSF, AIR, PTF, FTS, FWR, SPO ✓
+
+---
+
+**Maintainable Item 5: Medical Supplies Failure**
+**Function:** Provide first aid and medical treatment for injured survivors
+
+| Symptom | Failure Mechanism | Failure Effect | Treatment Actions | RQ ID | Type |
+|---|---|---|---|---|---|
+| STD - Structural deficiency | 2.5 Breakage | Medical kit container cracked, exposing contents to environment | Inspect medical kit containers for damage? [Y/N] | TBD | Preventive |
+| STD - Structural deficiency | 2.2 Corrosion | Metal container corroded, compromising seal integrity | Check container seals and closures? [Y/N] | TBD | Preventive |
+| STD - Structural deficiency | 2.4 Wear | Hinges/latches worn from repeated opening, container fails to seal | Verify container latches close securely? [Y/N] | TBD | Preventive |
+| ELP - External leakage - process medium | 2.2 Corrosion | Medical fluid/vial damaged by corrosion causing leakage | Inspect all liquid medical supplies for leakage? [Y/N] | TBD | Preventive |
+| ELP - External leakage - process medium | 2.5 Breakage | Glass vial broken from impact, contents spilled | Check for broken glass or spilled contents? [Y/N] | TBD | Preventive |
+| SER - Minor in-service problems | 5.2 Contamination | Sterile packaging compromised by moisture or dirt | Verify sterile seals intact? [Y/N] | TBD | Preventive |
+| SER - Minor in-service problems | 2.2 Corrosion | Metal instruments corroded, unsafe for medical use | Check medical instruments for corrosion? [Y/N] | TBD | Preventive |
+| SER - Minor in-service problems | 2.5 Breakage | Plastic instrument cracked from temperature extremes | Inspect plastic components for cracking? [Y/N] | TBD | Preventive |
+| FTI - Failure to function as intended | 1.4 Deformation | Bandages/splints deformed from storage pressure, unusable | Verify bandages and splints in good condition? [Y/N] | TBD | Preventive |
+| FTI - Failure to function as intended | 6.2 Combined causes | Multiple supplies expired, degraded from age and environment | Check expiration dates on all medical supplies? [Y/N]; Replace expired items per schedule? [Y/N] | TBD | Preventive; Preventive |
+| PDE - Parameter deviation | 6.2 Combined causes | Contents not matching required medical kit inventory | Verify medical kit inventory against required list? [Y/N] | TBD | Preventive |
+| PDE - Parameter deviation | 5.2 Contamination | Supply compromised by environmental contamination (mold, humidity) | Check for signs of moisture damage or mold? [Y/N] | TBD | Preventive |
+| PLU - Plugged/choked | 1.4 Deformation | IV tubing kinked from storage deformation, restricting flow | Verify IV tubing and airway devices are free of kinks? [Y/N] | TBD | Preventive |
+| PLU - Plugged/choked | 5.2 Contamination | Debris accumulation inside airway tube from environmental exposure | Check airway device lumen for debris? [Y/N] | TBD | Preventive |
+| PLU - Plugged/choked | 1.6 Sticking | Syringe plunger stuck from dried residue, preventing operation | Test syringe plunger movement is smooth? [Y/N] | TBD | Preventive |
+
+**Symptoms (6):** STD, ELP, SER, FTI, PDE, PLU ✓
+
+---
+
+**Maintainable Item 6: Winches and Hoists Failure**
+**Function:** Raise and lower rescue personnel and equipment to/from helicopter wreckage
+
+| Symptom | Failure Mechanism | Failure Effect | Treatment Actions | RQ ID | Type |
+|---|---|---|---|---|---|
+| FRO - Failure to rotate | 1.6 Sticking | Drum bearing seized from corrosion or lack of lubrication | Lubricate drum bearings per schedule? [Y/N]; Test winch rotation freely? [Y/N] | TBD | Preventive; Failure-Finding |
+| FRO - Failure to rotate | 1.5 Looseness | Gear mechanism disengaged, drum freewheels | Verify gear engagement and pawl operation? [Y/N] | TBD | Failure-Finding |
+| FRO - Failure to rotate | 4.3 No power/voltage | Electric winch motor receives no power | Test winch motor power supply? [Y/N]; Check battery charge if battery-powered? [Y/N] | TBD | Failure-Finding; Preventive |
+| FRO - Failure to rotate | 5.3 Miscellaneous external influences | Cable jammed on drum, preventing rotation | Inspect cable layering on drum for damage? [Y/N] | TBD | Preventive |
+| FTS - Failure to start on demand | 4.3 No power/voltage | Battery-powered winch battery discharged | Verify battery voltage level? [Y/N]; Charge or replace batteries per schedule? [Y/N] | TBD | Preventive; Preventive |
+| FTS - Failure to start on demand | 3.1 Control failure | Winch control switch/button failed | Test winch control switch function? [Y/N] | TBD | Failure-Finding |
+| FTS - Failure to start on demand | 1.6 Sticking | Brake mechanism seized in "engaged" position, prevents rotation | Verify brake releases properly? [Y/N]; Lubricate brake mechanism? [Y/N] | TBD | Failure-Finding; Preventive |
+| STD - Structural deficiency | 2.5 Breakage | Winch frame cracked from overload stress | Inspect winch frame for cracks/deformation? [Y/N] | TBD | Preventive |
+| STD - Structural deficiency | 2.2 Corrosion | Frame or mounting corroded, reducing structural integrity | Check mounting bolts and brackets for corrosion? [Y/N] | TBD | Preventive |
+| STD - Structural deficiency | 2.6 Fatigue | Mounting bracket fatigue cracks from repeated loading | Perform NDT on critical welds per interval? [Y/N] | TBD | Preventive |
+| VIB - Vibration | 1.3 Clearance / alignment failure | Drum misaligned with cable guide, causing vibration during operation | Check drum alignment with cable guide? [Y/N] | TBD | Preventive |
+| VIB - Vibration | 2.4 Wear | Worn drum bearings causing vibration | Listen for bearing noise during operation? [Y/N]; Replace bearings if noise present? [Y/N] | TBD | Failure-Finding; Preventive |
+| VIB - Vibration | 2.6 Fatigue | Gear tooth fatigue causing vibration during operation | Inspect gear teeth for wear/chips/cracks? [Y/N] | TBD | Preventive |
+| NOI - Noise | 2.4 Wear | Worn bearings produce grinding noise during operation | Conduct operational noise test for abnormal sounds? [Y/N] | TBD | Failure-Finding |
+| NOI - Noise | 5.3 Miscellaneous external influences | Loose component rattling during rotation | Check all fasteners for tightness? [Y/N]; Secure loose components? [Y/N] | TBD | Preventive; Preventive |
+| NOI - Noise | 2.6 Fatigue | Gear tooth fatigue produces clicking or grinding noise | Inspect gear teeth condition? [Y/N] | TBD | Preventive |
+| PDE - Parameter deviation | 2.4 Wear | Worn gear teeth reduce lifting capacity below specification | Perform load test per schedule? [Y/N]; Measure lifting speed? [Y/N] | TBD | Failure-Finding; Preventive |
+| PDE - Parameter deviation | 1.4 Deformation | Drum deformed from overload, affecting cable spooling | Inspect drum for deformation? [Y/N] | TBD | Preventive |
+| OHE - Overheating | 2.7 Overheating | Winch motor overheats from overloading or friction | Check motor housing temperature after use? [Y/N] | TBD | Preventive |
+| OHE - Overheating | 5.3 Miscellaneous external influences | Brake dragging causes friction heating | Verify brake releases fully when disengaged? [Y/N] | TBD | Failure-Finding |
+
+**Symptoms (7):** FRO, FTS, STD, VIB, NOI, PDE, OHE ✓
+**VIB - Vibration now has 3 mechanisms ✓**
+**NOI - Noise now has 3 mechanisms ✓**
+
+---
+
+**Maintainable Item 7: Protective Gear Failure**
+**Function:** Protect rescue personnel from injury during wreckage access and victim extraction
+
+| Symptom | Failure Mechanism | Failure Effect | Treatment Actions | RQ ID | Type |
+|---|---|---|---|---|---|
+| STD - Structural deficiency | 2.5 Breakage | Hard hat/helmet cracked from impact, no longer protective | Inspect helmets for cracks/dents? [Y/N] | TBD | Preventive |
+| STD - Structural deficiency | 2.4 Wear | Gloves worn through from handling sharp wreckage | Check gloves for holes/thinning? [Y/N] | TBD | Preventive |
+| STD - Structural deficiency | 2.2 Corrosion | Metal components in protective gear corroded from marine environment | Check metal fasteners/connections for corrosion? [Y/N] | TBD | Preventive |
+| SER - Minor in-service problems | 2.4 Wear | Knee/elbow pads worn from previous use | Inspect pad condition and padding integrity? [Y/N] | TBD | Preventive |
+| SER - Minor in-service problems | 5.2 Contamination | Gear contaminated with chemical or biological hazards | Check for contamination and clean per procedure? [Y/N] | TBD | Preventive |
+| SER - Minor in-service problems | 5.3 Miscellaneous external influences | Gear stored improperly causing deformation | Verify gear stored in designated location correctly? [Y/N] | TBD | Preventive |
+| ELP - External leakage - process medium | 2.5 Breakage | Chemical splash goggles cracked, no longer provide barrier | Inspect goggles for cracks/scratches? [Y/N] | TBD | Preventive |
+| ELP - External leakage - process medium | 2.2 Corrosion | Respirator seal degraded, no longer seals properly | Perform seal check on respirator? [Y/N] | TBD | Failure-Finding |
+| FTI - Failure to function as intended | 1.4 Deformation | Face shield deformed from heat, vision distortion | Check face shield for warping? [Y/N] | TBD | Preventive |
+| FTI - Failure to function as intended | 2.4 Wear | Respirator filter expired, no longer filters effectively | Check respirator filter expiration date? [Y/N]; Replace filters per schedule? [Y/N] | TBD | Preventive; Preventive |
+| PDE - Parameter deviation | 6.2 Combined causes | Gear not sized correctly for rescue personnel | Verify personnel assigned correctly sized gear? [Y/N] | TBD | Preventive |
+| PDE - Parameter deviation | 2.4 Wear | Reflective strips faded, reducing visibility in smoke | Check reflective tape condition? [Y/N] | TBD | Preventive |
+| FWR - Failure while running | 2.6 Fatigue | Boot sole separates from upper during rescue operation | Inspect boot integrity at bonding points? [Y/N] | TBD | Preventive |
+| FWR - Failure while running | 2.5 Breakage | Zipper breaks on protective suit during use | Test zipper operation? [Y/N] | TBD | Failure-Finding |
+
+**Symptoms (6):** STD, SER, ELP, FTI, PDE, FWR ✓
+
+---
+
+**Maintainable Item 8: Signaling Devices Failure**
+**Function:** Alert and signal rescue team location and status during operations
+
+| Symptom | Failure Mechanism | Failure Effect | Treatment Actions | RQ ID | Type |
+|---|---|---|---|---|---|
+| FTS - Failure to start on demand | 4.3 No power/voltage | Signal device battery discharged | Verify battery charge level? [Y/N]; Replace batteries per schedule? [Y/N] | TBD | Preventive; Preventive |
+| FTS - Failure to start on demand | 4.1 Short circuiting | Internal electronics shorted from moisture | Test signal device function? [Y/N] | TBD | Failure-Finding |
+| FWR - Failure while running | 4.4 Faulty power/voltage | Signal output fades during use as battery depletes | Verify signal strength meets specification? [Y/N] | TBD | Failure-Finding |
+| FWR - Failure while running | 2.2 Corrosion | Corroded contacts cause intermittent signal | Inspect battery contacts for corrosion? [Y/N] | TBD | Preventive |
+| CSF - Control / signal failure | 3.1 Control failure | Whistle/strobe activation mechanism fails | Test whistle sound/strobe function? [Y/N] | TBD | Failure-Finding |
+| CSF - Control / signal failure | 3.3 Faulty signal/indication/alarm | Signal output weak or inconsistent | Verify signal output meets specification? [Y/N] | TBD | Failure-Finding |
+| SPO - Spurious operation | 3.6 Common cause/Common mode failure | Device activates unintentionally draining battery | Verify switch/activation mechanism functions correctly? [Y/N] | TBD | Failure-Finding |
+| SPO - Spurious operation | 5.3 Miscellaneous external influences | Accidental activation from pressure in storage | Check storage arrangement prevents accidental activation? [Y/N] | TBD | Preventive |
+| PDE - Parameter deviation | 2.4 Wear | Whistle degraded from age, sound frequency changed | Test whistle sound quality? [Y/N] | TBD | Failure-Finding |
+| PDE - Parameter deviation | 2.2 Corrosion | Signal mirror degraded from corrosion, reflectivity reduced | Inspect signal mirror condition? [Y/N] | TBD | Preventive |
+| PTF - Power/signal transmission failure | 4.2 Open circuit | Electrical signal device wiring broken | Perform continuity test on signal circuit? [Y/N] | TBD | Preventive |
+| PTF - Power/signal transmission failure | 5.2 Contamination | Signal light lens blocked by debris/dirt | Clean signal device lenses? [Y/N] | TBD | Preventive |
+
+**Symptoms (6):** FTS, FWR, CSF, SPO, PDE, PTF ✓
+
+---
+
+**Maintainable Item 9: Storage Box/Stowage Failure (*)**
+**Function:** Provide secure, accessible storage for portable crash rescue equipment ensuring immediate availability
+
+| Symptom | Failure Mechanism | Failure Effect | Treatment Actions | RQ ID | Type |
+|---|---|---|---|---|---|
+| STD - Structural deficiency | 2.5 Breakage | Storage box cracked or broken, contents exposed or damaged | Inspect storage box for cracks/damage? [Y/N] | TBD | Preventive |
+| STD - Structural deficiency | 2.2 Corrosion | Metal storage box corroded from marine salt environment | Check storage box for corrosion? [Y/N]; Apply corrosion protection? [Y/N] | TBD | Preventive; Preventive |
+| STD - Structural deficiency | 1.4 Deformation | Box deformed from impact, door will not close/seal | Verify door closes and seals properly? [Y/N] | TBD | Preventive |
+| FTO - Failure to open on demand | 1.6 Sticking | Latch or hinge seized from corrosion, box cannot be opened | Lubricate hinges and latches per schedule? [Y/N]; Test latch operation? [Y/N] | TBD | Preventive; Failure-Finding |
+| FTO - Failure to open on demand | 1.5 Looseness | Locking mechanism broken or missing, box cannot be secured | Verify locking mechanism functions correctly? [Y/N] | TBD | Failure-Finding |
+| FTI - Failure to function as intended | 1.4 Deformation | Internal shelves/deformation prevents proper equipment stowage | Verify internal storage arrangement intact? [Y/N] | TBD | Preventive |
+| FTI - Failure to function as intended | 2.2 Corrosion | Internal corrosion damages stored equipment | Check box interior for corrosion/contamination? [Y/N] | TBD | Preventive |
+| PDE - Parameter deviation | 6.2 Combined causes | Equipment not in designated locations within box | Verify equipment stowed in correct locations? [Y/N] | TBD | Preventive |
+| PDE - Parameter deviation | 5.2 Contamination | Box interior contaminated with water/dirt affecting equipment | Check box interior cleanliness? [Y/N] | TBD | Preventive |
+| SER - Minor in-service problems | 2.4 Wear | Weather seal worn, allowing water ingress | Check weather seal condition? [Y/N]; Replace damaged seals? [Y/N] | TBD | Preventive; Preventive |
+| SER - Minor in-service problems | 5.3 Miscellaneous external influences | Box mounting loose or damaged from repeated access | Verify box securely mounted? [Y/N] | TBD | Preventive |
+
+**Symptoms (5):** STD, FTO, FTI, PDE, SER ✓
+
+---
+
+**Maintainable Item 10: Winch Cable Failure (*)**
+**Function:** Transmit lifting force from winch drum to rescue personnel or equipment
+
+| Symptom | Failure Mechanism | Failure Effect | Treatment Actions | RQ ID | Type |
+|---|---|---|---|---|---|
+| STD - Structural deficiency | 2.5 Breakage | Cable strand broken from overload or fatigue | Inspect cable for broken strands? [Y/N] | TBD | Preventive |
+| STD - Structural deficiency | 2.2 Corrosion | Cable corroded from marine salt environment, strength reduced | Check cable for corrosion/deterioration? [Y/N] | TBD | Preventive |
+| STD - Structural deficiency | 2.4 Wear | Cable abraded from rubbing against guide, diameter reduced | Measure cable diameter at wear points? [Y/N] | TBD | Preventive |
+| FWR - Failure while running | 2.6 Fatigue | Cable fatigue from repeated bending cycles | Track cable service life and usage cycles? [Y/N]; Replace cable per schedule? [Y/N] | TBD | Preventive; Preventive |
+| FWR - Failure while running | 2.5 Breakage | Cable snaps suddenly during lifting operation | Perform load test per schedule? [Y/N] | TBD | Failure-Finding |
+| PDE - Parameter deviation | 2.4 Wear | Cable stretched beyond safe elongation limits | Measure cable length against original specification? [Y/N] | TBD | Preventive |
+| PDE - Parameter deviation | 1.4 Deformation | Cable deformed (kinked/birdcaged) from improper spooling | Inspect cable for kinks/distortions? [Y/N] | TBD | Preventive |
+| NOI - Noise | 2.4 Wear | Cable rubbing produces squeaking or grinding noise | Listen for abnormal cable noise during operation? [Y/N] | TBD | Failure-Finding |
+| NOI - Noise | 1.5 Looseness | Cable loose on drum causing slapping noise | Verify cable tension and drum layering? [Y/N] | TBD | Preventive |
+| VIB - Vibration | 2.6 Fatigue | Cable vibration from resonance during lifting | Check for abnormal cable vibration during operation? [Y/N] | TBD | Failure-Finding |
+| VIB - Vibration | 1.3 Clearance / alignment failure | Cable not aligned with pulley guides causing vibration | Verify cable alignment with guide pulleys? [Y/N] | TBD | Preventive |
+| FTI - Failure to function as intended | 2.4 Wear | Cable damaged from improper re-spooling | Inspect cable for damage after each use? [Y/N] | TBD | Preventive |
+| FTI - Failure to function as intended | 5.2 Contamination | Cable contaminated with grease/debris affecting grip | Clean cable per manufacturer specification? [Y/N] | TBD | Preventive |
+
+**Symptoms (6):** STD, FWR, PDE, NOI, VIB, FTI ✓
+
+---
+
+**Maintainable Item 11: Winch Brake Mechanism Failure (*)**
+**Function:** Hold load securely when winch is not actively lifting or lowering
+
+| Symptom | Failure Mechanism | Failure Effect | Treatment Actions | RQ ID | Type |
+|---|---|---|---|---|---|
+| STP - Failure to stop on demand | 2.4 Wear | Brake pads worn, cannot hold rated load | Inspect brake pad thickness? [Y/N]; Replace worn pads? [Y/N] | TBD | Preventive; Preventive |
+| STP - Failure to stop on demand | 1.5 Looseness | Brake linkage loose, insufficient braking force | Verify brake linkage adjustment and tightness? [Y/N] | TBD | Preventive |
+| STP - Failure to stop on demand | 2.2 Corrosion | Brake components corroded, mechanism ineffective | Check brake components for corrosion? [Y/N]; Lubricate per procedure? [Y/N] | TBD | Preventive; Preventive |
+| FTS - Failure to start on demand | 1.6 Sticking | Brake seized in engaged position, prevents operation | Verify brake releases fully when disengaged? [Y/N]; Lubricate brake mechanism? [Y/N] | TBD | Failure-Finding; Preventive |
+| FTS - Failure to start on demand | 1.5 Looseness | Brake disengaged when should be engaged, load drifts | Test brake holding capacity with test load? [Y/N] | TBD | Failure-Finding |
+| NOI - Noise | 2.4 Wear | Brake dragging produces grinding or squeaking noise | Listen for abnormal brake noise during operation? [Y/N] | TBD | Failure-Finding |
+| NOI - Noise | 5
