@@ -90,6 +90,17 @@ def load_instruction_entries() -> list[dict[str, str]]:
     Load instruction entries from an XLSX file when available.
     Falls back to the legacy text/markdown instruction format.
     """
+    instruction_file: Path | None
+    instruction: str
+    try:
+        instruction_file = pick_instruction_file()
+        instruction = instruction_file.read_text(encoding="utf-8", errors="ignore")
+    except FileNotFoundError:
+        instruction_file = None
+        instruction = ""
+
+    explicit_item_classes = extract_item_classes(instruction) if instruction else []
+
     instruction_sheet = pick_instruction_sheet()
     if instruction_sheet is not None:
         try:
@@ -109,16 +120,17 @@ def load_instruction_entries() -> list[dict[str, str]]:
             )
 
         col_item_class = normalized["item class"]
+        col_item_class_name = normalized.get("item class name")
         col_item_class_desc = normalized.get("item class description")
         col_scope = normalized.get("scope")
-        entries: list[dict[str, str]] = []
-        for _, row in df.iterrows():
-            item_class = str(row.get(col_item_class, "")).strip()
-            if item_class == "" or item_class.lower() == "nan":
-                continue
 
-            item_class_description = str(row.get(col_item_class_desc, "")).strip() if col_item_class_desc else ""
-            scope = str(row.get(col_scope, "")).strip() if col_scope else ""
+        def _entry_from_row(row_data: pd.Series, selected_item_class: str | None = None) -> dict[str, str]:
+            row_item_class = str(row_data.get(col_item_class, "")).strip()
+            row_item_class_name = str(row_data.get(col_item_class_name, "")).strip() if col_item_class_name else ""
+            item_class = (selected_item_class or row_item_class).strip()
+
+            item_class_description = str(row_data.get(col_item_class_desc, "")).strip() if col_item_class_desc else row_item_class_name
+            scope = str(row_data.get(col_scope, "")).strip() if col_scope else ""
 
             if item_class_description.lower() == "nan":
                 item_class_description = ""
@@ -133,22 +145,72 @@ def load_instruction_entries() -> list[dict[str, str]]:
                 ]
             )
 
-            entries.append(
-                {
-                    "instruction_source": instruction_sheet.as_posix(),
-                    "instruction_text": instruction_text,
-                    "item_class": item_class,
-                    "item_class_description": item_class_description,
-                    "scope": scope,
-                }
-            )
+            return {
+                "instruction_source": instruction_sheet.as_posix(),
+                "instruction_text": instruction_text,
+                "item_class": item_class,
+                "item_class_description": item_class_description,
+                "scope": scope,
+            }
+
+        if explicit_item_classes:
+            entries: list[dict[str, str]] = []
+            normalized_to_row: dict[str, pd.Series] = {}
+
+            for _, row in df.iterrows():
+                row_item_class = str(row.get(col_item_class, "")).strip()
+                if row_item_class and row_item_class.lower() != "nan":
+                    normalized_to_row[row_item_class.lower()] = row
+
+                if col_item_class_name:
+                    row_item_class_name = str(row.get(col_item_class_name, "")).strip()
+                    if row_item_class_name and row_item_class_name.lower() != "nan":
+                        normalized_to_row[row_item_class_name.lower()] = row
+
+            for selected_item_class in explicit_item_classes:
+                matched_row = normalized_to_row.get(selected_item_class.lower())
+                if matched_row is not None:
+                    entries.append(_entry_from_row(matched_row, selected_item_class=selected_item_class))
+                else:
+                    entries.append(
+                        {
+                            "instruction_source": instruction_file.as_posix() if instruction_file else instruction_sheet.as_posix(),
+                            "instruction_text": f"Item Class: {selected_item_class}",
+                            "item_class": selected_item_class,
+                            "item_class_description": "",
+                            "scope": "",
+                        }
+                    )
+
+            return entries
+
+        entries: list[dict[str, str]] = []
+        for _, row in df.iterrows():
+            item_class = str(row.get(col_item_class, "")).strip()
+            if item_class == "" or item_class.lower() == "nan":
+                continue
+
+            entries.append(_entry_from_row(row))
 
         if not entries:
             raise RuntimeError(f"Instruction sheet '{instruction_sheet}' has no valid 'Item Class' rows")
         return entries
 
-    instruction_file = pick_instruction_file()
-    instruction = instruction_file.read_text(encoding="utf-8", errors="ignore")
+    if explicit_item_classes:
+        return [
+            {
+                "instruction_source": instruction_file.as_posix() if instruction_file else "inputs/Instructions",
+                "instruction_text": instruction,
+                "item_class": item_class,
+                "item_class_description": "",
+                "scope": "",
+            }
+            for item_class in explicit_item_classes
+        ]
+
+    if instruction_file is None:
+        raise FileNotFoundError("No instruction file found in inputs/Instructions/")
+
     item_class = extract_item_class(instruction)
     return [
         {
@@ -185,6 +247,42 @@ def extract_item_class(instruction_text: str) -> str:
             val = val.rstrip(" .;:,")
             return val
     return "UNKNOWN_ITEM_CLASS"
+
+
+def extract_item_classes(instruction_text: str) -> list[str]:
+    """
+    Extract one or more Item Classes from instruction text.
+    Supports singular/plural labels and semicolon-separated values.
+    """
+    patterns = [
+        r"Item\s*Class(?:es)?\s*[:=]\s*(.+)",
+        r"Item\s*Class(?:es)?\s*[-–—]\s*(.+)",
+        r"for\s+Item\s*Class(?:es)?\s*[:=]\s*(.+)",
+        r"for\s+Item\s*Class(?:es)?\s*[-–—]\s*(.+)",
+    ]
+
+    for pat in patterns:
+        m = re.search(pat, instruction_text, flags=re.IGNORECASE)
+        if not m:
+            continue
+
+        raw_value = m.group(1).strip()
+        raw_value = raw_value.splitlines()[0].strip()
+        raw_value = raw_value.rstrip(" .;:,")
+
+        parts = [part.strip() for part in raw_value.split(";")]
+        classes: list[str] = []
+        for part in parts:
+            if not part or part.lower() == "nan":
+                continue
+            if part not in classes:
+                classes.append(part)
+
+        if classes:
+            return classes
+
+    single = extract_item_class(instruction_text)
+    return [] if single == "UNKNOWN_ITEM_CLASS" else [single]
 
 
 def read_text_file(path: Path, max_chars: int | None = None) -> str:
