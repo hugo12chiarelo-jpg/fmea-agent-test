@@ -912,6 +912,13 @@ def search_manual_with_levity(
     return combined_text, source_hint
 
 
+def should_use_levity_manual_lookup(api_key_levity: str | None) -> bool:
+    if not api_key_levity:
+        return False
+    flag = (os.getenv("ENABLE_LEVITY_MANUAL_LOOKUP", "") or "").strip().lower()
+    return flag in {"1", "true", "yes", "on"}
+
+
 def slugify_for_filename(value: str) -> str:
     slug = re.sub(r"[^A-Za-z0-9]+", "_", value.strip()).strip("_").lower()
     return slug or "item_class"
@@ -1871,6 +1878,7 @@ def main():
     levity_api_key = os.getenv("API_KEY_LEVITY")
     levity_reference_vendor = (os.getenv("LEVITY_REFERENCE_VENDOR") or DEFAULT_LEVITY_REFERENCE_VENDOR).strip()
     levity_equipment_context = (os.getenv("LEVITY_EQUIPMENT_CONTEXT") or DEFAULT_LEVITY_EQUIPMENT_CONTEXT).strip()
+    levity_lookup_enabled = should_use_levity_manual_lookup(levity_api_key)
     max_correction_attempts = int(os.getenv("MAX_CORRECTION_ATTEMPTS", "3"))
     if not api_key:
         raise RuntimeError("Missing API_KEY_DS secret")
@@ -1953,24 +1961,32 @@ def main():
         if symptom_catalog_preview is not None:
             parts.append(f"### FILE: {symptom_catalog_path.as_posix()} (PREVIEW)\n{symptom_catalog_preview}")
 
-        levity_manual_text, levity_source = search_manual_with_levity(
-            api_key_levity=levity_api_key,
-            item_class=item_class,
-            item_class_description=item_class_description,
-            scope=scope,
-            reference_vendor=levity_reference_vendor,
-            equipment_context=levity_equipment_context,
-            max_chars=120_000,
-        )
+        levity_manual_text, levity_source = (None, None)
+        if levity_lookup_enabled:
+            levity_manual_text, levity_source = search_manual_with_levity(
+                api_key_levity=levity_api_key,
+                item_class=item_class,
+                item_class_description=item_class_description,
+                scope=scope,
+                reference_vendor=levity_reference_vendor,
+                equipment_context=levity_equipment_context,
+                max_chars=120_000,
+            )
         if levity_manual_text:
             parts.append(f"### FILE: LEVITY ONLINE MANUAL ({levity_source})\n{levity_manual_text}")
-        elif scope_is_empty:
+        elif scope_is_empty and levity_lookup_enabled:
             print(
                 f"[WARN] No Levity manual context and empty EMS Scope for Item Class '{item_class}'. "
                 "Generation will rely on EMS boundaries, catalogs, and business rules."
             )
 
         minimal_inputs = "\n\n".join(parts)
+        levity_prompt_context = ""
+        if levity_lookup_enabled:
+            levity_prompt_context = f"""
+Levity technical reference source: {levity_reference_vendor} operation and maintenance manuals for {levity_equipment_context}.
+Manual lookup scope: use only this Item Class row context; do not reuse context from other Item Classes.
+"""
 
         # Build item-class-specific guidance
         item_class_guidance = build_item_class_specific_guidance(item_class)
@@ -1985,8 +2001,7 @@ def main():
 ## ITEM CLASS CONTEXT (from instruction row)
 Item Class Description: {item_class_description or "[not provided]"}
 Scope: {scope or "[not provided]"}
-Levity technical reference source: {levity_reference_vendor} operation and maintenance manuals for {levity_equipment_context}.
-Manual lookup scope: use only this Item Class row context; do not reuse context from other Item Classes.
+{levity_prompt_context}
 
 ## SPECIFICATION (MANDATORY)
 {spec}

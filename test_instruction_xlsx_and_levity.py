@@ -18,6 +18,7 @@ from run_agent import (
     read_csv_with_fallback,
     resolve_model_name,
     search_manual_with_levity,
+    should_use_levity_manual_lookup,
     slugify_for_filename,
 )
 
@@ -154,6 +155,20 @@ def test_search_manual_with_levity_skips_irrelevant_results(monkeypatch):
 
     assert text is None
     assert source is None
+
+
+def test_should_use_levity_manual_lookup_requires_opt_in(monkeypatch):
+    monkeypatch.delenv("ENABLE_LEVITY_MANUAL_LOOKUP", raising=False)
+    assert should_use_levity_manual_lookup("levity-token") is False
+    assert should_use_levity_manual_lookup(None) is False
+
+
+def test_should_use_levity_manual_lookup_accepts_truthy_values(monkeypatch):
+    monkeypatch.setenv("ENABLE_LEVITY_MANUAL_LOOKUP", "true")
+    assert should_use_levity_manual_lookup("levity-token") is True
+
+    monkeypatch.setenv("ENABLE_LEVITY_MANUAL_LOOKUP", "1")
+    assert should_use_levity_manual_lookup("levity-token") is True
 
 
 def test_pick_manual_text_returns_none_when_no_relevant_file(tmp_path, monkeypatch):
