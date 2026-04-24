@@ -50,7 +50,7 @@ SCOPE AND BOUNDARY RULES (EMS.xlsx)
 Interpret EMS boundaries as defining what is included in the Item Class maintenance scope.
 
 **CRITICAL BOUNDARY PARSING RULES:**
-1. Items marked with "Exclude", "optional", "if applicable", or "if any" MUST NOT be included in Maintainable Items
+1. Items marked with "Exclude" or "Excludes" MUST NOT be included in Maintainable Items
 2. Everything else mentioned in boundaries IS included unless explicitly excluded
 3. Read the full boundaries text carefully to identify ALL included components, systems, and equipment
 4. Do NOT limit to only "main" or "most probable" items - include ALL technically relevant items from boundaries
@@ -139,7 +139,7 @@ Equipment with simpler construction, fewer subsystems, or limited mechanical com
 1. Read the "Boundaries" column from EMS file for the specified Item Class.
 2. **Parse boundaries to identify included vs excluded items:**
    - Items in lines starting with "Exclude" or containing "exclude" keyword → EXCLUDE
-   - Items marked as "optional", "if applicable", "if any" → EXCLUDE
+   - Items marked as "optional", "if applicable", "if any", "if fitted" → INCLUDE (they are within scope)
    - All other items mentioned → INCLUDE
 3. Identify ALL components, systems, and equipment mentioned in the included boundaries text (do not limit to main items only).
 4. **APPLY ENGINEERING INTELLIGENCE - Filter boundary items using maintainability criteria:**
