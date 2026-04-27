@@ -1,0 +1,59 @@
+﻿Item Class;Item Class Name;Boundaries;Maintenance Strategy Overview;Scope;Parent Item Class;Other Associated Item Classes;Notes;Task Template ID;Definition;Application;Justification;Low Risk Frequency;Unit Low;Medium Risk Frequency;Unit Medium;High Risk Frequency;Unit High
+SEWM;Fire Fighting System, Water Mist;"- Includes atomising gas cylinder(s) and storage cylinders
+- Includes water mist spray system, pipework and nozzles";;"Water mist fire suppression systems are a fire protection system which uses very fine water sprays (i.e. water mist). The small water droplets allow the water mist to control, suppress or extinguish fires by:
+  
+- cooling both the flame and surrounding gases by evaporation
+  
+- displacing oxygen by evaporation
+  
+- attenuating radiant heat by the small droplets themselves";;;;;;;;;;;;;
+LSHE;Helideck Safety Equipment;"Includes:
+- Portable helideck crash rescue equipment
+
+- Helideck crash rescue storage boxes and cabinets
+- 
+Equipment identification and labelling
+
+Excludes:
+- Fireman outfits and lockers (managed under LSFL)
+- Structural helideck elements and markings (managed under VEHD)
+- Firefighting systems and fixed fire protection";;Helideck safety equipment covered by this item class is intended to support initial emergency response and rescue operations following a helicopter incident on the helideck. The scope includes the integrity, availability and correct stowage of portable crash rescue equipment and associated storage arrangements, ensuring that equipment is immediately accessible and fit for use when required.;;;;;;;;;;;;;
+HEPL;Heat Exchanger, Plate;"
+Includes: 
+- both sides of the exchanger
+- its fittings and any supporting structure
+- the integrity of local instrumentation
+
+Excludes:
+- remote instrumentation and control
+- Printed Circuit Heat Exchanger (own EST HEPC)";;Plate and frame heat exchangers, known as HEPL, are integral components employed to facilitate the transfer of fluids within a process. Utilizing the expansive surface area of the plates, these heat exchangers enable efficient cooling or heating processes. The plates, pressed into a rigid frame, create parallel flow channels, allowing for the exchange of heat between alternating hot and cold fluids. To prevent external leaks and internal fluid mixing, the plates in HEPL are precisely spaced using rubber sealing gaskets, securely cemented along the plate edges.;;;;;;;;;;;;;
+VEDA;Dearator;"
+Includes: 
+- the column
+- its fittings and its supporting structure
+- the integrity of local instrumentation
+Excludes: 
+- the functional aspects of local instrumentation";;Deaeration Columns (Vacuum type and gas stripping type);;;;;;;;;;;;;
+PUCE;Pump Centrifugal;"Exclude Electrical Motor HV/LV, ( except for electro submerged pumps)
+Excludes Steam Turbines,
+Excludes Diesel Engine,
+Excludes hydraulic system,
+Excludes gearboxes,
+Exclude minimum flow control Valve
+Exclude pressure relief device
+
+Includes pump,
+Include coupling or V belt
+Include suction Strainers when fitted
+Include Isolation, purge, vent and drain valves
+Includes sealing system (API or not API)
+Includes bulkhead stuffing box (seal) 
+Includes lubrication system";;"Centrifugal Pumps are rotating devices that are used to transport fluids, at a rated pressure and rated flow, by the conversion of kinetic energy to the hydrodynamic energy of the fluid flow, while containing the transported fluids inside their boundary.
+
+Centrifugal pumps might be driven by electrical LV/HV motors, steam turbines, gas turbines, diesel engine or hydraulic system and shall be able to start on demand.
+
+This maintenance strategy is not applicable to the FRAMO submerged hydraulic/electro subermeged pump (PUSH and PUSE). 
+
+Power transmission could be either direct or by coupling or belt.
+
+Centrifugal pump might be oil bath lubricated, force lubricated or self-lubricated";;;;;;;;;;;;;
