@@ -2049,8 +2049,12 @@ def main():
     levity_equipment_context = (os.getenv("LEVITY_EQUIPMENT_CONTEXT") or DEFAULT_LEVITY_EQUIPMENT_CONTEXT).strip()
     levity_lookup_enabled = should_use_levity_manual_lookup(levity_api_key)
     max_correction_attempts = int(os.getenv("MAX_CORRECTION_ATTEMPTS", "3"))
-    if not api_key:
-        raise RuntimeError("Missing API_KEY_CLAUDESONNET secret")
+    if not api_key or not api_key.strip("*"):
+        raise RuntimeError(
+            "API_KEY_CLAUDESONNET is missing or invalid. "
+            "Please set a valid Claude API key in your GitHub repository secrets "
+            "(Settings → Secrets and variables → Actions → New repository secret)."
+        )
 
     client = OpenAI(api_key=api_key, base_url=base_url)
 
