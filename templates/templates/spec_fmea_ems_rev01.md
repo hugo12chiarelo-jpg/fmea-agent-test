@@ -413,6 +413,63 @@ Sealing systems (Dry Gas Seal, Seal Gas Panel): Valid: ELP, PDE, SPO, CSF Avoid:
 
 Electrical/drive train (Motor, Generator, Starter): Valid: FTS, FRO, FWR, PDE Avoid: ELP, PLU Replace: → FRO or FTS
 
+MAINTAINABLE ITEM FUNCTIONAL CATEGORY CLASSIFICATION
+
+Before assigning any Symptom or Failure Mechanism, the AI shall classify each Maintainable Item into exactly one of the functional categories below. Classification is based on the PRIMARY FUNCTION of the item within the equipment, not on its name or physical appearance alone.
+
+**DECISION FRAMEWORK — Key Question:**
+Ask: "What is the main reason this item exists in the equipment?"
+
+- If the primary function is to **support loads, fix parts in place, or maintain position** → Category: **Structural / Support**
+- If the primary function is to **contain fluid (liquid or gas) under pressure** → Category: **Primary Containment / Wetted**
+- If the primary function is to **transfer heat between two fluids** → Category: **Heat Transfer Surface**
+- If the primary function is to **allow fluid in/out, connect parts, or interface with the process** → Category: **Connection / Nozzle / Flange**
+- If the primary function is to **generate or transmit rotary motion** (pumps, compressors, motors) → Category: **Rotating**
+- If the primary function is to **measure, monitor, control, or actuate** based on signals or process variables → Category: **Local Instrumentation**
+- If the primary function is to **conduct, distribute, or protect electrical energy or signals** → Category: **Electrical / Electronic**
+- If the primary function is to **protect people, the environment, or equipment in emergency situations** (pressure relief, ESD) → Category: **Safety / Emergency**
+
+**MANDATORY CLASSIFICATION RULES:**
+
+1. **One item, one category**: if a physical item in the EMS boundary performs more than one function, classify it by its dominant/primary function. When the multi-function nature creates ambiguity about which symptoms are valid, flag the item in the SUGGESTED ADDITIONAL MAINTAINABLE ITEMS section and recommend that the EMS preparer split it into two Maintainable Items. Classic example: thermocouple with thermowell.
+   - *Thermowell* → **Primary Containment** (function: isolate the process).
+   - *Thermocouple sensor* → **Local Instrumentation** (function: measure temperature).
+   This avoids assigning containment failure modes (ELP, STD) to the sensor, or instrumentation failure modes (AIR, PDE) to the well.
+
+2. **Function defines category, not the name**: a "control valve" may have body and actuator. The valve body is **Primary Containment**; the actuator and positioner are **Local Instrumentation**. If the MI list already separates them (e.g., "Control Valve Body" and "Control Valve Actuator"), keep the separation. If not separated and the distinction is important, flag in the SUGGESTED ADDITIONAL MAINTAINABLE ITEMS section for engineering review.
+
+3. **Wetted instruments**: if an instrument contacts the process fluid and its failure could cause leakage, it **may also** receive containment failure modes (ELP, STD) — but only if it is impossible to separate the containment part. Example: a pressure gauge directly connected to the process with no isolation. In this case include ELP and STD in the permitted failure modes, but the primary category remains **Local Instrumentation**.
+
+4. **Safety items**: PSV, rupture disc, emergency stop button (where stopping is the sole function) → **Safety / Emergency**. A block valve that also acts as a shutdown valve may be classified here if safety is its primary function.
+
+5. **Support vs. Containment**: a compressor baseplate is **Structural / Support**; the compressor casing is **Primary Containment** (if it contains internal fluid) or **Rotating** (for moving parts). A pipe support not in contact with fluid is Structural; a clamp holding a joint is Structural, but the joint itself is Containment.
+
+6. **Equipment boundary (EMS Boundary)**: respect what is included and excluded. If the boundary excludes "remote instrumentation", all local instruments that are included must be classified as Local Instrumentation.
+
+**FUNCTIONAL CATEGORY TABLE — PERMITTED ISO 14224 FAILURE MODES:**
+
+| Category of Maintainable Item (Primary Function) | Examples | Permitted ISO 14224 Failure Modes (Code – Description) |
+|---|---|---|
+| Structural / Support (non-wetted) | Base, clamping frame, stay, guardrail, deck support, hull structure, mooring foundations | STD – Structural deficiency; UBU – Global buckling; VIB – Vibration; NOI – Noise; LOA – Load drop; MOF – Mooring failure; SLP – Slippage; SER – Minor in-service problems; UNK – Unknown; OTH – Other |
+| Primary Containment / Wetted (pressure, sealing) | Vessel body, piping, gasket, plate joint, thermowell, valve body, rupture disc holder | ELP – External leakage – process medium; ILP – Internal leakage – process medium; ILU – Internal leakage – utility medium; INL – Internal leakage; STD – Structural deficiency; PLU – Plugged/choked; ELU – External leakage – utility medium; LCP – Leakage in closed position; SBU – Sludge build-up; SER – Minor in-service problems; UNK – Unknown; OTH – Other |
+| Heat Transfer Surface | Tube bundle, heat exchanger plates, coil, fin-fan cooler | IHT – Insufficient heat transfer; ILP – Internal leakage – process medium; ELP – External leakage – process medium; PLU – Plugged/choked; STD – Structural deficiency; SBU – Sludge build-up; SER – Minor in-service problems; UNK – Unknown; OTH – Other |
+| Connection / Nozzle / Flange | Nozzle, flange, half-pipe, drain plug, instrument connection | ELP – External leakage – process medium; PLU – Plugged/choked; STD – Structural deficiency; IHT – Insufficient heat transfer; ELU – External leakage – utility medium; LCP – Leakage in closed position; SER – Minor in-service problems; UNK – Unknown; OTH – Other |
+| Rotating (pumps, compressors, motors, fans) | Pump motor, centrifugal compressor, fan, gas turbine, generator rotor | FTS – Failure to start on demand; FWR – Failure while running; VIB – Vibration; NOI – Noise; OHE – Overheating; LBP – Low oil supply pressure; FTR – Failure to regulate; STU – Stuck; FTC – Failure to close on demand; FTO – Failure to open on demand; FTF – Failure to function on demand; FTI – Failure to function as intended; FRO – Failure to rotate; DOP – Delayed operation; ERO – Erratic output; HIO – High output; LOO – Low output; VLO – Very low output; NOO – No output; PDE – Parameter deviation; AIR – Abnormal instrument reading; CSF – Control/signal failure; PTF – Power/signal transmission failure; POW – Insufficient power; BRD – Breakdown; SER – Minor in-service problems; STP – Failure to stop on demand; UST – Spurious stop; SPO – Spurious operation; UNK – Unknown; OTH – Other |
+| Local Instrumentation (measurement, actuation) – including control valves | Transmitter, pressure gauge, thermocouple, control valve, actuator, local indicator, I/P converter | AIR – Abnormal instrument reading; PDE – Parameter deviation; CSF – Control/signal failure; FTI – Failure to function as intended; FTR – Failure to regulate; FTC – Failure to close on demand; FTO – Failure to open on demand; FTF – Failure to function on demand; FTS – Failure to start on demand; DOP – Delayed operation; ERO – Erratic output; HIO – High output; LOO – Low output; VLO – Very low output; NOO – No output; SHH – Spurious high alarm level; SLL – Spurious low alarm level; SPO – Spurious operation; STU – Stuck; STD – Structural deficiency; ELP – External leakage – process medium (if wetted sensor/valve body); ELU – External leakage – utility medium; PLU – Plugged/choked; PCL – Premature closure; SET – Failure to set/retrieve; FTL – Failure to lock/unlock; PTF – Power/signal transmission failure; BRD – Breakdown; SER – Minor in-service problems; UNK – Unknown; OTH – Other |
+| Electrical / Electronic | Cable, terminal box, power supply, motor starter, lightning protection system, UPS | PTF – Power/signal transmission failure; BRD – Breakdown; STD – Structural deficiency; ELU – External leakage – utility medium (if cooling); FOF – Faulty output frequency; FOV – Faulty output voltage; POW – Insufficient power; FLP – Failure in lightning protection system; ERO – Erratic output; NOO – No output; LOO – Low output; HIO – High output; VLO – Very low output; AIR – Abnormal instrument reading (if monitoring); CSF – Control/signal failure; STP – Failure to stop on demand; UST – Spurious stop; SER – Minor in-service problems; OTH – Other; UNK – Unknown |
+| Safety / Emergency | PSV, rupture disc, emergency shutdown valve (ESD), fire detection | FTC – Failure to close on demand; FTO – Failure to open on demand; STU – Stuck; ELP – External leakage – process medium; PLU – Plugged/choked; STD – Structural deficiency; FTF – Failure to function on demand; FTI – Failure to function as intended; FTL – Failure to lock/unlock; PCL – Premature closure; DOP – Delayed operation; SPO – Spurious operation; SHH – Spurious high alarm level; SLL – Spurious low alarm level; UST – Spurious stop; NOO – No output; LOO – Low output; AIR – Abnormal instrument reading (if sensor); PDE – Parameter deviation; CSF – Control/signal failure; BRD – Breakdown; SER – Minor in-service problems; OTH – Other; UNK – Unknown |
+| Well / Subsea (specific to FPSO with wells) | Subsea tree, production riser, control umbilical, pod | CLW – Control-line-to-well communication; WCL – Well-to-control-line communication; FTD – Failure to disconnect; FCO – Failure to connect; FRO – Failure to rotate; LOB – Loss of buoyancy; POD – Loss of functions on both pods; MOF – Mooring failure; STD – Structural deficiency; ELP – External leakage – process medium; ILP – Internal leakage – process medium; PLU – Plugged/choked; UNK – Unknown; OTH – Other |
+| Heating / Utility Systems | Fired heater, electric heater, heat tracing | HTF – Heating failure; OHE – Overheating; STD – Structural deficiency; ELP – External leakage – process medium; ELU – External leakage – utility medium; PLU – Plugged/choked; PTF – Power/signal transmission failure; AIR – Abnormal instrument reading; PDE – Parameter deviation; CSF – Control/signal failure; SER – Minor in-service problems; OTH – Other |
+| Mooring / Positioning | Mooring lines, winches, fairleads | MOF – Mooring failure; STD – Structural deficiency; VIB – Vibration; NOI – Noise; FTD – Failure to disconnect; FCO – Failure to connect; FTR – Failure to regulate; STU – Stuck; FTI – Failure to function as intended; SER – Minor in-service problems; OTH – Other |
+| General / Miscellaneous (catch-all) | Hand tools, furniture, secondary structures | SER – Minor in-service problems; STD – Structural deficiency; BRD – Breakdown; UNK – Unknown; OTH – Other |
+
+**HOW TO USE THIS TABLE:**
+1. Determine the Maintainable Item's primary function using the Decision Framework above.
+2. Identify the corresponding functional category in the table.
+3. Use ONLY the permitted failure modes (symptoms) from that category row when assigning ISO 14224 Symptoms to the Maintainable Item.
+4. If a symptom is not in the permitted list for that category, do NOT assign it — this is an ELR (Engineering Logic Validation, G6) violation; apply Replacement Logic to find the nearest valid symptom.
+5. This table is the authoritative reference for permitted failure modes per functional category. The ELR CATEGORY TABLE above provides additional validity/replacement constraints at a finer level; use both in combination — this table defines the permitted set, the ELR CATEGORY TABLE refines which symptoms are most applicable within that set.
+
 **CRITICAL ELU SYMPTOM GUIDANCE (External Leakage - Utility Medium):**
 **CRITICAL LEAKAGE SYMPTOMS GUIDANCE (ISO 14224 Tables B.6-B.13):**
 
