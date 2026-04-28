@@ -2041,7 +2041,7 @@ def create_chat_completion_with_model_fallback(client: OpenAI, model: str, messa
 
 
 def main():
-    api_key = os.getenv("API_KEY_CLAUDESONNET")
+    api_key = (os.getenv("API_KEY_CLAUDESONNET") or "").strip()
     effective_model = resolve_model_name(os.getenv("CLAUDE_MODEL") or os.getenv("OPENAI_MODEL"))
     base_url = os.getenv("CLAUDE_BASE_URL", "https://api.anthropic.com/v1")
     levity_api_key = os.getenv("API_KEY_LEVITY")
@@ -2054,6 +2054,11 @@ def main():
             "API_KEY_CLAUDESONNET is missing or invalid. "
             "Please set a valid Claude API key in your GitHub repository secrets "
             "(Settings → Secrets and variables → Actions → New repository secret)."
+        )
+    if any(c in api_key for c in ("\n", "\r", "\x00")):
+        raise RuntimeError(
+            "API_KEY_CLAUDESONNET contains illegal characters (e.g. newlines). "
+            "Please ensure the secret value does not contain line breaks or control characters."
         )
 
     client = OpenAI(api_key=api_key, base_url=base_url)
