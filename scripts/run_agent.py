@@ -1,5 +1,6 @@
 import os
 import re
+import time
 from functools import lru_cache
 from io import StringIO
 from pathlib import Path
@@ -1171,12 +1172,14 @@ Return the COMPLETE, EXPLICIT, FULLY-EXPANDED FMEA table now.
 """
 
 
-def build_correction_prompt(validation_errors: list[str]) -> str:
+def build_correction_prompt(validation_errors: list[str], mandatory_mi: list[str] | None = None, output_text: str = "") -> str:
     """
     Build a prompt to request AI to fix validation errors.
     
     Args:
         validation_errors: List of validation error messages
+        mandatory_mi: Optional list of mandatory Maintainable Item names from EMS base list
+        output_text: Optional current output text to detect missing MIs
         
     Returns:
         Formatted correction prompt
@@ -1190,16 +1193,29 @@ def build_correction_prompt(validation_errors: list[str]) -> str:
     correction_instructions = []
     
     if has_g9_violation:
-        correction_instructions.append("""
+        # Identify missing MIs from the mandatory base list
+        missing_mi_block = ""
+        if mandatory_mi and output_text:
+            output_lower = output_text.lower()
+            missing_from_base = [mi for mi in mandatory_mi if mi and mi.lower() not in output_lower]
+            if missing_from_base:
+                missing_mi_lines = "\n".join([f"  - {mi}" for mi in missing_from_base])
+                missing_mi_block = f"""
+**MISSING MANDATORY ITEMS FROM EMS BASE LIST** (these MUST be added — they are pre-approved by the engineering team):
+{missing_mi_lines}
+"""
+
+        correction_instructions.append(f"""
 **G9 VIOLATION - MINIMUM MAINTAINABLE ITEM COUNT**:
 You have not met the minimum number of Maintainable Items required for this equipment type.
+{missing_mi_block}
 TO FIX:
-- Review EMS boundaries for components/systems you may have missed
-- Check the Maintainable Item Catalog for relevant items
+- ADD all missing mandatory items listed above — they are pre-approved by the EMS engineering team and MUST appear in the output
+- Also check the Maintainable Item Catalog for additional relevant items not yet covered
 - Consult ISO 14224 Table B.15 for standard maintainable items for this equipment class
 - Consider ALL relevant systems: power transmission, lubrication, cooling, sealing, control, monitoring, structural, etc.
 - Add more Maintainable Items (each with 4-8 symptoms and 2-5 mechanisms per symptom)
-- Mark any items not explicitly in EMS boundaries with "(*)
+- Mark any items NOT already in the EMS base list with "(*)"
 """)
     
     if has_g10_violation:
@@ -2007,9 +2023,32 @@ def resolve_model_name(model: str | None) -> str:
     return (model or "").strip() or "claude-sonnet-4-5"
 
 
+def _is_transient_network_error(exc: Exception) -> bool:
+    """Return True for transient network/connection errors that are safe to retry."""
+    exc_type_name = type(exc).__name__
+    transient_types = {
+        "RemoteProtocolError",
+        "ConnectError",
+        "ReadError",
+        "WriteError",
+        "TimeoutException",
+        "ConnectTimeout",
+        "ReadTimeout",
+        "WriteTimeout",
+        "PoolTimeout",
+    }
+    if exc_type_name in transient_types:
+        return True
+    # Also catch httpx and httpcore remote-protocol / connection errors by class hierarchy
+    if isinstance(exc, (httpx.RemoteProtocolError, httpx.ConnectError, httpx.ReadError, httpx.TimeoutException)):
+        return True
+    return False
+
+
 def create_chat_completion_with_model_fallback(client: OpenAI, model: str, messages: list[dict[str, str]]) -> tuple[object, str]:
     """
     Request a chat completion and gracefully fallback to `claude-sonnet-4-5` for model-not-found errors.
+    Retries up to 3 times with exponential backoff for transient network errors.
 
     Returns a tuple with `(response, used_model)`, where `used_model` is the model that succeeded.
     """
@@ -2019,21 +2058,30 @@ def create_chat_completion_with_model_fallback(client: OpenAI, model: str, messa
     if selected_model != fallback_model:
         candidates.append(fallback_model)
 
+    MAX_TRANSIENT_RETRIES = 3
+    TRANSIENT_RETRY_BASE_DELAY = 5  # seconds
+
     last_model_not_found_error: Exception | None = None
     for candidate in candidates:
-        try:
-            response = client.chat.completions.create(
-                model=candidate,
-                messages=messages,
-            )
-            return response, candidate
-        except Exception as exc:
-            if _is_model_nonexistent_error(exc):
-                last_model_not_found_error = exc
-                if candidate != fallback_model:
-                    print(f"[WARN] Model '{candidate}' not available. Retrying with fallback model '{fallback_model}'.")
-                continue
-            raise
+        for attempt in range(1, MAX_TRANSIENT_RETRIES + 1):
+            try:
+                response = client.chat.completions.create(
+                    model=candidate,
+                    messages=messages,
+                )
+                return response, candidate
+            except Exception as exc:
+                if _is_model_nonexistent_error(exc):
+                    last_model_not_found_error = exc
+                    if candidate != fallback_model:
+                        print(f"[WARN] Model '{candidate}' not available. Retrying with fallback model '{fallback_model}'.")
+                    break  # move to next candidate
+                if _is_transient_network_error(exc) and attempt < MAX_TRANSIENT_RETRIES:
+                    delay = TRANSIENT_RETRY_BASE_DELAY * attempt
+                    print(f"[WARN] Transient network error on attempt {attempt}/{MAX_TRANSIENT_RETRIES}: {exc}. Retrying in {delay}s...")
+                    time.sleep(delay)
+                    continue
+                raise
 
     if last_model_not_found_error is not None:
         raise last_model_not_found_error
@@ -2211,7 +2259,7 @@ def main():
 No equipment manual is available. The **EMS Scope column describes the equipment's function, operating principle, and technical context on the FPSO** — your role is to read it as a Senior Reliability Engineer and then apply your FMEA/RCM expertise to identify additional Maintainable Items that are technically justified for that type of equipment.
 
 **Source hierarchy (do not change):**
-1. **EMS Boundaries** → defines the MANDATORY base list of Maintainable Items (primary source)
+1. **EMS Boundaries** → defines the MANDATORY base list of Maintainable Items (primary source — INCLUDE ALL)
 2. **EMS Scope** → provides functional and technical context to understand the equipment type; use it as the basis to apply FMEA/RCM engineering judgment for additional MI suggestions
 3. **ISO 14224 Table B.15** → supplements with standard items typically expected in FMEA/RCM for this equipment class
 
@@ -2220,43 +2268,31 @@ No equipment manual is available. The **EMS Scope column describes the equipment
 - Based on your understanding of the equipment type, apply your FMEA/RCM knowledge: identify the Maintainable Items that a reliability engineer would typically include in an FMEA or RCM analysis for this kind of equipment, even if they are NOT explicitly named in the Boundaries or Scope text
 - Mark all Scope-context-derived or engineering-knowledge-derived items that are not in EMS Boundaries with "(*)"
 
-**MANDATORY MAINTAINABLE ITEM LIST (BASE FROM EMS BOUNDARIES)
+**MANDATORY MAINTAINABLE ITEM LIST (BASE FROM EMS BOUNDARIES)**
 The list below contains Maintainable Items derived from EMS Boundaries column. Only items explicitly marked with "Exclude" or "Excludes" have been removed; items marked as "optional", "if fitted", "if applicable", or "if any" are intentionally INCLUDED because they represent real components that may require maintenance.
 
-**IMPORTANT NOTE**: This base list has been filtered using basic exclusion rules, but you MUST apply additional engineering intelligence:
-- Some boundary items may be redundant or covered by other maintainable items
-- Some boundary items may not be independently maintainable
-- You should filter further based on maintainability criteria (see MAINTAINABLE ITEM RULES in spec)
-- You should also ADD maintainable items using your FMEA/RCM engineering knowledge as described below
+⚠️ **ALL ITEMS IN THIS BASE LIST ARE MANDATORY** — you MUST include every single one in your FMEA output. Do NOT remove, skip, or consolidate any item from this list.
 
 **CRITICAL REQUIREMENTS:**
-1. You MUST build the FMEA for EVERY relevant Maintainable Item - not just those listed below
-2. APPLY ENGINEERING JUDGMENT to filter the base list (remove items that are sub-components or not independently maintainable)
-3. PROACTIVELY ADD maintainable items using your FMEA/RCM engineering knowledge for this equipment type (mark with "(*)")
+1. You MUST build the FMEA for EVERY item in the base list below — without exception
+2. ❌ Do NOT filter or remove base-list items — they are already pre-filtered by the EMS engineering team
+3. ✅ PROACTIVELY ADD additional maintainable items using your FMEA/RCM engineering knowledge (mark with "(*)")
 4. Use the EMS Scope to understand the equipment function and apply engineering expertise to suggest additional relevant MIs
 5. Do NOT limit yourself to only the "main" or "most probable" items - include ALL technically relevant items
 6. Mark any additional Maintainable Items you suggest (beyond the base list) with "(*)" to indicate they are inferred
 
-**Base Maintainable Items from EMS Boundaries (filtered for explicit exclusions only):**
+**Base Maintainable Items from EMS Boundaries (ALL MANDATORY — include every item):**
 {mandatory_mi_block}
 
-**Additional Maintainable Items - YOUR RESPONSIBILITY:**
+**Additional Maintainable Items - YOUR RESPONSIBILITY (add to, never subtract from, the base list above):**
 - **STEP 1 — UNDERSTAND EQUIPMENT FUNCTION FROM SCOPE**: Read the EMS Scope (in ITEM CLASS CONTEXT above under "Scope:") to understand what this equipment does, how it works, and its critical failure risks on an FPSO.
   * Your goal is NOT to extract component names from the Scope text — it is to understand the equipment type and its function
   * Once you understand the equipment type (e.g., "centrifugal compressor", "electric motor", "gas turbine"), apply your knowledge as a Senior Reliability Engineer with FMEA and RCM experience to determine which Maintainable Items are typically included in FMEA/RCM analyses for this kind of equipment
   * Ask yourself: "For this type of equipment, which subsystems and components would a reliability engineer typically include in an FMEA or RCM study?" — those are your candidates for (*)-marked additional MIs
-- **STEP 2 — APPLY ENGINEERING INTELLIGENCE**: Not all items from Boundaries or Scope should become Maintainable Items
-  * **PRIMARY CRITERION (MOST IMPORTANT)**: Ask first "Could this component's failure cause complete system failure?"
-    - If NO → Exclude from Maintainable Items (likely sub-component or non-critical)
-    - If YES → Continue with additional evaluation tests below
-  * **Use decision framework IN ORDER**:
-    1. Primary: Critical system failure test (most important)
-    2. Independence test
-    3. Symptom distinctiveness test
-    4. Maintenance action test
-  * **Filter hierarchically**: Exclude sub-components covered by parent items (use parent-child relationship analysis)
-  * **Only include components** that pass the primary criterion AND are independently maintainable AND have distinct failure symptoms
-  * **Generic principle**: If component A's maintenance/symptoms are fully covered by component B's FMEA, exclude component A
+- **STEP 2 — ADD MORE ITEMS**: On top of the mandatory base list, identify additional Maintainable Items not yet covered
+  * **Evaluate generic system categories**: Power transmission, lubrication, cooling, sealing, bearing, monitoring/control, power supply, structural, fluid handling
+  * **Check for any subsystem** that has its own distinct failure modes, symptoms, and maintenance actions
+  * Mark all additions with "(*)"
 - **STEP 3 — CONSULT ISO 14224 Table B.15**: Supplement with standard maintainable items for this Item Class type
   * **Evaluate generic system categories**: Power transmission, lubrication, cooling, sealing, bearing, monitoring/control, power supply, structural, fluid handling
   * **Select based on**: Item Class functional requirements, operating principles, and failure risk profile understood from the Scope
@@ -2378,11 +2414,11 @@ Return ONLY the final deliverables requested in the instruction.
                 missing.append(mi_name)
 
         if mandatory_mi and missing:
-            print(f"\n[INFO] Model output has {len(missing)} items from base list that were filtered out:")
+            print(f"\n[WARN] Model output is MISSING {len(missing)} mandatory item(s) from EMS base list:")
             for mi_name in missing[:10]:  # Show up to 10 examples
                 print(f"  - {mi_name}")
-            print("\n[INFO] This is acceptable if AI applied engineering judgment to filter non-maintainable or redundant items.")
-            print("[INFO] The AI should have provided justification in the output for significant omissions.")
+            print("[WARN] These items from EMS Boundaries are MANDATORY and should appear in the output.")
+            print("[INFO] The correction loop will request the AI to include them if validation fails.")
 
         # --- Quality gate: validate cardinality rules with automatic correction ---
         print("\n[VALIDATION] Checking cardinality and duplication rules...")
@@ -2398,15 +2434,22 @@ Return ONLY the final deliverables requested in the instruction.
             print(f"\n[CORRECTION] Requesting AI to fix validation errors...")
 
             # Build correction prompt with specific errors
-            correction_prompt = build_correction_prompt(validation_errors)
+            correction_prompt = build_correction_prompt(
+                validation_errors, mandatory_mi=mandatory_mi, output_text=output_text
+            )
             conversation_history.append({"role": "user", "content": correction_prompt})
 
             # Request correction from AI
-            correction_resp, used_model = create_chat_completion_with_model_fallback(
-                client=client,
-                model=effective_model,
-                messages=conversation_history,
-            )
+            try:
+                correction_resp, used_model = create_chat_completion_with_model_fallback(
+                    client=client,
+                    model=effective_model,
+                    messages=conversation_history,
+                )
+            except Exception as exc:
+                print(f"[ERROR] AI correction request failed: {exc}")
+                print("[WARNING] Skipping correction attempt. Output will be saved with existing validation errors.")
+                break
             effective_model = used_model
 
             usage = getattr(correction_resp, "usage", None)
