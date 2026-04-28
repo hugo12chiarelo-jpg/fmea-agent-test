@@ -819,7 +819,50 @@ def build_item_class_specific_guidance(item_class: str) -> str:
    - Do NOT reference "previous completion" or "unchanged sections"
    - Every Maintainable Item must have its full set of rows in the output table
 """
-    
+
+    # Guidance for centrifugal pumps (PUCE, pump centrifugal, etc.)
+    _is_pump = "pump" in item_class_lower or item_class_lower.startswith("puce")
+    _is_centrifugal = "centrifugal" in item_class_lower or "puce" in item_class_lower
+    if _is_pump or _is_centrifugal:
+        return """
+## ITEM-CLASS-SPECIFIC GUIDANCE: Pump (Centrifugal / Rotodynamic)
+
+**IMPORTANT: Centrifugal/rotodynamic pumps are COMPLEX EQUIPMENT requiring at least 12 distinct Maintainable Items.**
+The reference output below is based on ISO 14224 Table B.15 and FPSO O&G industry FMEA/RCM practice.
+Include a minimum of 12 items from the combined MANDATORY + STRONGLY RECOMMENDED lists below.
+
+### MANDATORY Maintainable Items (derive from EMS Boundaries — include all that are in scope):
+1.  **Impeller Failure** — hydraulic component; failures cause flow loss, vibration, cavitation damage
+2.  **Shaft Failure** — rotating element; failures cause breakage, misalignment, vibration
+3.  **NDE Bearing Failure** — Non-Drive End bearing; failures cause vibration, overheating, seizure
+4.  **DE Bearing Failure** — Drive End bearing; failures cause vibration, overheating, seizure
+5.  **Thrust Bearing Failure** — axial load carrier; failures cause axial movement, vibration, seizure
+6.  **Mechanical Seal Failure** — primary leakage barrier; failures cause process fluid leakage
+7.  **Coupling Failure** — power transmission link between pump and driver; failures cause loss of drive
+8.  **Wear Ring Failure** — clearance control element; failures cause recirculation, reduced efficiency
+9.  **Casing Failure** — pressure-containing envelope; failures cause leakage, loss of containment
+
+### STRONGLY RECOMMENDED Additional Maintainable Items (mark with (*) if not explicitly in EMS Boundaries):
+10. **Baseplate Failure (*)** — structural foundation; failures cause misalignment, vibration
+11. **Lube Oil System Failure (*)** — bearing lubrication system; failures cause bearing damage
+12. **Cooling System Failure (*)** — bearing/seal cooling; failures cause overheating
+13. **Seal Piping Failure (*)** — API seal support piping (Plan 11/23/etc.); failures cause seal damage
+14. **Filter/Strainer Failure (*)** — suction strainer or seal fluid filter; failures cause blockage, cavitation
+15. **Instrumentation Failure (*)** — vibration, temperature, flow, pressure instruments; failures cause loss of monitoring
+16. **Suction Nozzle/Piping Failure (*)** — inlet piping; failures cause flow restriction, cavitation
+
+### Naming Rules:
+- ALL Maintainable Item names MUST end with " Failure" (e.g., "Impeller Failure", NOT "Impeller")
+- Use exact names from Maintainable Item Catalog where available; mark deviations with "(*)"
+- Do NOT use acronyms alone as MI names: use "NDE Bearing Failure" NOT "NDEBF"
+
+### Completeness Requirement:
+- Generate the COMPLETE FMEA table for ALL Maintainable Items listed
+- Do NOT use placeholders like "[The rest of the table...]" or "[See above]"
+- Every Maintainable Item must have its full set of rows in the output table
+- Minimum 12 MIs for pumps; add engineering-justified suggestions from the list above to reach this count
+"""
+
     # Default: no specific guidance
     return ""
 
@@ -1929,16 +1972,25 @@ def _is_complex_equipment(item_class: str) -> bool:
 def _is_model_nonexistent_error(exc: Exception) -> bool:
     def _contains_model_not_exist_text(text: str) -> bool:
         text_lower = text.lower()
-        return "model not exist" in text_lower or "model_not_found" in text_lower
+        return (
+            "model not exist" in text_lower
+            or "model_not_found" in text_lower
+            or "not_found_error" in text_lower
+        )
 
     status_code = getattr(exc, "status_code", None)
     body = getattr(exc, "body", None)
 
     if isinstance(body, dict):
+        # OpenAI style: {"error": {"message": ..., "code": ...}}
         error_data = body.get("error", {}) if isinstance(body.get("error"), dict) else {}
         api_message = str(error_data.get("message", ""))
         api_code = str(error_data.get("code", ""))
         if _contains_model_not_exist_text(api_message) or _contains_model_not_exist_text(api_code):
+            return True
+        # Anthropic style: {"type": "error", "error": {"type": "not_found_error", "message": ...}}
+        error_type = str(error_data.get("type", ""))
+        if "not_found_error" in error_type.lower():
             return True
 
     message = str(exc)
@@ -1946,21 +1998,23 @@ def _is_model_nonexistent_error(exc: Exception) -> bool:
         return True
 
     message_lower = message.lower()
-    return status_code in {400, 404} and "model" in message_lower and "exist" in message_lower
+    return status_code in {400, 404} and "model" in message_lower and (
+        "exist" in message_lower or "not found" in message_lower
+    )
 
 
 def resolve_model_name(model: str | None) -> str:
-    return (model or "").strip() or "deepseek-chat"
+    return (model or "").strip() or "claude-sonnet-4-5"
 
 
 def create_chat_completion_with_model_fallback(client: OpenAI, model: str, messages: list[dict[str, str]]) -> tuple[object, str]:
     """
-    Request a chat completion and gracefully fallback to `deepseek-chat` for model-not-found errors.
+    Request a chat completion and gracefully fallback to `claude-sonnet-4-5` for model-not-found errors.
 
     Returns a tuple with `(response, used_model)`, where `used_model` is the model that succeeded.
     """
     selected_model = resolve_model_name(model)
-    fallback_model = "deepseek-chat"
+    fallback_model = "claude-sonnet-4-5"
     candidates = [selected_model]
     if selected_model != fallback_model:
         candidates.append(fallback_model)
@@ -1987,16 +2041,16 @@ def create_chat_completion_with_model_fallback(client: OpenAI, model: str, messa
 
 
 def main():
-    api_key = os.getenv("API_KEY_DS")
-    effective_model = resolve_model_name(os.getenv("DS_MODEL") or os.getenv("OPENAI_MODEL"))
-    base_url = os.getenv("DS_BASE_URL", "https://api.deepseek.com")
+    api_key = os.getenv("API_KEY_CLAUDESONNET")
+    effective_model = resolve_model_name(os.getenv("CLAUDE_MODEL") or os.getenv("OPENAI_MODEL"))
+    base_url = os.getenv("CLAUDE_BASE_URL", "https://api.anthropic.com/v1")
     levity_api_key = os.getenv("API_KEY_LEVITY")
     levity_reference_vendor = (os.getenv("LEVITY_REFERENCE_VENDOR") or DEFAULT_LEVITY_REFERENCE_VENDOR).strip()
     levity_equipment_context = (os.getenv("LEVITY_EQUIPMENT_CONTEXT") or DEFAULT_LEVITY_EQUIPMENT_CONTEXT).strip()
     levity_lookup_enabled = should_use_levity_manual_lookup(levity_api_key)
     max_correction_attempts = int(os.getenv("MAX_CORRECTION_ATTEMPTS", "3"))
     if not api_key:
-        raise RuntimeError("Missing API_KEY_DS secret")
+        raise RuntimeError("Missing API_KEY_CLAUDESONNET secret")
 
     client = OpenAI(api_key=api_key, base_url=base_url)
 

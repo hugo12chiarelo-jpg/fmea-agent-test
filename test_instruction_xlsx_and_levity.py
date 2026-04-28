@@ -367,9 +367,9 @@ def test_create_chat_completion_uses_default_when_model_empty_or_whitespace():
     client = MockClient()
     response, used_model = create_chat_completion_with_model_fallback(client, "   ", [{"role": "user", "content": "x"}])
 
-    assert used_model == "deepseek-chat"
-    assert client.chat.completions.calls == ["deepseek-chat"]
-    assert response["model"] == "deepseek-chat"
+    assert used_model == "claude-sonnet-4-5"
+    assert client.chat.completions.calls == ["claude-sonnet-4-5"]
+    assert response["model"] == "claude-sonnet-4-5"
 
 
 def test_create_chat_completion_retries_when_model_does_not_exist():
@@ -397,12 +397,12 @@ def test_create_chat_completion_retries_when_model_does_not_exist():
     client = MockClient()
     response, used_model = create_chat_completion_with_model_fallback(client, "invalid-model", [{"role": "user", "content": "x"}])
 
-    assert used_model == "deepseek-chat"
-    assert client.chat.completions.calls == ["invalid-model", "deepseek-chat"]
-    assert response["model"] == "deepseek-chat"
+    assert used_model == "claude-sonnet-4-5"
+    assert client.chat.completions.calls == ["invalid-model", "claude-sonnet-4-5"]
+    assert response["model"] == "claude-sonnet-4-5"
 
 
 def test_resolve_model_name_fallbacks():
-    assert resolve_model_name("  ") == "deepseek-chat"
-    assert resolve_model_name(None) == "deepseek-chat"
-    assert resolve_model_name("deepseek-reasoner") == "deepseek-reasoner"
+    assert resolve_model_name("  ") == "claude-sonnet-4-5"
+    assert resolve_model_name(None) == "claude-sonnet-4-5"
+    assert resolve_model_name("claude-opus-4-5") == "claude-opus-4-5"
